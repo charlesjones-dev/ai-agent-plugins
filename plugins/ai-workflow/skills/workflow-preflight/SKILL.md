@@ -1,13 +1,12 @@
 ---
 name: workflow-preflight
-description: "Run code quality checks (typecheck, lint, tests) - auto-detects configured tools and offers to fix issues."
+description: "Runs the project's configured typecheck, lint, format, security and test checks and offers to fix what fails. Use when the user asks for preflight checks or to check code before committing, and when /workflow-ship runs it."
 argument-hint: "[--fix | --check-only | --verbose]"
 allowed-tools:
   - Bash
   - Read
   - Glob
   - Grep
-disable-model-invocation: true
 ---
 
 # Preflight Code Quality Checks

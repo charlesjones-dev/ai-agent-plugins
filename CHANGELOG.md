@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.12.0] - 2026-10-10
+
+### Added
+
+#### AI-Workflow Plugin (v2.0.1 → v2.1.0)
+
+- **`/workflow-babysit`** — takes the current branch to production in one unattended run. Runs from `/workflow-babysit` or when you say "babysit this to prod", and invoking it is the approval to merge.
+  - Opens the PR itself when there isn't one: commits uncommitted changes in the repo's style, branches off the default or staging branch, pushes, and targets staging when the repo has a staging flow. It doesn't need `/workflow-ship` first.
+  - Asks every question at the start (which uncommitted files to leave out if some look unrelated, what to do when the Claude Code review action isn't set up, and whether to promote other people's unreleased commits already on staging, read from GitHub logins), and warns when a branch rule needs a human approval. Then it runs without stopping. It stops only for a blocking finding still open after 3 rounds, a teammate requesting changes, CI it can't fix, a merge GitHub refuses, or a failed deploy or health check. Every wait has a deadline. Running it again after a stop picks up the open PR, or the release step when run from staging.
+  - Waits for CI, the Claude Code GitHub Action, Codex Code Review and Cursor Bugbot on the head commit. Claude Code counts as on only when a workflow running `anthropics/claude-code-action` on pull requests is on the default branch and enabled, has its secret set, and posts its findings to the PR. A workflow that runs `/code-review` without `--comment` or another way to comment would otherwise pass as a clean review. A run whose log says `Skipping action due to workflow validation` counts as no review. A clean Codex pass that posts only a 👍 reaction counts as done. Each reviewer has a time limit.
+  - Fixes correctness, data-loss, security and regression findings in code the PR changed, opens issues for the rest or replies "by design", and resolves every bot thread. Claude Code re-reviews by itself after each push and Codex gets one scoped `@codex review` per round, with 3 rounds of fixes at most. A finding Claude Code raises again after it was answered gets a link to the earlier reply instead of a second round. When the review workflow doesn't run on pushes, the local `/code-review` covers the new commits. It never resolves a person's thread or merges over a requested change. A repo's CLAUDE.md can set its own triage rules.
+  - **Cursor Bugbot** — detected by its `Cursor Bugbot` check run. A pass is done when a `<!-- BUGBOT_REVIEW -->` review names the head commit, and reviews marked `BUGBOT_REVIEW_STALE` are ignored. Only `cursor[bot]` comments with a `BUGBOT_BUG_ID` count as findings, so Cursor Automations approvals and Autofix results aren't triaged. Findings are handled High Severity first, and every location listed under "Additional Locations" is checked. Bugbot re-reviews by itself on pushes; when it doesn't run on the new commit within 5 minutes, the skill posts one `bugbot run`. It also posts one after resolving findings when a required Bugbot check failed on unresolved issues. It never writes `@cursor`, because a mention starts a Cursor agent that can push to the branch.
+  - **Bugbot Autofix** — when Autofix commits to the PR branch, the skill waits for the `Cursor Bugbot Autofix` check, pulls its commits, fixes only what it left, and runs `git pull --rebase` before every push. When Autofix makes a separate branch, the skill fixes the finding in the PR and doesn't merge that branch.
+  - When the Claude Code action isn't set up, it can run the built-in `/code-review` locally on each PR in its place and post the findings and what happened to them as a PR comment.
+  - Merges only the commit that passed the review gate (`--match-head-commit`), never with `--admin`, and uses a merge commit for release PRs so staging and the default branch don't diverge. Each PR's own base decides whether it goes on to the release step. If GitHub's automatic branch deletion removes staging when the release PR merges, it recreates staging at the same commit.
+  - With a staging flow, it watches the staging deploy before promoting, opens or reuses a `Release:` PR, and reviews it the same way.
+  - Watches the production deploy without deploying anything itself: GitHub deployments first (Vercel, Railway and other hosts that report to GitHub), then GitHub Actions deploy runs, then a linked host CLI. Railway gets per-service status, logs and domains through its CLI, since Railway reports one GitHub deployment per environment. The health check skips `environment_url` values that point at a host dashboard, and treats a 401 or 403 from a protected URL as inconclusive.
+  - Follows deploy rules from CLAUDE.md, such as starting staging services before a staging deploy.
+- **`/workflow-claude-actions`** — sets up or updates the Claude Code GitHub Actions so PR reviews post inline comments and both workflows run on the newest Opus. Builds on the built-in `/install-github-app`.
+  - Passes `--model opus` on the review and `@claude` mention workflows. The alias follows the newest Opus the action's bundled Claude Code knows about, and the floating `@v1` tag picks up new releases without edits. It asks before moving a pinned action to `@v1` or replacing a different model.
+  - Edits existing workflows in place: adds the model, `--comment` on the `code-review` prompt and the inline-comment tool, and keeps triggers, filters, permissions and auth. Workflows from older versions of `/install-github-app` ran `/code-review` with no way to post, so their findings never reached the PR. For pre-v1 workflows it recommends regenerating them with `/install-github-app` first.
+  - Copies the bundled workflows when one is missing, with a subscription token (`CLAUDE_CODE_OAUTH_TOKEN`) or an Anthropic API key (`ANTHROPIC_API_KEY`). For a missing workflow next to one on Bedrock, Vertex, Foundry or workload identity federation, it copies that workflow's whole auth setup. The bundled review workflow skips fork PRs and bot PRs, which get no OIDC token or are refused by the action. On public repos the skill offers to add that guard to an existing review workflow.
+  - Checks for the secret on the repo and the organization, and gives you the commands to set a missing one in your own terminal. It never asks for, prints or passes a token.
+  - Checks `ANTHROPIC_MODEL`, which overrides `--model`, and edits every action step in a workflow. It adds the inline-comment tool without quotes so a double-quoted `claude_args` stays valid, and parses every edited file as YAML before showing the diff.
+  - Skips asking about the Claude GitHub App when `claude[bot]` has commented in the repo recently. It commits, pushes and opens one PR only after you approve the diff, targets staging when work lands there, switches back to your branch whenever it stops, and never merges or changes repo settings.
+  - Explains why the PR's own review check passes without reviewing (and, in staging repos, why reviews pause on staging PRs until promotion), why `pull-requests: read` findings from bot reviewers are false positives, and how to confirm the model from the run log.
+- `/workflow-babysit` points to `/workflow-claude-actions` when Claude Code review is off or its review workflow can't post to the PR.
+
+### Fixed
+
+#### AI-Workflow Plugin (v2.0.1 → v2.1.0)
+
+- **`/workflow-ship` preflight step** — `/workflow-preflight` had `disable-model-invocation: true`, so Claude Code refused the Skill tool call that `/workflow-ship` makes in its first step and told Claude not to run the checks another way. `/workflow-preflight` can now be invoked by Claude, and `/workflow-ship` passes `--fix` so preflight applies auto-fixes without stopping at its numbered menu. Claude can also run preflight when you ask to check code before committing.
+- Marketplace metadata version bumped `2.11.3` → `2.12.0`.
+
 ## [2.11.3] - 2026-10-09
 
 ### Fixed
@@ -1374,7 +1409,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.3...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.12.0...HEAD
+[2.12.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.3...v2.12.0
 [2.11.3]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.2...v2.11.3
 [2.11.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.1...v2.11.2
 [2.11.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.0...v2.11.1

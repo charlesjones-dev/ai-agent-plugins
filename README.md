@@ -1,6 +1,6 @@
 # Claude Code Plugins for Developers
 
-[![Version](https://img.shields.io/badge/version-2.11.3-blue.svg)](https://github.com/charlesjones-dev/claude-code-plugins-dev/releases)
+[![Version](https://img.shields.io/badge/version-2.12.0-blue.svg)](https://github.com/charlesjones-dev/claude-code-plugins-dev/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/claude-code-plugins-dev.svg)](https://github.com/charlesjones-dev/claude-code-plugins-dev/stargazers)
 
@@ -27,7 +27,7 @@ Claude Code plugins for code audits, release checks and day-to-day git and proje
 | [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads | `/slop-audit` | - |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | - |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | `swift-release-auditor` |
-| [ai-workflow](plugins/ai-workflow/) | Preflight checks, a commit-push-PR ship skill, a Development Principles generator and CLAUDE.md behavior rules | `/workflow-preflight`, `/workflow-ship`, `/workflow-principles`, `/workflow-rules` | - |
+| [ai-workflow](plugins/ai-workflow/) | Preflight checks, a commit-push-PR ship skill, an unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, Claude Code GitHub Actions setup on the newest Opus, a Development Principles generator and CLAUDE.md behavior rules | `/workflow-preflight`, `/workflow-ship`, `/workflow-babysit`, `/workflow-claude-actions`, `/workflow-principles`, `/workflow-rules` | - |
 | [ai-writing](plugins/ai-writing/) | Rewrites text to remove AI writing patterns | `/writing-humanize` | - |
 
 > **Note on audit plugins:** The audit plugins read your code and report what they find, and a few can also check a live URL. Use them to catch problems during development, then confirm with runtime testing and manual review.

@@ -1,7 +1,7 @@
 {
   "name": "ai-workflow",
-  "version": "2.0.1",
-  "description": "Runs typecheck, lint, format, security and test checks before you commit, ships a change as commit, push and PR, writes a Development Principles section, and manages a library of CLAUDE.md behavior rules",
+  "version": "2.1.0",
+  "description": "Runs typecheck, lint, format, security and test checks before you commit, ships a change as commit, push and PR, babysits a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, sets up the Claude Code GitHub Actions on the newest Opus, writes a Development Principles section, and manages a library of CLAUDE.md behavior rules",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -23,6 +23,17 @@
     "commit",
     "push",
     "pull-request",
+    "babysit",
+    "code-review",
+    "codex",
+    "cursor",
+    "bugbot",
+    "github-actions",
+    "opus",
+    "merge",
+    "release",
+    "deploy",
+    "production",
     "automation",
     "productivity",
     "principles",

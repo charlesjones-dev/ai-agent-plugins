@@ -1,6 +1,6 @@
 ---
 name: workflow-ship
-version: 1.0.0
+version: 1.0.1
 description: |
   Runs preflight checks (typecheck, lint, tests), auto-fixes issues,
   then commits, pushes, and creates a PR. Bails early if preflight fixes were
@@ -26,16 +26,13 @@ You are a shipping assistant. Your job is to get the current branch shipped by r
 
 ### Step 1: Preflight checks
 
-Run the `/workflow-preflight` skill to execute typecheck, lint, and test checks.
+Invoke the `workflow-preflight` skill with the Skill tool, passing `--fix` as its arguments, to run the typecheck, lint, format, security and test checks. With `--fix`, preflight applies the auto-fixes it can (lint --fix, format, etc.) without asking and re-runs the failing checks.
 
-If any checks fail:
-1. Attempt to auto-fix the issues (lint --fix, format, etc.)
-2. Re-run the failing checks to confirm fixes worked
-3. If fixes were applied, **STOP HERE** and tell the user:
-   - What failed and what was fixed
-   - Ask them to review the fixes before shipping
-   - Tell them to run `/workflow-ship` again once they're satisfied
-4. If fixes fail or issues can't be auto-resolved, **STOP HERE** and report the remaining issues
+- If preflight applied fixes, **STOP HERE** and tell the user:
+  - What failed and what was fixed
+  - Ask them to review the fixes before shipping
+  - Tell them to run `/workflow-ship` again once they're satisfied
+- If issues remain that preflight couldn't fix, **STOP HERE** and report them
 
 If all checks pass with no fixes needed, proceed to Step 2.
 
