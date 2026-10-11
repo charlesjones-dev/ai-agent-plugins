@@ -64,7 +64,7 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
 8. **Reviewers**: work out whether Claude Code review is on, using [reviewers.md](reviewers.md). If it is off, and CLAUDE.md doesn't already say what to do, ask. Say which check failed, and whether Codex or Cursor Bugbot reviewed the repo's last few PRs. Offer:
    - **Use local /code-review (Recommended)**: run Claude Code's built-in `/code-review` on each PR in place of the GitHub Action.
    - **Proceed without it**: Codex and Bugbot, if they're on, are the only reviewers. If both are off too, nothing reviews the PRs.
-   - **Stop**: set up or fix the action with `/workflow-claude-actions` (or the built-in `/install-github-app`) and run this skill again.
+   - **Stop**: set up the action with Claude Code's built-in `/install-github-app` and run this skill again. To fix an existing workflow, run `/install-github-app` again and pick "Update workflow file with latest version".
 
    One answer covers the whole run, release PR included. Codex and Bugbot can only be detected once a PR is open (step 2), and their being off is never a reason to stop.
 9. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. If there is none, the run ends after the last merge and says so.

@@ -38,13 +38,9 @@ Before proceeding with task creation, verify that Azure DevOps configuration exi
      ```
    - **STOP** and do not proceed further
 
-3. If Azure DevOps section exists:
-   - Parse the CLAUDE.md content to extract configuration values:
-     - Organization name (look for text after 'specify the organization as "')
-     - Project name (look for text after 'the project as "')
-     - Team name (look for text after 'the team as "')
-     - Area Path (look for text after 'Area Path" set to "')
-     - Iteration Path (look for text after 'Iteration Path" set to "')
+3. If Azure DevOps section exists, extract these values from it. `/ado-init` has written the section in two formats, so accept either:
+   - **Current format**, one line per value: `**Organization:**`, `**Project:**`, `**Team:**`, `**Area Path:**` and `**Iteration Path:**`, each followed by its value
+   - **Older format**, one sentence: the organization is the text after 'specify the organization as "', the project after 'the project as "', the team after 'the team as "', the Area Path after 'Area Path" set to "' and the Iteration Path after 'Iteration Path" set to "'
    - Store these values for use in task creation
    - Proceed to Phase 2
 
@@ -63,7 +59,7 @@ Simply output the following text as your response message and STOP (DO NOT call 
 
 "What is the ID of the parent User Story for logging this completed work?
 
-(This is the numeric ID of the User Story work item. You can find this in Azure DevOps or from the output of /ado-create-story)"
+(This is the numeric ID of the User Story work item. You can find this in Azure DevOps or from the output of /ado-create story)"
 
 Wait for the user's next message with the parent story ID before proceeding.
 
@@ -421,7 +417,7 @@ If the MCP tool returns an error:
   - Check that hour values are valid numeric values
   - Ensure git repository is accessible if commit hash was provided
 - Recommend running /ado-init if configuration seems incorrect
-- If parent ID is invalid, suggest using /ado-create-story first
+- If parent ID is invalid, suggest using /ado-create story first
 - If git command fails, suggest verifying the commit hash is valid
 
 If git commit lookup fails:

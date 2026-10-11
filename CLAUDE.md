@@ -4,30 +4,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a marketplace for custom Claude Code plugins, skills, and other extensions. The repository follows a structured plugin system where each plugin is self-contained with its own metadata and skills.
+This is the `ai-agent-plugins` marketplace (GitHub: `charlesjones-dev/ai-agent-plugins`, renamed from `claude-code-plugins-dev` in 3.0.0). Every plugin runs in Claude Code, and the portable ones also run in Codex and Cursor. Each plugin is self-contained with its own metadata and skills.
 
 ## Official Documentation
 
-For detailed information about Claude Code plugins, refer to these official documentation resources:
+Consult these before changing plugin structure or metadata:
 
-1. **[Plugins](https://docs.claude.com/en/docs/claude-code/plugins)**: Core concepts and guide for creating and using Claude Code plugins
-2. **[Plugins Reference](https://docs.claude.com/en/docs/claude-code/plugins-reference)**: Technical reference for plugin structure, metadata schemas, and command formats
-3. **[Plugin Marketplaces](https://docs.claude.com/en/docs/claude-code/plugin-marketplaces)**: Guide for creating and managing plugin marketplaces like this repository
-
-These documentation resources provide authoritative information on plugin development best practices, metadata schemas, and marketplace structure that should be consulted when developing new plugins.
+1. **[Claude Code plugins](https://code.claude.com/docs/en/plugins)**, the **[marketplace reference](https://code.claude.com/docs/en/plugins/marketplace-reference)** and **[hosting a marketplace](https://code.claude.com/docs/en/plugins/host-marketplace)**
+2. **[Agent Plugins specification](https://agent-plugins.org/)** (root `plugin.json`, skills and MCP only) and the **[Agent Skills specification](https://agentskills.io/specification)** (`SKILL.md` format)
+3. **[Codex plugins](https://learn.chatgpt.com/docs/plugins)** and **[Codex skills](https://learn.chatgpt.com/docs/build-skills)**
+4. **[Cursor plugins](https://cursor.com/docs/plugins)** and **[Cursor skills](https://cursor.com/docs/skills)**
 
 ## Architecture
 
 ### Marketplace Structure
 
-The repository uses a two-level metadata system:
+There are three catalogs, one per agent, all named `ai-agent-plugins`:
 
-1. **Root marketplace manifest** (`.claude-plugin/marketplace.json`): Central registry that defines:
-   - Marketplace owner and metadata
-   - List of all available plugins with their source paths, descriptions, and categories
-   - Plugin root directory location (`./plugins`)
+1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 13 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
+2. **`.agents/plugins/marketplace.json`** (Codex): lists only the portable plugins. Each entry needs `source` (`{"source": "local", "path": "./plugins/{name}"}`), `policy.installation`, `policy.authentication` and `category`.
+3. **`.cursor-plugin/marketplace.json`** (Cursor): lists only the portable plugins, with `source: "plugins/{name}"`, `description` and `version`.
 
-2. **Individual plugin manifests** (`plugins/{plugin-name}/.claude-plugin/plugin.json`): Each plugin has its own metadata including name, version, description, author, and license.
+Each plugin has a Claude Code manifest at `plugins/{plugin-name}/.claude-plugin/plugin.json`. Portable plugins also have an Agent Plugins 1.0 manifest at `plugins/{plugin-name}/plugin.json`, which Codex and Cursor read first and Claude Code ignores. Its schema is closed: only `$schema`, `name`, `version`, `description`, `author` (`name`/`email`/`url`), `homepage`, `repository`, `license`, `keywords` and `extensions`.
+
+`python3 scripts/check-manifests.py` checks that all of these agree. Run it after any manifest, catalog or skill frontmatter change.
 
 ### Plugin Organization
 
@@ -36,19 +36,38 @@ Plugins are organized under the `plugins/` directory:
 plugins/
   {plugin-name}/
     .claude-plugin/
-      plugin.json          # Plugin metadata
+      plugin.json          # Claude Code manifest
+    plugin.json            # Agent Plugins manifest (portable plugins only)
     skills/
       {skill-name}/
-        SKILL.md            # Skill implementation
-    agents/                 # Optional
-      {agent-name}.md       # Subagent definition
+        SKILL.md           # Skill implementation
+        agents/
+          openai.yaml      # Codex policy; required when disable-model-invocation is true
+    agents/                # Optional Claude Code subagents
+      {agent-name}.md      # Subagent definition
 ```
+
+### Portable and Claude Code-only Plugins
+
+Portable (in all three catalogs): ai-accessibility, ai-compliance, ai-git, ai-modernize, ai-performance, ai-seo, ai-slop, ai-swift.
+
+Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`, and `/workflow-rules` edits CLAUDE.md) and ai-statusline (configures Claude Code's status line).
+
+Before adding a plugin to the Codex and Cursor catalogs, check that its skills don't depend on Claude Code subagents, hooks, settings files, `${CLAUDE_PLUGIN_ROOT}`/`${CLAUDE_SKILL_DIR}`, or CLAUDE.md. Agent Plugins v1 covers only skills and MCP servers.
+
+Supported agents are Claude Code, Codex and Cursor. Don't add catalogs, manifests or docs for VS Code or GitHub Copilot; the owner doesn't want to support them. (Both read `.claude-plugin/marketplace.json` on their own, which is fine.)
+
+### Invocation Control Across Agents
+
+- **Claude Code** and **Cursor** both honor `disable-model-invocation: true` in `SKILL.md` frontmatter.
+- **Codex** ignores that field. A skill with it must also have `skills/{skill-name}/agents/openai.yaml` containing `policy:` / `allow_implicit_invocation: false`, or Codex can start the skill unprompted. Skills Claude may invoke (no `disable-model-invocation`) must not have the file. The check script enforces both.
+- Codex names plugin skills `{plugin-name}:{skill-name}` and users run them with `$` or `/skills`.
 
 ### Plugin Types
 
 Plugins can include:
 - **Skills**: Markdown files in `skills/{skill-name}/SKILL.md` directories that define executable skills invoked as slash commands
-- **Agents**: Markdown files in `agents/{agent-name}.md` that define subagents for automated/unattended runs (e.g., `security-auditor`, `modernize-auditor`). Agents should use `model: inherit` rather than hardcoding a model ID, and skills that delegate to an agent must reference one that actually ships with the plugin (`{plugin-name}:{agent-name}`)
+- **Agents**: Markdown files in `agents/{agent-name}.md` that define Claude Code subagents. Only add one for a distinct worker role with its own instructions, such as `security-auditor`, which `/security-audit` runs in parallel. Never write an agent whose job is to load one of the plugin's skills: a skill with `disable-model-invocation: true` can't be loaded through the Skill tool, so the agent never sees its instructions. Five such wrapper agents were removed in 3.0.0 for this reason. For unattended runs, let the skill take its settings as arguments; for an isolated context in Claude Code, use the skill's `context: fork` setting. Agents should use `model: inherit` rather than hardcoding a model ID, and skills that delegate to an agent must reference one that actually ships with the plugin (`{plugin-name}:{agent-name}`)
 - Each skill is a markdown file with instructions for Claude Code to execute
 
 ## Development Workflow
@@ -73,8 +92,10 @@ Before developing plugins in this repository, it's recommended to:
    - author information
    - keywords for discoverability
    - repository and license
-3. Implement skills in the `skills/{skill-name}/SKILL.md` directory structure
+3. Implement skills in the `skills/{skill-name}/SKILL.md` directory structure. Each skill's frontmatter `name` must match its folder name
 4. Register the plugin in the root `.claude-plugin/marketplace.json`
+5. If the plugin is portable (see above), add a root `plugin.json` and list it in `.agents/plugins/marketplace.json` and `.cursor-plugin/marketplace.json`
+6. Add `agents/openai.yaml` to every skill with `disable-model-invocation: true`, then run `python3 scripts/check-manifests.py`
 
 ### Skill Development
 
@@ -82,12 +103,11 @@ Skills are markdown files located at `skills/{skill-name}/SKILL.md` that provide
 - Have a clear title and description
 - Include step-by-step instructions under an "## Instructions" section
 - Specify any important constraints or requirements (e.g., what NOT to include in outputs)
+- Never tell the agent to run another command-only skill (`disable-model-invocation: true`). Claude Code can't load one through the Skill tool, so tell the user which command to type instead. A skill can run a skill Claude may invoke, as `/git-commit-push-pr --preflight` runs `git-preflight`
 
-Example from git-commit-push skill (plugins/ai-git/skills/git-commit-push/SKILL.md):
+Example from the git-commit-push-pr skill (plugins/ai-git/skills/git-commit-push-pr/SKILL.md):
 ```
-IMPORTANT: Do not include the following in commit messages:
-- 🤖 Generated with [Claude Code](https://claude.com/claude-code)
-- Co-Authored-By: Claude <noreply@anthropic.com>
+4. Add no AI attribution to the commit: no `Co-Authored-By` trailer, no "Generated with" line, and nothing else that credits Claude, Codex, Cursor or another agent.
 ```
 
 ## Key Conventions
@@ -102,14 +122,18 @@ This repository has specific requirements for git commit messages:
 ### Plugin Metadata
 
 When creating or updating plugins, ensure consistency between:
-1. The plugin's own `plugin.json` file
-2. The marketplace's root `marketplace.json` registry entry
+1. The plugin's own `.claude-plugin/plugin.json` file
+2. Its entry in `.claude-plugin/marketplace.json`
+3. For portable plugins, the root `plugin.json` and the entry in `.cursor-plugin/marketplace.json`
 
-Both should have matching:
+These should have matching:
 - name
 - version
 - description
 - author information
+- keywords and repository (Claude Code catalog and both manifests)
+
+`python3 scripts/check-manifests.py` reports any mismatch.
 
 ### Plugin Versioning
 
@@ -122,14 +146,15 @@ This repository follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 When adding new features or fixing bugs in a plugin, follow this workflow:
 
-1. **Update Plugin Metadata** (`plugins/{plugin-name}/.claude-plugin/plugin.json`):
+1. **Update Plugin Metadata** (`plugins/{plugin-name}/.claude-plugin/plugin.json`, plus the root `plugin.json` for portable plugins):
    - Increment version number appropriately
    - Update description if the functionality changed significantly
 
-2. **Update Marketplace Registry** (`.claude-plugin/marketplace.json`):
+2. **Update Marketplace Registry** (`.claude-plugin/marketplace.json`, plus `.cursor-plugin/marketplace.json` for portable plugins):
    - Update the plugin's version in the plugins array
    - Update the plugin's description to match plugin.json
-   - Increment marketplace metadata version if this is a significant update
+   - Increment marketplace metadata version if this is a significant update, in both catalogs
+   - Run `python3 scripts/check-manifests.py`
 
 3. **Update CHANGELOG.md**:
    - Add a new version section with the release date
@@ -139,7 +164,7 @@ When adding new features or fixing bugs in a plugin, follow this workflow:
 
 4. **Update README.md**:
    - Update the marketplace version in the badge at the top (e.g., `version-2.0.1-blue`)
-   - Add any new commands to the Commands column
+   - Add any new commands to the Commands column, and keep the "Runs in" column accurate
    - Update usage examples if new commands were added
 
 5. **Update Plugin README** (`plugins/{plugin-name}/README.md`):
@@ -150,14 +175,14 @@ When adding new features or fixing bugs in a plugin, follow this workflow:
 **Example:** When ai-security plugin added `/security-init` command:
 - Plugin version: 1.0.0 → 1.1.0 (new feature = minor bump)
 - Marketplace version: 1.0.1 → 1.1.0 (significant update)
-- Updated all 5 files listed above to maintain consistency
+- Updated all the files listed above to maintain consistency
 
 ### Documentation Style
 
 These rules came from an AI slop audit (October 2026). They apply to READMEs, manifest descriptions, and skill and agent descriptions:
 
 - Open plugin descriptions and README taglines with what the plugin does. Don't write "AI-powered" (every plugin name already starts with `ai-`) or use the "Noun phrase - Clause" shape.
-- No emoji in headings. Functional markers are fine: 🧪 experimental flags in ai-geo and ai-aeo, 🗑️ status in the Deprecated & Removed table, and icons that appear in real program output.
+- No emoji in headings. Functional markers are fine: 🧪 experimental flags in ai-seo's AEO and GEO material, 🗑️ status in the Deprecated & Removed table, and icons that appear in real program output.
 - No unmeasured figures: no "Time Savings" sections, estimated hours saved, or percentages nobody measured.
 - No roadmaps of skills that don't exist.
 - No slogan closers such as "Built with ❤️ for the Claude Code community". A plugin README's Contributing section is one line: "Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md)."
@@ -173,7 +198,8 @@ When Claude Code ships a native feature that supersedes a plugin or skill (e.g.,
 
 1. **Prefer removal over deprecation notices for skills** — a deprecated skill still appears in users' slash-command dropdowns; git history preserves the content
 2. **Removing a skill is a breaking change**: MAJOR version bump for the plugin (e.g., ai-workflow 1.5.0 → 2.0.0)
-3. **Removing an entire plugin**: delete its directory and its `marketplace.json` entry
+3. **Removing an entire plugin**: delete its directory and its entry in each catalog (`.claude-plugin/`, `.agents/plugins/` and `.cursor-plugin/`), and add its name to the Claude Code catalog's `renames` map, pointing at the plugin that replaces it or at `null`. Claude Code then rewrites users' enabled setting, but a replacement plugin still needs one `/plugin install`, so say that in the README
 4. **Record it in the root README's "Deprecated & Removed" table** with a dated status (e.g., "Removed (July 2026)") and the native feature that supersedes it — use concrete dates, not "recently"
 5. **Document in CHANGELOG.md** under a "Removed" heading
-6. When a plugin is only *partially* superseded, reframe its README and manifest description against the native feature (state what the plugin adds on top) instead of deprecating it
+6. **Add it to the command map**: every renamed, merged or removed command, plugin name or report folder gets a row in `plugins/ai-knowledge/skills/kb-migrate/command-map.md` (`Old | New | Kind | Notes`, with Kind `rename`, `changed` or `removed`). `/kb-migrate` uses it to fix knowledge bases and project docs that still name the old command, and the check script confirms that every plugin command in the New column exists
+7. When a plugin is only *partially* superseded, reframe its README and manifest description against the native feature (state what the plugin adds on top) instead of deprecating it

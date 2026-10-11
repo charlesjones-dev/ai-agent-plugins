@@ -1,18 +1,18 @@
 ---
 name: workflow-rules
-description: "Add, remove, or list curated behavior rules in CLAUDE.md that correct common Claude Code annoyances (PR padding, fabricated test plans, chatty narration, boilerplate footers)."
+description: "Add, remove, or list CLAUDE.md rules that keep Claude Code's PR descriptions and commit messages short and limited to what was actually done: no padded PR bodies, invented test plans or speculative deploy steps."
 disable-model-invocation: true
 ---
 
 # Workflow Rules Manager
 
-You are a CLAUDE.md rule manager. You help the user install, remove, or audit a curated library of *behavior rules* — short instructions that correct repeated Claude Code annoyances (e.g., padding PR descriptions with fabricated test plans, adding "Generated with Claude Code" footers, narrating internal deliberation).
+You are a CLAUDE.md rule manager. You help the user install, remove, or list a small library of *behavior rules*: short instructions that keep PR descriptions and commit messages accurate, such as not padding PR bodies, not inventing test plans and not describing commits from earlier sessions.
 
-These rules describe **how Claude should behave**. They are not coding principles. If the user wants project-specific *coding* principles (SOLID, DRY, testing philosophy, type safety), point them to `/workflow-principles` instead.
+The rules describe how Claude writes PRs and commits. They are not coding principles.
 
 ## Instructions
 
-**CRITICAL**: This command MUST NOT accept any arguments. If the user provided any text or paths after this command (e.g., `/workflow-rules add some-rule`), you MUST COMPLETELY IGNORE them. Gather all input through the interactive AskUserQuestion tool as specified below.
+**CRITICAL**: This command takes no arguments. If the user typed anything after it (e.g., `/workflow-rules add some-rule`), ignore it and gather all input through AskUserQuestion as specified below.
 
 **BEFORE DOING ANYTHING ELSE**: Use AskUserQuestion to determine the operation. DO NOT skip this step.
 
@@ -24,10 +24,10 @@ Ask the user what they want to do:
   - Header: "Workflow Rules"
   - multiSelect: false
   - Options:
-    - "Add rules to CLAUDE.md" — install one or more curated rules
-    - "Remove rules from CLAUDE.md" — uninstall previously-installed rules
-    - "List current rules in CLAUDE.md" — show installed rules and their target file
-    - "Cancel" — exit without changes
+    - "Add rules to CLAUDE.md": install one or more rules from the library
+    - "Remove rules from CLAUDE.md": uninstall previously-installed rules, including retired ones
+    - "List current rules in CLAUDE.md": show installed rules and their target file
+    - "Cancel": exit without changes
 
 If the user picks "Cancel", stop immediately and confirm nothing was changed.
 
@@ -37,7 +37,7 @@ Run this branch if the user picked "Add rules to CLAUDE.md".
 
 #### Step 1: Read the rule library
 
-Read the curated library at `${CLAUDE_PLUGIN_ROOT}/skills/workflow-rules/library.md` (resolve via the Read tool against the skill's own directory).
+Read [library.md](library.md), in this skill's folder (`${CLAUDE_SKILL_DIR}/library.md`).
 
 The library schema (see `library.md` for the full source) is:
 
@@ -51,7 +51,7 @@ The library schema (see `library.md` for the full source) is:
 - <bullet 2>
 ```
 
-Parse the file into a list of rules: `{ section, id, title, body }`. Section grouping is preserved for display.
+Parse the file into a list of rules: `{ section, id, title, body }`. Section grouping is preserved for display. Only `### rule:` entries under a `## Section:` heading are installable.
 
 If the library file is missing or empty, tell the user the library is unavailable and stop.
 
@@ -63,8 +63,8 @@ Ask:
   - Header: "Target File"
   - multiSelect: false
   - Options:
-    - "User CLAUDE.md (applies to all projects)" — `~/.claude/CLAUDE.md`
-    - "Project CLAUDE.md (this project only)" — `./CLAUDE.md`
+    - "User CLAUDE.md (applies to all projects)": `~/.claude/CLAUDE.md`
+    - "Project CLAUDE.md (this project only)": `./CLAUDE.md`
     - "Cancel"
 
 **Cross-platform path resolution for the user target:**
@@ -103,7 +103,9 @@ Scan the target file for rule markers:
 <!-- /workflow-rules:id=<rule-id> -->
 ```
 
-Build a set of installed IDs. Use these to label library rules as `[installed]` and skip them when offering rules to add.
+Build a set of installed IDs. Use these to skip library rules that are already installed when offering rules to add.
+
+If any installed ID is in the [Retired rules](#retired-rules) table, tell the user in one line per rule what replaces it, and that the Remove mode takes it out. Don't remove it in this flow.
 
 #### Step 5: Pick rules to add
 
@@ -112,7 +114,7 @@ Show the user a multi-select list of available (not-yet-installed) rules grouped
 - Question: "Which rules should be added?"
   - Header: "Add Rules"
   - multiSelect: true
-  - Options: one option per available rule, formatted as `<Section> — <Title>` so the user sees grouping. Already-installed rules are omitted entirely.
+  - Options: one option per available rule, formatted as `<Section>: <Title>` so the user sees grouping. Already-installed rules are omitted entirely.
 
 If every library rule is already installed, tell the user there's nothing to add and stop.
 
@@ -139,7 +141,7 @@ Merge rules into the existing file using these merge rules:
 - Preserve a single blank line between rule blocks and around section headings.
 - Never duplicate a rule that already has its marker in the file (already filtered in Step 5, but double-check before writing).
 
-Compute the resulting file content. Show the user a unified diff of the proposed change (use `diff -u` style output as plain text in your message — you do not need to invoke the `diff` binary; just produce a readable diff format).
+Compute the resulting file content. Show the user a unified diff of the proposed change (use `diff -u` style output as plain text in your message; you do not need to invoke the `diff` binary).
 
 #### Step 7: Confirm and write
 
@@ -161,16 +163,16 @@ If confirmed, write the new content with the Write or Edit tool. After writing, 
 Run this branch if the user picked "Remove rules from CLAUDE.md".
 
 1. Ask for the target file (same prompt as Add Flow Step 2). If the file doesn't exist, tell the user there's nothing to remove and stop.
-2. Read the file. Parse all `<!-- workflow-rules:id=... -->` markers and capture each block's `id` plus the title (the first `### ` heading inside the marker pair). If no markers are present, tell the user no installed rules were found and stop.
+2. Read the file. Parse all `<!-- workflow-rules:id=... -->` markers and capture each block's `id` plus the title (the first `### ` heading inside the marker pair). This includes rules that are no longer in the library. If no markers are present, tell the user no installed rules were found and stop.
 3. Ask:
    - Question: "Which rules should be removed?"
      - Header: "Remove Rules"
      - multiSelect: true
-     - Options: one option per installed rule, formatted as `<Title> (<id>)`.
-4. For each selected rule, delete the entire block from the opening `<!-- workflow-rules:id=<id> -->` through the matching `<!-- /workflow-rules:id=<id> -->`, inclusive. Collapse any resulting consecutive blank lines to at most one. If a section heading is left with no rule blocks under it, remove the section heading too.
+     - Options: one option per installed rule, formatted as `<Title> (<id>)`. For an ID in the [Retired rules](#retired-rules) table, add `, retired` after the ID and put the replacement in the option's description. List retired rules first.
+4. For each selected rule, delete the entire block from the opening `<!-- workflow-rules:id=<id> -->` through the matching `<!-- /workflow-rules:id=<id> -->`, inclusive. Collapse any resulting consecutive blank lines to at most one. If a section heading is left with no rule blocks under it, remove the section heading too. This covers the old `## Scope Discipline` and `## Communication Style` sections once their retired rules are gone.
 5. Show a unified diff of the proposed change.
-6. Confirm with AskUserQuestion ("Apply this diff?" — Yes / Cancel) and write.
-7. Print a summary: target file path, number of rules removed, IDs removed.
+6. Confirm with AskUserQuestion ("Apply this diff?": Yes / Cancel) and write.
+7. Print a summary: target file path, number of rules removed, IDs removed. For each retired rule removed, add one line on what replaces it, from the table below.
 
 ### Phase 2c: List Flow
 
@@ -179,7 +181,7 @@ Run this branch if the user picked "List current rules in CLAUDE.md".
 1. Ask for the target file (same prompt as Add Flow Step 2).
 2. If the file doesn't exist or contains no markers, tell the user no rules are installed and stop.
 3. Parse all marker pairs and the surrounding `## <Section>` headings to determine which section each rule belongs to.
-4. Print a clean summary, e.g.:
+4. Print a clean summary, marking each ID from the [Retired rules](#retired-rules) table with what replaces it, e.g.:
 
    ```
    Installed workflow-rules in <path>:
@@ -190,9 +192,26 @@ Run this branch if the user picked "List current rules in CLAUDE.md".
 
    ## Communication Style
      - Don't narrate internal deliberation                        (id: no-internal-narration)
+       Retired: the built-in Concise output style covers this (/output-style concise)
 
-   Total: 3 rule(s).
+   Total: 3 rule(s), 1 retired.
    ```
+
+5. If any retired rules are installed, say that the Remove mode takes them out.
+
+## Retired rules
+
+These rules were in earlier versions of the library. They can't be added any more, but users may still have them in a CLAUDE.md. The Remove and List modes find them by their markers like any other rule, and say what replaces each one:
+
+| ID | Title | What replaces it |
+|----|-------|------------------|
+| `no-generated-by-footers` | Don't add "Generated with Claude Code" footers | Claude Code's `attribution` setting. `"attribution": false` in `~/.claude/settings.json` hides the commit trailer and the PR line (Claude Code v2.1.281 or later; on earlier versions, set `attribution.commit` and `attribution.pr` to `""`). |
+| `no-internal-narration` | Don't narrate internal deliberation | The built-in Concise output style: `/output-style concise`. |
+| `match-response-to-task` | Match response length to task complexity | The built-in Concise output style: `/output-style concise`. |
+| `no-unrequested-features` | Don't add features beyond what was requested | Nothing needed. Claude Code's built-in instructions already cover it. |
+| `confirm-risky-actions` | Confirm before risky or shared-state actions | Nothing needed. Claude Code's built-in instructions already cover it. |
+
+Never change a user's settings or output style yourself. Tell them what to change.
 
 ## Marker Format
 
@@ -206,7 +225,7 @@ Every installed rule MUST be wrapped with HTML comment markers so adds are idemp
 <!-- /workflow-rules:id=<kebab-case-id> -->
 ```
 
-- The `id` is authoritative for dedupe and removal. Never match on titles or body text — users may edit those after install.
+- The `id` is authoritative for dedupe and removal. Never match on titles or body text, because users may edit those after install.
 - Section headings (`## <Section Name>`) are NOT wrapped in markers; they're shared containers.
 - IDs are kebab-case, lowercase, ASCII only.
 
@@ -219,12 +238,12 @@ Before any write:
 - Confirm every selected remove-rule's marker pair is found in the file.
 - Confirm the diff was shown and the user explicitly approved.
 - Never auto-create `~/.claude/CLAUDE.md` without asking.
-- Never delete content outside the marker pairs.
+- Never delete content outside the marker pairs, apart from a section heading the removal left empty.
 
 ## Communication Guidelines
 
 - Keep messages short. This is a config command, not a conversation.
-- Show the diff plainly — no decorative framing.
+- Show the diff plainly, with no decorative framing.
 - After a successful write, state what changed in one or two sentences.
 - If the user cancels at any step, confirm "No changes made." and exit.
 - Do not invent rules that aren't in `library.md`. The library is the single source of truth for what can be installed.

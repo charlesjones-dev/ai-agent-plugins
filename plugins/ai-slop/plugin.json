@@ -1,0 +1,31 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-slop",
+  "version": "1.1.0",
+  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
+  "author": {
+    "name": "Charles Jones",
+    "url": "https://charlesjones.dev"
+  },
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "ai-slop",
+    "ai-detection",
+    "audit",
+    "copywriting",
+    "content",
+    "metadata",
+    "design",
+    "ui",
+    "legal",
+    "privacy-policy",
+    "fact-checking",
+    "writing",
+    "humanizer",
+    "rewriting",
+    "editing",
+    "skills"
+  ]
+}

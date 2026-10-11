@@ -13,7 +13,7 @@ Arguments: `$ARGUMENTS`. Read them as scope (areas to include or skip) and, if a
 
 ## 1. Load the project's own rules first
 
-Read whichever of these exist: `CLAUDE.md`, `AGENTS.md`, a knowledge base (`docs/kb/_index.md`, `_global-learnings.md`, and anything named voice, style, writing, brand or copy), `DESIGN.md`, and notes from earlier audits. Note:
+Read whichever of these exist: `CLAUDE.md`, `AGENTS.md`, a knowledge base (`.claude/rules/kb/`, `.claude/kb/` or an older `docs/kb/`: its `_index.md`, `_global-learnings.md`, and anything named voice, style, writing, brand or copy), `DESIGN.md`, and notes from earlier audits. Note:
 
 - owner rules about voice and positioning: what the owner does and doesn't offer, banned words, audience;
 - house-style choices that look like tells but are deliberate (heading case, bold inline headers, a brand metaphor, a design element DESIGN.md defends). These override the generic signals, so don't flag them;

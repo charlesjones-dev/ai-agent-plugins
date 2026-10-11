@@ -6,10 +6,10 @@ This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 ## Reporting a Bug
 
-[Open an issue](https://github.com/charlesjones-dev/claude-code-plugins-dev/issues) with:
+[Open an issue](https://github.com/charlesjones-dev/ai-agent-plugins/issues) with:
 
 - The plugin and its version
-- The slash command you ran and what you expected
+- The agent you used (Claude Code, Codex or Cursor), the command you ran and what you expected
 - What happened instead, including any error text
 
 Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
@@ -22,21 +22,33 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
    ```
    plugins/{plugin-name}/
-     .claude-plugin/plugin.json     # name, version, description, author, keywords
-     skills/{skill-name}/SKILL.md   # one folder per slash command
-     agents/{agent-name}.md         # optional subagents; use `model: inherit`
+     .claude-plugin/plugin.json             # Claude Code manifest: name, version, description, author, keywords
+     plugin.json                            # Agent Plugins manifest, only in plugins that run in Codex and Cursor
+     skills/{skill-name}/SKILL.md           # one folder per command
+     skills/{skill-name}/agents/openai.yaml # command-only skills: stops Codex running them unprompted
+     agents/{agent-name}.md                 # optional Claude Code subagents; use `model: inherit`
      README.md
      LICENSE
    ```
 
-   The root `.claude-plugin/marketplace.json` lists every plugin. Its entry and the plugin's own `plugin.json` must keep the same name, version, description, author and keywords.
+   The root `.claude-plugin/marketplace.json` lists every plugin. Its entry and the plugin's own `.claude-plugin/plugin.json` must keep the same name, version, description, author and keywords. Plugins that run in Codex and Cursor also have a root `plugin.json` with the same fields, and are listed in `.agents/plugins/marketplace.json` (Codex) and `.cursor-plugin/marketplace.json` (Cursor).
+
+   A skill with `disable-model-invocation: true` needs an `agents/openai.yaml` next to its `SKILL.md`. Codex ignores the Claude Code field and reads this file instead:
+
+   ```yaml
+   policy:
+     allow_implicit_invocation: false
+   ```
 
 3. Test it. Validate the manifests:
 
    ```
    claude plugin validate plugins/{plugin-name}
    claude plugin validate .
+   python3 scripts/check-manifests.py
    ```
+
+   The last command checks that the catalogs, both manifest formats and the Codex policy files agree.
 
    Then, from a project to try it on, start Claude Code with the plugin loaded from your clone and run the skill you changed as `/{plugin-name}:{skill-name}`:
 
@@ -52,7 +64,7 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
 6. Open a pull request that says what was broken, how you fixed it and how you tested it. Link the issue if there is one.
 
-If you edit a README, keep it plain: no emoji in headings, no "AI-powered", and no figures you haven't measured. See the [Claude Code plugin docs](https://docs.claude.com/en/docs/claude-code/plugins) for the plugin format.
+If you edit a README, keep it plain: no emoji in headings, no "AI-powered", and no figures you haven't measured. For the plugin formats, see the [Claude Code plugin docs](https://code.claude.com/docs/en/plugins) and the [Agent Plugins specification](https://agent-plugins.org/).
 
 ## License
 

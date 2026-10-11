@@ -1,6 +1,7 @@
 ---
 name: performance-audit
 description: "Audit a codebase for performance bottlenecks and save a report with an impact score for each finding."
+argument-hint: "[path]"
 disable-model-invocation: true
 ---
 
@@ -10,25 +11,42 @@ You are a comprehensive performance optimization expert with deep expertise in a
 
 ## Instructions
 
-**CRITICAL**: This command MUST NOT accept any arguments. If the user provided any text, URLs, or paths after this command (e.g., `/performance-audit ./src` or `/performance-audit --detailed`), you MUST COMPLETELY IGNORE them. Do NOT use any URLs, paths, or other arguments that appear in the user's message. You MUST ONLY proceed with invoking the performance auditor subagent as specified below.
+Perform a thorough performance analysis of this codebase to identify performance bottlenecks, optimization opportunities, and scalability issues. Do the whole audit yourself, following the methodology and report template in this file. Don't stop to ask the user questions, so the audit can run unattended.
 
-**BEFORE DOING ANYTHING ELSE**: Use the Task tool with subagent_type "ai-performance:performance-auditor" to perform the audit. DO NOT skip this step even if the user provided arguments after the command.
+### Arguments
 
-Use the Task tool with subagent_type "ai-performance:performance-auditor" to perform a thorough performance analysis of this codebase to identify performance bottlenecks, optimization opportunities, and scalability issues.
+Text passed with the command: $ARGUMENTS
+
+The command takes one optional argument: a directory path that limits the audit's scope. Claude Code fills in the line above with the text typed after `/performance-audit` (blank when there is none). If that line still shows a placeholder instead of real text, as it can in other agents, use the text the user typed after the command.
+
+- **No argument**: audit the whole repository.
+- **A directory path**, relative to the repository root (for example `/performance-audit src/api`): report findings only for files under that directory. You can still read files outside it for context, such as project manifests, database schemas and migrations, ORM or server configuration, and shared code the directory calls, but don't report findings located outside it.
+- **A path that doesn't exist**: stop and say so, without writing a report.
+- **Anything else** (flags such as `--detailed`, URLs, other text): ignore it. It doesn't change what the audit does.
+
+### Workflow
+
+1. Settle the scope from the argument, as described above.
+2. Detect the technology stack from project files at the repository root and in scope (for example `package.json`, `*.csproj`, `go.mod`, `pyproject.toml`, `requirements.txt`, `pom.xml`, `Gemfile`) and from any project instruction files (see Context-Aware Analysis).
+3. Search the code in scope for the areas in Analysis Scope and the patterns in Common Performance Anti-Patterns. Read each match in context to confirm it is a real problem before reporting it, and record its exact file path and line number.
+4. Score each confirmed finding with the Severity Scoring Criteria.
+5. Write the report with the Report Template and save it as described in Output Requirements.
+6. Finish by giving the user the report path and the number of findings at each severity.
 
 ### Analysis Scope
 
 1. **Code Pattern Analysis**: Scan for N+1 queries, inefficient loops, memory leaks, blocking operations
 2. **Database Performance Review**: Analyze queries, indexing strategies, and data access patterns
 3. **Resource Utilization Assessment**: Review memory allocation patterns, CPU-intensive operations, I/O bottlenecks
-4. **Architecture Performance Analysis**: Examine caching strategies, async patterns, connection pooling, concurrency
+4. **Architecture Performance Analysis**: Examine caching strategies and missed caching opportunities, async patterns, connection pooling, concurrency
 5. **Scalability Assessment**: Identify thread pool issues, connection management, and load handling patterns
-6. **Frontend Performance**: Evaluate Core Web Vitals impact, bundle size, rendering performance
+6. **Frontend Performance**: Evaluate Core Web Vitals impact, bundle size, rendering performance, and asset delivery (images, fonts, scripts, compression)
+7. **Infrastructure Review**: Check CDN and cache headers, response compression, and container or server resource settings in the project's configuration files
 
 ### Output Requirements
 
 - Create a comprehensive performance audit report
-- Save the report to: `/docs/performance/{timestamp}-performance-audit.md`
+- Save the report to `docs/performance/{timestamp}-performance-audit.md`, relative to the repository root, even when the audit is limited to a directory. Create the folder if it doesn't exist.
   - Format: `YYYY-MM-DD-HHMMSS-performance-audit.md`
   - Example: `2025-10-17-143022-performance-audit.md`
   - This ensures multiple scans on the same day don't overwrite each other
@@ -44,8 +62,7 @@ Use the Task tool with subagent_type "ai-performance:performance-auditor" to per
 - Create a prioritized optimization roadmap based on performance impact
 - Include expected performance improvement estimates for each recommendation
 - Detect the project's technology stack and tailor findings accordingly
-
-The ai-performance:performance-auditor subagent will perform a comprehensive performance analysis of this codebase.
+- Don't change source code. The report is the only file the audit writes.
 
 ---
 
@@ -267,7 +284,7 @@ All findings use a 1.0-10.0 impact score. Apply these criteria consistently:
 **IMPORTANT**: The section below defines the COMPLETE report structure that MUST be used. Do NOT create your own format or simplified version.
 
 ### Location and Naming
-- **Directory**: `/docs/performance/`
+- **Directory**: `docs/performance/` (relative to the repository root)
 - **Filename**: `YYYY-MM-DD-HHMMSS-performance-audit.md`
 - **Example**: `2025-10-29-143022-performance-audit.md`
 
@@ -301,6 +318,7 @@ You MUST use this exact template structure for ALL performance audit reports. Th
 - **Target System**: [Application name from package.json, .csproj, or directory name]
 - **Analysis Date**: [Current date]
 - **Analysis Scope**: [Web Application/API/Database/Full Stack - based on what was found]
+- **Audited Path**: [Directory passed to the command, or "Whole repository"]
 - **Technology Stack**: [Detected from project files, e.g., "Next.js 14, TypeScript, PostgreSQL, Redis"]
 
 ### Performance Assessment Summary
@@ -773,7 +791,7 @@ To validate performance improvements:
 
 ## Context-Aware Analysis
 
-When project-specific context is available in CLAUDE.md files, incorporate:
+When project instruction files such as `CLAUDE.md`, `AGENTS.md` or Cursor rules provide project-specific context, incorporate:
 
 - **Technology Stack**: Identify framework-specific optimization opportunities
 - **Usage Patterns**: Optimize for actual traffic patterns and user behavior

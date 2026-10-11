@@ -1,0 +1,16 @@
+{
+  "description": "ai-knowledge auto-capture: at session start, adds the capture instruction when this developer turned auto-capture on and the project has a 2.x knowledge base. Line 1 runs the POSIX script and exits in sh (macOS, Linux, Git Bash); PowerShell, used on Windows without Git Bash, reads line 1 as one string sent to $null and runs line 2.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo \\\" >/dev/null; sh \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\"; exit $?; \\\" > $null\n. ([scriptblock]::Create((Get-Content -Raw -LiteralPath \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.ps1\")))",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

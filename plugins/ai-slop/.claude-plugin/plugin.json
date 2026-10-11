@@ -1,12 +1,12 @@
 {
   "name": "ai-slop",
-  "version": "1.0.0",
-  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells, and checks the facts in them, such as a privacy policy that misses the trackers the code loads. Scores each area and asks before editing",
+  "version": "1.1.0",
+  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",
@@ -21,6 +21,10 @@
     "legal",
     "privacy-policy",
     "fact-checking",
+    "writing",
+    "humanizer",
+    "rewriting",
+    "editing",
     "skills"
   ]
 }

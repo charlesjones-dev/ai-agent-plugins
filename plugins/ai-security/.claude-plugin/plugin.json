@@ -1,12 +1,12 @@
 {
   "name": "ai-security",
-  "version": "2.0.1",
-  "description": "Audits a repository for security problems and saves Markdown and JSON reports that track findings across audits, plus a live-site dependency scan, file-access deny rules for secrets and pnpm supply-chain hardening",
+  "version": "3.0.0",
+  "description": "Audits a repository for security problems and saves Markdown and JSON reports that track findings across audits, plans a sandboxed audit on a stronger model that proves each finding with a failing test, scans a live site's dependencies, and sets up file-access deny rules for secrets and pnpm supply-chain hardening",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",
@@ -21,6 +21,13 @@
     "supply-chain",
     "dependencies",
     "pnpm",
+    "sandbox",
+    "auto-mode",
+    "cyber-verification-program",
+    "cvp",
+    "threat-modeling",
+    "proof-of-concept",
+    "regression-tests",
     "skills"
   ]
 }

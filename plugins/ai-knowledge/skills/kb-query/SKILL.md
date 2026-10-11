@@ -1,163 +1,146 @@
 ---
 name: kb-query
-description: "Query the knowledge base with a question. Synthesizes an answer from relevant KB files and optionally files the result back as a new KB article."
+description: "Answer a question from the team knowledge base with cited articles and offer to file the answer back as an article. Also searches by keyword or tag:name and lists every article with how it loads."
+argument-hint: "<question> | search <terms> | tag:<tag> | list"
 disable-model-invocation: true
 ---
 
-# Knowledge Base Query
+# Query the knowledge base
 
-You are a knowledge base query engine. Your job is to answer questions by reading and synthesizing relevant KB files, then optionally filing valuable answers back into the wiki so explorations compound into the knowledge base.
+Read [kb-format.md](kb-format.md) first. It defines the layout, frontmatter and load modes used below.
 
-## Frontmatter Schema
+Arguments (may be empty): $ARGUMENTS
 
-If filing an answer back as a KB page, use this frontmatter:
+## Step 1: Pick the mode
 
-```yaml
----
-tags: [topic-tag-1, topic-tag-2]       # Required: lowercase tags for discovery
-related: [[source-kb-file]]            # Required: cross-references to KB files used in synthesis
-created: YYYY-MM-DD                    # Required: date created
-last-updated: YYYY-MM-DD              # Required: date last modified
-pinned: false                          # Optional: default false
-scope: "src/api/**"                    # Optional: glob pattern(s) for auto-matching. String or array.
-type: synthesis                        # Required for filed queries: marks this as a synthesized answer
-query: "the original question"         # Required for filed queries: the question that prompted this
-sources: [[file1], [file2]]            # Required for filed queries: KB files consulted for the answer
----
+| Arguments | Mode |
+|---|---|
+| `list` | **List**: show every article and how it loads |
+| `tag:{name}` | **Search** by tag |
+| `search {terms}` | **Search** by keyword |
+| One or two words, with no question mark or question word | **Search** by keyword, then offer an answer |
+| Anything else | **Answer** the question |
+| None | Ask (below) |
+
+With no arguments, ask with AskUserQuestion:
+
+- Header: "KB Query"
+- Question: "What do you want to know? Ask a question, search for a keyword or `tag:name`, or list the knowledge base."
+- Options: "Ask a question" | "Search" | "List everything"
+
+Then ask for the question or search terms as free text.
+
+## Step 2: Check the knowledge base
+
+Run the checks from kb-format.md: stop if there's a 1.x knowledge base (point to `/kb-migrate`) or no knowledge base (point to `/kb-init`).
+
+Gather the articles: every `.md` file under `.claude/rules/kb/` and `.claude/kb/` except `_index.md`, `_log.md` and `README.md`. If there are none, say "The knowledge base has no articles yet. Add some with `/kb-learn`, `/kb-add` or `/kb-discover`." and stop.
+
+List and Search modes are read-only.
+
+## List mode
+
+For each article, read its frontmatter and title, and work out its load mode from its location and `paths`. Also check:
+
+- frontmatter: missing, YAML that won't parse, missing `tags`, `created` or `last-updated`, 1.x fields (`scope`, `pinned`, `related`, `sources`) or `[[name]]` links;
+- a scoped or on-demand article without a line in `_index.md`, or an index line pointing at a missing file;
+- a scoped article whose `paths` match no file (check with Glob);
+- Related entries that point at files that don't exist.
+
+```text
+Knowledge base
+==============
+
+Pinned (every session): {n} articles, {lines} lines
+| Article | Tags | Updated | Notes |
+|---|---|---|---|
+| _global-learnings.md | global | 2026-09-14 | 12 rules |
+
+Scoped: {n} articles (each also has an index line)
+| Article | Paths | Tags | Updated | Notes |
+|---|---|---|---|---|
+| conventions/api-conventions.md | src/api/**, **/*.controller.ts | api, rest | 2026-08-02 | |
+| testing/e2e.md | e2e/** | testing | 2026-05-30 | paths match no files |
+
+On-demand: {n} articles
+| Article | Index line | Tags | Updated | Notes |
+|---|---|---|---|---|
+| tools/release.md | release steps and rollback rules | release, deploy | 2026-07-11 | |
+
+Related
+- conventions/api-conventions.md → security/auth-rules.md, conventions/api-errors.md
+
+Summary: {n} articles, {n} with problems
 ```
 
-**Resolving today's date (cross-platform, CRITICAL)**: Never guess, infer, or increment prior dates. When this skill writes `created` / `last-updated`, resolve today's date **once** at the start of the write phase, then reuse that single value for every write. Try these commands in order and use the first that returns a `YYYY-MM-DD` string:
+If there are problems, suggest the fix: `/kb-prune` for content, links and paths that match nothing; `/kb-migrate` for 1.x fields, `[[name]]` links and format problems; `/kb-add {path}` for an article added by hand.
 
-- **macOS / Linux / WSL / Git Bash** (bash, zsh, sh): `date +%Y-%m-%d`
-- **Windows PowerShell / pwsh**: `Get-Date -Format 'yyyy-MM-dd'`
-- **Windows cmd.exe**: `powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd'"`
-- **Portable fallback** (Node or Python available): `node -e "console.log(new Date().toISOString().slice(0,10))"` or `python -c "import datetime; print(datetime.date.today().isoformat())"`
+## Search mode
 
-Only update `last-updated` when the file's content actually changed. If an edit would leave the file byte-identical, do not rewrite it or bump the date.
+1. **By tag** (`tag:security`): match the tag against each article's `tags`, ignoring case. Also list articles whose Related section points at a match.
+2. **By keyword**: search article content (Grep, ignoring case), file and folder names (`api` matches `api-conventions.md`), titles and tags. Search `_global-learnings.md` too.
 
-## Obsidian-Compatible Related Links
+```text
+KB search: "{query}"
+====================
 
-When filing an answer with `related` entries in frontmatter, include a `## Related` section at the **end** of the file body with matching `[[wiki-links]]`. Keep frontmatter and body section in sync.
+1. .claude/rules/kb/conventions/api-conventions.md (scoped: src/api/**)
+   tags: api, rest | see also: security/auth-rules.md | updated 2026-08-02
+   > matching line
+   > matching line
 
-## Instructions
+2. .claude/kb/tools/release.md (on-demand)
+   tags: release | updated 2026-07-11
+   > matching line
 
-### Step 1: Get the Question
+Linked to a match:
+3. .claude/rules/kb/security/auth-rules.md, linked from api-conventions.md
 
-Check if the user provided a question after the command (e.g., `/kb-query How does the auth flow work?`).
+Global learnings:
+   > matching rule
 
-- **If text was provided**: Use it as the query.
-- **If no text was provided**: Use AskUserQuestion:
-  - Question: "What would you like to know? I'll search the knowledge base and synthesize an answer."
-  - Header: "KB Query"
-  - Allow free-text input.
-
-### Step 2: Prerequisite Check
-
-1. **Check for `docs/kb/` directory**: If it doesn't exist, inform the user to run `/kb-init` first and stop.
-2. **Check for KB files**: Glob for `.md` files under `docs/kb/` (excluding README.md, _index.md, _log.md). If none exist, inform the user: "No KB articles found. Add knowledge first with `/kb-learn`, `/kb-add`, or `/kb-discover`." and stop.
-
-### Step 3: Find Relevant Pages
-
-Use a multi-signal approach to find the most relevant KB files:
-
-1. **Read `docs/kb/_index.md`** if it exists — this is the fastest way to understand what's in the KB. Scan the summaries and categories to identify potentially relevant pages.
-2. **If `_index.md` doesn't exist**, read the CLAUDE.md Knowledge Base table for the page catalog.
-3. **Keyword match**: Identify keywords in the question and match against file names, tags, and index summaries.
-4. **Read candidate files**: Read the full content of the top candidate files (aim for 3-8 most relevant files, depending on the question scope).
-5. **Follow cross-references**: If a relevant file has `related` references to files you haven't read yet that seem pertinent, read those too.
-6. **Read `_global-learnings.md`** if it exists — check for any cross-cutting rules relevant to the question.
-
-### Step 4: Synthesize Answer
-
-Compose a comprehensive answer:
-
-1. **Draw from multiple KB files** — the value of synthesis is connecting knowledge across pages.
-2. **Cite sources** — reference which KB files contributed to each part of the answer using `[[wiki-links]]` (e.g., "According to [[server-tick-architecture]], the tick loop runs at 600ms...").
-3. **Note contradictions** — if different KB files contain conflicting information, flag it explicitly.
-4. **Note gaps** — if the question touches on topics not covered by the KB, say so. Suggest which `/kb-*` commands could fill the gap (e.g., "The KB doesn't cover deployment. You could run `/kb-discover src/deploy/` or `/kb-harvest` to add this knowledge.").
-5. **Format appropriately** — use the format that best fits the answer:
-   - Prose for explanatory answers
-   - Bullet points for rules/conventions
-   - Tables for comparisons
-   - Code blocks for examples
-   - Flowcharts or diagrams described in text for processes
-
-Present the synthesized answer to the user.
-
-### Step 5: Offer to File the Answer
-
-After presenting the answer, offer to save it as a KB article. Use AskUserQuestion:
-
-- Header: "File Answer to KB?"
-- Question: "This synthesis drew from {count} KB files. Would you like to save it as a KB article so it's available in future sessions?"
-- Options: "Save as KB article" | "Skip"
-
-**When to encourage filing**: If the answer required synthesizing 3+ KB files, or if it produced a comparison, architectural overview, or decision rationale that would be valuable to reference later.
-
-**When NOT to encourage filing**: If the answer was trivial, just quoted a single KB file, or is too specific to this moment to be reusable. In these cases, still offer but don't push.
-
-If the user chooses "Skip", append a log entry (Step 7) and stop.
-
-### Step 6: File the Answer
-
-If the user chose to save:
-
-#### 6a: Determine File Location
-
-Suggest a path under `docs/kb/`. Prefer subfolder organization:
-- Place synthesized answers in a logical category folder based on the topic (e.g., `docs/kb/architecture/`, `docs/kb/conventions/`, etc.)
-- Use a descriptive filename based on the question topic (e.g., `docs/kb/architecture/auth-flow-overview.md`)
-
-Use AskUserQuestion:
-- Header: "KB File Location"
-- Question: "Where should this be saved?"
-- Options: Suggested path | "Different location" (free-text)
-
-#### 6b: Write the KB File
-
-1. **Reformat the answer** into KB style:
-   - Concise, actionable, imperative voice where appropriate
-   - Clear headings for scannability
-   - Remove conversational phrasing ("As mentioned earlier...", "To answer your question...")
-   - Keep citations as `[[wiki-links]]`
-
-2. **Add frontmatter** with:
-   - `type: synthesis` to mark this as a filed query result
-   - `query: "the original question"` for context
-   - `sources: [[file1], [file2]]` listing all KB files consulted
-   - `related` pointing to the most relevant source KB files
-   - Appropriate `tags` and `scope`
-   - Today's date (resolved once via the cross-platform command in the Frontmatter Schema section) for `created` and `last-updated`
-
-3. **Add `## Related` body section** mirroring the `related` frontmatter.
-
-4. **Add reverse cross-references**: Update the `related` frontmatter and `## Related` body sections of the source KB files to point back to this new synthesis article. Update their `last-updated` to the resolved date (only for files that actually changed).
-
-#### 6c: Register in CLAUDE.md
-
-1. Add a row to the Knowledge Base table with appropriate Topic, File, and When to Load. Format the "When to Load" column using the structured format: `` `scope-glob1`, `scope-glob2` — tag1, tag2 ``. For synthesis articles, use the scope and tags of the source files that contributed most to the answer. For pinned files, use `Always (pinned)`.
-2. Keep the table sorted alphabetically by Topic.
-
-### Step 7: Update Index and Log
-
-#### Update `docs/kb/_index.md`
-
-If `_index.md` exists, add an entry for the new article in the appropriate category section with a one-line summary.
-
-#### Append to `docs/kb/_log.md`
-
-If `_log.md` exists, append:
-
-```markdown
-## [YYYY-MM-DD] query | {brief topic}
-- Question: "{the original question}"
-- Consulted: {list of KB files read}
-- Result: {Filed as docs/kb/path/file.md | Not filed}
+{n} matches in {n} articles.
 ```
 
-### Step 8: Confirm
+With no matches: "Nothing in the knowledge base matches '{query}'. It has {n} articles tagged: {tags}."
 
-Display:
-- The synthesized answer (already shown in Step 4)
-- If filed: the file path, tags, and cross-references added
-- If not filed: a note that the answer is in chat history only
+When the search came from one or two words rather than `search` or `tag:`, end by offering to answer it as a question.
+
+## Answer mode
+
+### Find the relevant articles
+
+1. Read `_index.md` for the scoped and on-demand articles and their keywords.
+2. Match the question's keywords against file names, titles, tags, index lines and, for scoped articles, the folders their `paths` cover.
+3. Read the most relevant articles in full, usually 3 to 8.
+4. Follow the Related paths in those articles to others that look pertinent.
+5. Read `_global-learnings.md` for cross-cutting rules that apply.
+
+### Answer
+
+- Draw on several articles where you can; connecting them is the point.
+- Cite the article behind each part of the answer by its path ("Per `conventions/api-conventions.md`, every route is versioned").
+- Point out contradictions between articles.
+- Name gaps: if the knowledge base doesn't cover part of the question, say so and suggest how to fill it (`/kb-discover src/deploy`, or `/kb-add` with a doc or URL). Answer that part from the code only if you checked the code, and say that you did.
+- Use the format that fits: prose to explain, bullets for rules, a table to compare, code blocks for examples.
+
+### Offer to file the answer
+
+Ask (Header: "File Answer to KB?"; Question: "This answer drew on {n} articles. Save it as an article for future sessions?"; Options: "Save as an article" | "Skip"). Recommend saving when the answer drew on three or more articles, or produced a comparison, an overview or a decision record. Still offer, without pushing, when it only restated one article. With "Skip", stop; nothing is written.
+
+### File it
+
+1. **Where**: suggest a path and load mode. A synthesis of scoped articles about the same folders can be scoped to them; most syntheses are on-demand. Ask (Header: "KB File Location"; Options: "{suggested path} ({mode})" | "Somewhere else").
+2. **Write**: get today's date once (kb-format.md, Dates). Rewrite the answer in article style: headings, imperative rules where they fit, no conversational phrasing, citations kept as paths. Frontmatter adds `type: synthesis` and `query: "{the question}"`, plus `tags`, `created` and `last-updated`, and `paths` if scoped. End with a `## Related` section listing the articles consulted, as paths.
+3. **Reverse links**: add the new article's path to the Related section of its main sources, and update their `last-updated`.
+4. **Index**: add its line to `_index.md`, whether it's scoped or on-demand.
+5. **Log**: append
+
+   ```markdown
+   ## [{date}] query | {topic}
+   - Question: "{the question}"
+   - Consulted: {articles}
+   - Filed as: {path}
+   ```
+
+6. Report the path, load mode, tags and links added.

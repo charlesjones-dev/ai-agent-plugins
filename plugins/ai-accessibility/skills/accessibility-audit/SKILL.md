@@ -1,6 +1,7 @@
 ---
 name: accessibility-audit
 description: "Audit code or a live URL for WCAG accessibility issues and save a report with fixes."
+argument-hint: "[WCAG version] [level] [path or URL]"
 disable-model-invocation: true
 ---
 
@@ -10,17 +11,31 @@ You are a comprehensive accessibility auditor with deep expertise in WCAG guidel
 
 ## Instructions
 
-**CRITICAL**: This command MUST NOT accept any arguments. If the user provided any text, URLs, or paths after this command (e.g., `/accessibility-audit https://example.com` or `/accessibility-audit ./src`), you MUST COMPLETELY IGNORE them. Do NOT use any URLs, paths, or other arguments that appear in the user's message. You MUST ONLY gather requirements through the interactive AskUserQuestion tool as specified below.
+Run the whole audit yourself: settle the configuration, analyze the scope by following the Audit Methodology below, and save the report.
 
-**BEFORE DOING ANYTHING ELSE**: Use the AskUserQuestion tool to interactively determine the WCAG compliance requirements and audit scope. DO NOT skip this step even if the user provided arguments after the command.
+### Arguments
 
-Before starting the audit, determine the WCAG compliance requirements and audit scope by asking the user:
+Arguments: $ARGUMENTS
 
-1. **WCAG Version**: Which version to audit against (2.1, 2.2)
-2. **Conformance Level**: Which level to target (A, AA, AAA)
-3. **Audit Scope**: Whether to scan the entire solution or a specific directory
+Claude Code replaces the placeholder on the line above with the text typed after the command, and leaves the line empty when there is none. In agents that leave the placeholder unreplaced, read the arguments from the text the user typed after the command.
 
-Use the AskUserQuestion tool to gather these requirements with the following questions:
+The arguments can give any of these three answers, in any order. Accept common spellings such as `WCAG 2.2` or `level AA`.
+
+1. **WCAG version**: `2.0` or `508` (508 / WCAG 2.0 AA), `2.1`, or `2.2`. Section 508 adopts WCAG 2.0 Level AA, so `508` also sets the level to AA when no level is given.
+2. **Conformance level**: `A`, `AA`, or `AAA`
+3. **Scope**: a directory path, `.` for the entire solution, or a URL starting with `http://` or `https://`
+
+Examples:
+
+- `/accessibility-audit 2.2 AA src/` audits `src/` against WCAG 2.2 Level AA and asks nothing.
+- `/accessibility-audit 2.1 AA https://example.com` audits a live page against WCAG 2.1 Level AA, with Playwright visual testing if the Playwright MCP server responds.
+- `/accessibility-audit 2.2 .` audits the entire solution against WCAG 2.2 and asks only for the conformance level.
+
+Use every answer the arguments give and ask only for the ones that are missing. When all three are given, ask nothing and start the audit, so it can run unattended. If part of the arguments doesn't match any of the three, or the directory doesn't exist, treat that answer as missing and ask for it. With no arguments, ask all three questions.
+
+### Configuration Questions
+
+Use the AskUserQuestion tool to ask only the questions the arguments didn't answer. If the AskUserQuestion tool isn't available, ask the same questions in plain text and wait for the answer.
 
 - Question 1: "Which WCAG version should this audit target?"
   - Options: WCAG 2.1, WCAG 2.2, 508 / WCAG 2.0 AA
@@ -49,29 +64,33 @@ If the user selects "a URL":
 
 ### Playwright MCP Setup
 
-If the user chooses to use Playwright MCP tools:
+Playwright tools in this file go by the names the Playwright MCP server gives them, such as `browser_navigate` (`mcp__playwright__browser_navigate` in Claude Code). Your agent may show them with its own prefix.
 
-1. **Test Playwright availability** by calling `mcp__playwright__browser_navigate` with the user's target URL:
-   ```
-   mcp__playwright__browser_navigate(url: "<user's target URL>")
-   ```
+**When the URL came from the arguments**, don't ask Question 4. Call the Playwright MCP server's `browser_navigate` tool with the URL. If it succeeds, use Playwright for visual testing. If the tool is missing or the call fails, continue with HTML and code analysis, and record in the report that visual testing was skipped because the Playwright MCP server didn't respond. Don't stop to offer setup.
+
+**When the user picked "a URL" and chose "Yes - Use Playwright for visual scans":**
+
+1. **Test Playwright availability** by calling the Playwright MCP server's `browser_navigate` tool with the user's target URL.
 
 2. **If the navigation succeeds**:
    - Playwright is available
    - Proceed with the audit using Playwright tools for visual testing
-   - Pass this information to the ai-accessibility:accessibility-auditor subagent
 
 3. **If the navigation fails** (tool not found, error, etc.):
    - Ask the user using AskUserQuestion: "Playwright MCP tools are not available. How would you like to proceed?"
    - Header: "Playwright Setup"
    - Options:
-     - **"Create .mcp.json config"**: Create a configuration file to enable Playwright MCP
+     - **"Set up Playwright MCP"**: Add the Playwright MCP server to this agent's configuration
      - **"Skip visual testing"**: Proceed with code-based analysis only
    - multiSelect: false
 
-   If user selects "Create .mcp.json config":
-     a. Detect the operating system (Windows vs Linux/Mac)
-     b. Create `.mcp.json` in the current working directory:
+   If user selects "Set up Playwright MCP":
+     a. Add the server for the agent you're running in. If you can't tell which agent that is, show the user all three options.
+        - **Claude Code**: create `.mcp.json` at the project root. Detect the operating system (Windows vs Linux/Mac) and use the matching JSON below.
+        - **Cursor**: create `.cursor/mcp.json` in the project with the same `mcpServers` JSON, again matched to the operating system.
+        - **Codex**: tell the user to run `codex mcp add playwright -- npx @playwright/mcp@latest`.
+
+        If `.mcp.json` or `.cursor/mcp.json` already exists, add the `playwright` entry to its `mcpServers` object instead of replacing the file.
 
      **For Linux/Mac:**
      ```json
@@ -97,43 +116,36 @@ If the user chooses to use Playwright MCP tools:
      }
      ```
 
-     c. Inform the user they must restart Claude Code and run the command again
-     d. End the command session
+     b. Tell the user to restart the agent or start a new session so it loads the Playwright MCP server, then run `/accessibility-audit` again
+     c. End the command session
 
    If user selects "Skip visual testing":
      - Proceed with code-based analysis only
-     - Inform the subagent that Playwright is not available
+     - Record in the report that visual testing was skipped
 
-Once the requirements are confirmed, use the Task tool with subagent_type "ai-accessibility:accessibility-auditor" to perform a thorough accessibility analysis and identify accessibility barriers, WCAG compliance issues, and opportunities for inclusive design improvement in the specified scope.
+### Running the Audit
 
-When invoking the subagent, provide:
-- WCAG version and conformance level
-- Scope type (entire solution, specific directory, or URL)
-- If URL: the target URL and whether Playwright MCP tools are available for visual testing
-- If specific directory: the directory path
+Once the configuration is settled, perform the audit yourself by following the Audit Methodology below. Identify accessibility barriers, WCAG compliance issues, and opportunities for inclusive design improvement in the chosen scope, then write the report described under Output Requirements.
 
 ### Analysis Scope
 
-The audit comprehensively covers all 8 core expertise areas defined in the skill (semantic HTML, ARIA, keyboard navigation, color contrast, forms, alternative text, interactive components, and responsive/mobile accessibility). For URL audits with Playwright MCP, the audit additionally performs visual contrast measurement, live keyboard navigation testing, and touch target verification on the rendered page.
+The audit covers all 8 core expertise areas below (semantic HTML, ARIA, keyboard navigation, color contrast, forms, alternative text, interactive components, and responsive/mobile accessibility). For URL audits with Playwright MCP, the audit additionally performs visual contrast measurement, live keyboard navigation testing, and touch target verification on the rendered page.
 
 ### Output Requirements
 
 - Create comprehensive audit report with findings
-- Save report to: `/docs/accessibility/{timestamp}-accessibility-audit.md`
-  - Format: `YYYY-MM-DD-HHMMSS-accessibility-audit.md`
-  - Example: `2025-10-29-143022-accessibility-audit.md`
+- Save the report to `docs/accessibility/YYYY-MM-DD-HHMMSS-accessibility-audit.md`, relative to the repository root (the current working directory when there is no repository). Create the folder if it doesn't exist.
+  - Example: `docs/accessibility/2025-10-29-143022-accessibility-audit.md`
 - Include audit configuration header specifying:
   - WCAG version being audited against
   - Target conformance level (A, AA, or AAA)
   - Audit scope (entire solution, specific directory path, or URL)
-  - For URL audits: whether Playwright MCP visual testing was used
+  - For URL audits: whether Playwright MCP visual testing was used, and if it was skipped, why
 - For codebase audits: Include actual findings with exact file paths and line numbers
 - For URL audits with Playwright: Include visual testing findings with screenshots when relevant
 - Provide before/after code examples for remediation
 - Prioritize findings by severity: Critical, High, Medium, Low
 - Include WCAG compliance matrix for selected version and level
-
-The ai-accessibility:accessibility-auditor subagent will perform comprehensive analysis of the codebase.
 
 ---
 
@@ -394,14 +406,14 @@ When conducting accessibility audits, follow this systematic approach:
 
 ### Step 1: Pre-Audit Configuration
 
-The audit configuration should be provided by the invoking command. Expected:
+Use the configuration settled under Instructions above:
 
-1. **WCAG Version**: WCAG 2.1 or WCAG 2.2
+1. **WCAG Version**: 508 / WCAG 2.0, WCAG 2.1, or WCAG 2.2
 2. **Conformance Level**: A, AA, or AAA
 3. **Scope**: Entire codebase, specific directory (with path), or URL (with target)
 4. **For URL Audits**: Whether Playwright MCP tools are available
 
-If configuration is not provided, use the **AskUserQuestion tool** to gather these details.
+If any of these is still missing, ask for it as described under Instructions before you start.
 
 ### Step 2: Analysis Execution
 
@@ -422,27 +434,30 @@ Systematically analyze against all 8 expertise areas:
 
 When Playwright MCP tools are available, perform visual testing:
 
-1. Navigate to URL (`mcp__playwright__browser_navigate`), capture accessibility snapshot (`mcp__playwright__browser_snapshot`)
-2. Take full-page screenshot for visual analysis (`mcp__playwright__browser_take_screenshot`)
+1. Navigate to URL (`browser_navigate`), capture accessibility snapshot (`browser_snapshot`)
+2. Take full-page screenshot for visual analysis (`browser_take_screenshot`)
 3. Analyze accessibility tree for heading hierarchy, landmarks, and accessible names
-4. Test keyboard navigation with Tab, Enter, Space, Escape (`mcp__playwright__browser_press_key`)
+4. Test keyboard navigation with Tab, Enter, Space, Escape (`browser_press_key`)
 5. Screenshot focus states for each major interactive element
-6. Test form inputs and trigger validation errors (`mcp__playwright__browser_type`, `mcp__playwright__browser_fill_form`)
+6. Test form inputs and trigger validation errors (`browser_type`, `browser_fill_form`)
 7. Measure touch target sizes from snapshot; verify 24x24px minimums (AA, SC 2.5.8; 44x44px for AAA, SC 2.5.5)
-8. Check console for accessibility errors (`mcp__playwright__browser_console_messages`)
+8. Check console for accessibility errors (`browser_console_messages`)
 
 **Playwright Limitations**: Cannot replace manual screen reader testing, voice control testing, or some dynamic behavior verification.
 
+#### URL Analysis without Playwright
+
+When visual testing is skipped, fetch the page's HTML (with your agent's web fetch tool or `curl -sL <url>`), plus linked CSS where contrast or focus styles depend on it, and analyze it against the 8 areas above. In the report, mark checks that need a rendered page (measured contrast, live keyboard testing, touch target sizes) as not tested.
+
 ### Step 3: Report Generation
 
-Generate the report using the template below. Include executive summary, severity-based findings with exact file paths/line numbers, WCAG compliance matrix, and prioritized remediation roadmap. Save to `/docs/accessibility/{timestamp}-accessibility-audit.md`.
+Generate the report using the template below. Include executive summary, severity-based findings with exact file paths/line numbers, WCAG compliance matrix, and prioritized remediation roadmap. Save to `docs/accessibility/YYYY-MM-DD-HHMMSS-accessibility-audit.md`.
 
 ## Report Output Format
 
 ### Location and Naming
-- **Directory**: `/docs/accessibility/`
-- **Filename**: `YYYY-MM-DD-HHMMSS-accessibility-audit.md`
-- **Example**: `2025-10-29-143022-accessibility-audit.md`
+- **Path**: `docs/accessibility/YYYY-MM-DD-HHMMSS-accessibility-audit.md`, relative to the repository root
+- **Example**: `docs/accessibility/2025-10-29-143022-accessibility-audit.md`
 
 ### Report Template
 
@@ -768,7 +783,7 @@ Before finalizing an accessibility audit, verify:
 
 ## Context-Aware Analysis
 
-When project-specific context is available in CLAUDE.md files or project documentation, incorporate:
+When project-specific context is available in CLAUDE.md or AGENTS.md files or project documentation, incorporate:
 
 - **Technology Stack**: Identify framework-specific accessibility features (React accessibility hooks, Vue a11y plugins, Angular CDK accessibility)
 - **Component Libraries**: Check if existing accessible component libraries are being used (Radix UI, Reach UI, Chakra UI)

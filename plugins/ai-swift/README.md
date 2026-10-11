@@ -1,6 +1,6 @@
 # AI-Swift Plugin
 
-**Swift / iOS / macOS release-readiness and quality toolkit for Claude Code.** Catches the failures that pass a green local build but blow up later on Xcode Cloud, during App Store processing, or as an ITMS rejection email after a TestFlight upload.
+**Swift / iOS / macOS release-readiness and quality toolkit for Claude Code, Codex and Cursor.** Catches the failures that pass a green local build but blow up later on Xcode Cloud, during App Store processing, or as an ITMS rejection email after a TestFlight upload.
 
 ---
 
@@ -29,9 +29,11 @@ This plugin turns those failures into reusable checks. It's portable: it probes 
 
 ## Available Skills
 
-### `/swift-preflight`  (report-only unless you pass `--fix`)
+### `/swift-preflight`  (report-only)
 
 Audit the repo for Xcode Cloud / TestFlight release blockers. Probes the project shape, then runs every applicable check and prints a categorized **PASS / WARN / FAIL** report with `file:line`, the concrete remedy, and a one-line why.
+
+It never writes files. After the report it tells you which command to run for which findings, with the path and flags filled in: `/swift-ci-scaffold` for ci_scripts, build-number and CI-scheme fixes, and `/swift-verify` for the local gate. It also offers a guided list for the edits no command makes, such as test isolation and entitlements. `--fix` prints that list without asking, and `--check-only` skips the fix section.
 
 **Checks:**
 
@@ -51,7 +53,8 @@ Audit the repo for Xcode Cloud / TestFlight release blockers. Probes the project
 ```
 /swift-preflight
 /swift-preflight ./MyApp --verbose
-/swift-preflight --check-only
+/swift-preflight ./MyApp --fix   # report, fix commands and the guided manual list
+/swift-preflight --check-only    # report only, no questions; use for unattended runs
 ```
 
 ### `/swift-diagnose`  (report-only)
@@ -95,14 +98,6 @@ Swift 6 strict-concurrency + SwiftUI idiom review of the changed files (or a giv
 
 ---
 
-## Available Agents
-
-### `swift-release-auditor`
-
-Runs `/swift-preflight` in a fresh context for an automated release-readiness review before a TestFlight upload. Use for unattended or scheduled reviews. Read-only.
-
----
-
 ## Failure-to-check map
 
 Each check targets a failure like these:
@@ -124,11 +119,10 @@ Each check targets a failure like these:
 ## Plugin Details
 
 - **Name:** AI-Swift
-- **Version:** 1.0.2
+- **Version:** 2.0.0
 - **Type:** Swift / iOS / macOS Release-Readiness & Quality Toolkit
 - **Features:**
   - Skills: `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review`
-  - Agents: `swift-release-auditor`
 - **License:** MIT
 - **Author:** Charles Jones
 
@@ -136,10 +130,21 @@ Each check targets a failure like these:
 
 ## Installation
 
+Claude Code:
+
 ```
-/plugin marketplace add charlesjones-dev/claude-code-plugins-dev
-/plugin install ai-swift@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-swift@ai-agent-plugins
 ```
+
+Codex:
+
+```
+codex plugin marketplace add charlesjones-dev/ai-agent-plugins
+codex plugin add ai-swift@ai-agent-plugins
+```
+
+Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-swift`. See the [Cursor install steps](../../README.md#cursor).
 
 Optional tooling the skills use when present (install with Homebrew): `xcodegen`, `swiftformat`, `swiftlint`. `xcodebuild` / `swift` ship with Xcode.
 

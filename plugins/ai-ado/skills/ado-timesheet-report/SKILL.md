@@ -38,10 +38,9 @@ Before proceeding with report generation, verify that Azure DevOps configuration
      ```
    - **STOP** and do not proceed further
 
-3. If Azure DevOps section exists:
-   - Parse the CLAUDE.md content to extract configuration values:
-     - Organization name (look for text after 'Organization:**')
-     - Project name (look for text after 'Project:**')
+3. If Azure DevOps section exists, extract these values from it. `/ado-init` has written the section in two formats, so accept either:
+   - **Current format**, one line per value: `**Organization:**` and `**Project:**`, each followed by its value
+   - **Older format**, one sentence: the organization is the text after 'specify the organization as "' and the project after 'the project as "'
    - Store these values for use in work item queries
    - Proceed to Phase 2
 

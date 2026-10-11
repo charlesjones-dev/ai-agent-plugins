@@ -8,9 +8,21 @@ Open-source license compliance is a legal obligation. Using a GPL-licensed depen
 
 ## Quick Start
 
+Claude Code:
+
 ```
-/plugin install ai-compliance@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-compliance@ai-agent-plugins
 ```
+
+Codex:
+
+```
+codex plugin marketplace add charlesjones-dev/ai-agent-plugins
+codex plugin add ai-compliance@ai-agent-plugins
+```
+
+Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-compliance`. See the [Cursor install steps](../../README.md#cursor).
 
 ## Skills
 
@@ -109,10 +121,10 @@ The skill asks about:
 
 | Field | Value |
 |-------|-------|
-| Version | 1.0.1 |
+| Version | 1.1.0 |
 | Author | [Charles Jones](https://charlesjones.dev) |
 | License | MIT |
-| Repository | [claude-code-plugins-dev](https://github.com/charlesjones-dev/claude-code-plugins-dev) |
+| Repository | [ai-agent-plugins](https://github.com/charlesjones-dev/ai-agent-plugins) |
 
 ## Contributing
 

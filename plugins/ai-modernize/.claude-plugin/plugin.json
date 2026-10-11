@@ -1,12 +1,12 @@
 {
   "name": "ai-modernize",
-  "version": "1.1.1",
-  "description": "Finds technical debt and anti-patterns in code written with older AI models or vibe coding, and saves a scored report with a prioritized roadmap. Includes a full audit, a quick scan and an agent for unattended runs",
+  "version": "2.0.0",
+  "description": "Finds technical debt and anti-patterns in code written with older AI models or vibe coding, and saves a scored report with a prioritized roadmap. Takes its settings as arguments, and --defaults skips the setup questions for quick or unattended runs",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",

@@ -20,11 +20,14 @@ You **cannot** create or edit the Xcode Cloud workflow itself - those live in Ap
 
 ## Arguments
 
-`$ARGUMENTS`: optional `path` (repo root, default cwd); `--hook` jumps straight to the pre-push hook step.
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
+
+- `path` (optional) - repo root. Default: current working directory.
+- `--hook` - jump straight to the pre-push hook step.
 
 ## Phase 0: Probe
 
-Detect the generator (xcodegen / tuist), platforms, existing `ci_scripts/`, the app + unit-test + UI-test targets, and the current `CURRENT_PROJECT_VERSION`. If the project is a plain `.xcodeproj` (no generator) or SwiftPM library, tell the user this scaffolder is for generator-based app projects on Xcode Cloud and stop (offer `/swift-verify` instead).
+Detect the generator (xcodegen / tuist), platforms, existing `ci_scripts/`, the app + unit-test + UI-test targets, and the current `CURRENT_PROJECT_VERSION`. If the project is a plain `.xcodeproj` (no generator) or SwiftPM library, tell the user this scaffolder is for generator-based app projects on Xcode Cloud and stop. Suggest they run `/swift-verify` (with the same path, if they gave one) for the local gate instead; it's a command-only skill, so you can't run it for them.
 
 **Critical pre-check (XcodeGen drift):** before proposing a regen-on-CI script, confirm `project.yml` already declares the real `PRODUCT_BUNDLE_IDENTIFIER` and `DEVELOPMENT_TEAM` that the pbxproj uses:
 

@@ -14,7 +14,7 @@ Initialize Azure DevOps configuration by creating or updating `CLAUDE.md` with y
 
 **BEFORE DOING ANYTHING ELSE**: Begin with Phase 1 by asking for the organization name. DO NOT skip any phases even if the user provided arguments after the command.
 
-Configure CLAUDE.md with Azure DevOps-specific settings that guide Claude Code when working with the Microsoft Azure DevOps MCP server tools. Detailed work item creation guidelines are provided by the `ado-work-items` skill.
+Configure CLAUDE.md with Azure DevOps-specific settings that guide Claude Code when working with the Microsoft Azure DevOps MCP server tools. The CLAUDE.md section holds the configuration and the few work item rules Claude needs when it uses the MCP tools directly. The detailed work item creation guidelines live in the `/ado-create` command, which only the user can start.
 
 ### Phase 1: Gather Azure DevOps Configuration
 
@@ -233,7 +233,24 @@ Check if `CLAUDE.md` already exists and contains an Azure DevOps section using t
 2. If the file exists and Read succeeds:
    - Parse the content
    - Search for "## Azure DevOps" section header
-   - If Azure DevOps section exists:
+   - If Azure DevOps section exists and mentions `ado-work-items`:
+     - This section was written by an earlier version of /ado-init. It says the `ado-work-items` skill loads automatically with the Azure DevOps MCP tools, which stopped being true when the skill became command-only, and ai-ado 2.0 replaced the skill with `/ado-create`.
+     - Use the **Edit tool** to replace the paragraph that mentions `ado-work-items` (it starts with `**Work Item Guidelines:**` unless the user edited it) with the work item rules block from the Phase 3 template: every line from `**Work Item Rules:**` through the line that mentions `/ado-create`.
+     - If the section also contains the sentence `All work items (Features, User Stories, and Tasks) should have the "State" set to "New" unless otherwise specified.`, remove that sentence, since the first rule covers it.
+     - Leave everything else unchanged, including the configuration values and the rest of CLAUDE.md
+     - Display:
+       ```
+       ✓ Updated the Azure DevOps section in CLAUDE.md
+
+       It referred to the ado-work-items skill, which ai-ado 2.0 replaced with
+       /ado-create. In its place, the section now lists the work item rules Claude
+       follows with the Azure DevOps MCP tools and points to /ado-create.
+
+       Your organization, project, team, paths and naming convention are unchanged.
+       To change them, edit the Azure DevOps section of CLAUDE.md.
+       ```
+     - Return early without making other changes
+   - If Azure DevOps section exists (and doesn't mention `ado-work-items`):
      - **STOP** and display a warning message:
        ```
        ⚠️  Azure DevOps section already exists in CLAUDE.md
@@ -255,7 +272,7 @@ Check if `CLAUDE.md` already exists and contains an Azure DevOps section using t
 **IMPORTANT**:
 - Use **Read tool** to check file existence - DO NOT use bash test commands
 - The Read tool will gracefully handle non-existent files by returning an error
-- Only proceed with writing if no Azure DevOps section currently exists
+- Only proceed with writing if no Azure DevOps section currently exists. The one exception is the `ado-work-items` replacement above, which edits only that paragraph
 - Preserve all existing content when appending
 
 ### Phase 3: Build Azure DevOps Configuration Section
@@ -274,9 +291,14 @@ Azure DevOps MCP tools are authorized for use in this project. When utilizing Az
 **Iteration Path:** [ITERATION_PATH]
 **Naming Convention:** [NAMING_CONVENTION_DESCRIPTION]
 
-All work items (Features, User Stories, and Tasks) should have the "State" set to "New" unless otherwise specified.
+**Work Item Rules:**
 
-**Work Item Guidelines:** Detailed guidelines for creating Features, User Stories, and Tasks (including hierarchy, HTML formatting, acceptance criteria, hour estimation, and naming conventions) are provided by the `ado-work-items` skill. This skill is automatically loaded when working with Azure DevOps MCP tools.
+- Set "State" to "New" on new work items unless otherwise specified, and leave them unassigned.
+- Every User Story has a parent Feature, and every Task has a parent User Story.
+- Write Description and Acceptance Criteria as HTML (`<p>`, `<ul>`, `<li>`, `<strong>`), not Markdown. Acceptance criteria use Given/When/Then and go in the Acceptance Criteria field, not the Description.
+- Story Points (Fibonacci: 1, 2, 3, 5, 8, 13) go on User Stories only. A new Task gets the same hours in Original Estimate and Remaining Work, and Completed Work stays empty.
+
+For the full guidelines, the user can run `/ado-create feature`, `/ado-create story` or `/ado-create task` from the ai-ado plugin. Claude can't start that command itself, so suggest it instead of trying to load it.
 ```
 
 **Naming Convention Description Values:**
@@ -347,15 +369,19 @@ Configuration Summary:
 📝 Naming Convention: [Decimal notation | Simple descriptive names]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Work Item Guidelines:
-The ado-work-items skill provides comprehensive guidelines for:
+Work Item Rules:
+The section also lists the rules Claude follows when it uses the Azure DevOps
+MCP tools directly:
+✓ State "New" and unassigned for new work items
 ✓ Three-level hierarchy (Features → User Stories → Tasks)
-✓ HTML formatting requirements for text fields
-✓ Description and Acceptance Criteria templates
-✓ Hour estimation and Story Points guidelines
-✓ Naming convention standards
+✓ HTML formatting for Description and Acceptance Criteria
+✓ Story Points on User Stories, hour fields on Tasks
 
-The skill is automatically loaded when you work with Azure DevOps MCP tools.
+To create work items with the full guidelines (Description and Acceptance
+Criteria templates, naming conventions, estimation), run:
+   /ado-create feature
+   /ado-create story [parent Feature ID]
+   /ado-create task [parent User Story ID]
 
 Next Steps:
 1. Review the generated CLAUDE.md Azure DevOps section
@@ -364,26 +390,26 @@ Next Steps:
    📖 Visit https://github.com/microsoft/azure-devops-mcp for detailed instructions
    You'll need to create a Personal Access Token (PAT) with appropriate permissions
 4. [If MCP was configured] Restart Claude Code for the MCP server to take effect
-5. Use Azure DevOps MCP tools - the ado-work-items skill will provide guidance
+5. Create work items with /ado-create, or log hours to a story with /ado-log-story-work
 
 💡 Azure DevOps MCP Server: https://github.com/microsoft/azure-devops-mcp
 💡 Node.js Download: https://nodejs.org/
 
 💡 Tip: All Azure DevOps MCP work item operations will now automatically
    use these organization, project, and team settings unless explicitly
-   overridden. Work item creation guidelines will be provided by the
-   ado-work-items skill.
+   overridden.
 ```
 
 ### Important Constraints
 
 **DO NOT:**
-- Modify or remove existing content from CLAUDE.md
-- Proceed if Azure DevOps section already exists
+- Modify or remove existing content from CLAUDE.md, apart from replacing the stale `ado-work-items` paragraph in Phase 2B
+- Proceed if Azure DevOps section already exists, beyond that Phase 2B replacement
 - Use bash commands for file operations
 - Create the Azure DevOps section without user confirmation
 - Include empty or placeholder values in the configuration
-- Include the full work item guidelines in CLAUDE.md (they belong in the skill)
+- Include the full work item guidelines in CLAUDE.md (they live in /ado-create)
+- Tell the user or write in CLAUDE.md that a command loads automatically
 
 **DO:**
 - Use **Read tool** to check if CLAUDE.md exists and for Azure DevOps section
@@ -397,7 +423,7 @@ Next Steps:
 - Provide helpful next steps for using the configuration
 - Replace all template placeholders with actual user values
 - Use proper markdown formatting with appropriate spacing
-- Reference the ado-work-items skill for work item guidelines
+- Point to /ado-create for creating work items
 
 ### Additional Features
 
@@ -413,5 +439,5 @@ Next Steps:
 **MCP Integration Note:**
 If the user chose to configure MCP (.mcp.json was created or snippet was shown), include a reminder in the success message to restart Claude Code for the MCP server configuration to take effect.
 
-**Skill Integration:**
-The simplified CLAUDE.md section references the `ado-work-items` skill for detailed work item creation guidelines. This skill is automatically loaded when Claude detects Azure DevOps MCP tool usage, providing just-in-time expert guidance without cluttering the project's CLAUDE.md file.
+**Work Item Guidelines:**
+The full work item guidelines are in `/ado-create`, which reads them when the user runs it. The ai-ado commands are command-only, so none of them load on their own when Claude uses the Azure DevOps MCP tools. That's why the CLAUDE.md section carries the short work item rules itself and points to `/ado-create` for the rest.

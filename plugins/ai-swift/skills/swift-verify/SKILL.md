@@ -10,11 +10,11 @@ disable-model-invocation: true
 
 You run a Swift project's local quality gate, adapting the pipeline to how the project is built. This is the portable analog of a hand-written `scripts/verify.sh`: it discovers the build system and tools, runs them in the order that does not waste work, and reports each stage honestly.
 
-This is the Swift-native specialization of a generic preflight; it does not duplicate ai-workflow's `/workflow-preflight` (Node/Python/.NET/Go/Rust). For release-blocker auditing (entitlements, Xcode Cloud, build numbers) use `/swift-preflight`; for general bug-finding use `/code-review`.
+This is the Swift-native specialization of a generic preflight; it does not duplicate ai-git's `/git-preflight` (in Codex, `ai-git:git-preflight`), which covers Node/Python/.NET/Go/Rust. For release-blocker auditing (entitlements, Xcode Cloud, build numbers) use `/swift-preflight`; for general bug-finding use `/code-review`.
 
 ## Arguments
 
-`$ARGUMENTS`:
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
 
 - `path` - repo root (default cwd).
 - `--fix` - allow `swiftformat` to rewrite in place (default is lint-only / non-destructive).

@@ -1,11 +1,80 @@
 # Changelog
 
-All notable changes to the Claude Code Plugins will be documented in this file.
+All notable changes to AI Agent Plugins (formerly Claude Code Plugins for Developers) will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [3.0.0] - 2026-10-11
+
+The repository and marketplace are renamed from `claude-code-plugins-dev` to `ai-agent-plugins`, and 8 plugins are now packaged for Codex and Cursor as well as Claude Code. Four plugins merge into others (ai-aeo and ai-geo into ai-seo, ai-cvp into ai-security, ai-writing into ai-slop), which leaves 13. Skills that repeated another skill are merged, skills that Claude Code now covers are removed, ai-knowledge moves to Claude Code's path-scoped rules, and five wrapper subagents that couldn't load their skills are removed. The marketplace goes from 64 skills to 41.
+
+### Removed
+
+- **ai-aeo and ai-geo** — merged into ai-seo (see Changed). `/aeo-audit` and `/geo-audit` are now `/seo-audit aeo` and `/seo-audit geo`, `/aeo-fix` and `/geo-fix` are folded into `/seo-fix`, and `/aeo-faq`, `/aeo-questions` and `/geo-llms-txt` are now `/seo-faq`, `/seo-questions` and `/seo-llms-txt`. The Claude Code catalog's new `renames` map points both names at ai-seo, so Claude Code switches an existing install's setting over to ai-seo. Users then run `/plugin install ai-seo@ai-agent-plugins` once to install it.
+- **ai-cvp** — merged into ai-security. `/cvp-defense-audit` is now `/security-cvp-audit` (see Added). `renames` points ai-cvp at ai-security, and users who only had ai-cvp run `/plugin install ai-security@ai-agent-plugins` once.
+- **ai-writing** — merged into ai-slop. `/writing-humanize` is now `/slop-rewrite` (see Added), and its pattern catalog is merged into ai-slop's `signals.md`, so the audit and the rewrite share one list. `renames` points ai-writing at ai-slop, and users run `/plugin install ai-slop@ai-agent-plugins` once.
+- **ai-git `/git-commit-push` and `/git-pr-codex-loop`** — `/git-commit-push` is now `/git-commit-push-pr --no-pr`. The Codex review loop is removed: Claude Code's `/code-review --fix` and `/autofix-pr` loop on review comments and CI failures, and `/workflow-babysit` still triages Codex Code Review findings. Major version bump: ai-git 1.3.2 → 2.0.0.
+- **ai-workflow `/workflow-ship`, `/workflow-preflight`, `/workflow-claude-actions` and `/workflow-principles`** — `/workflow-ship` is now `/git-commit-push-pr --preflight` and `/workflow-preflight` is now `/git-preflight`, both in ai-git. Claude Code's `/install-github-app` replaces `/workflow-claude-actions`: its review workflow posts inline comments since v2.1.229, and without `--model` the workflows use Claude Code's default model, Opus 5.5. `/init` replaces `/workflow-principles`. Major version bump: ai-workflow 2.1.0 → 3.0.0.
+- **Five `/workflow-rules` rules** — `no-generated-by-footers` (Claude Code's `attribution` setting does this), `no-internal-narration` and `match-response-to-task` (the built-in concise output style, `/output-style concise`), and `no-unrequested-features` and `confirm-risky-actions` (covered by Claude Code's built-in instructions). The list and remove modes still find copies already installed in CLAUDE.md and say what replaces each one.
+- **ai-ado `/ado-create-feature`, `/ado-create-story`, `/ado-create-task` and `/ado-work-items`** — replaced by `/ado-create` (see Added). The `/ado-work-items` guidelines are now `/ado-create`'s `references/work-items.md`. Major version bump: ai-ado 1.3.3 → 2.0.0.
+- **ai-modernize `/modernize-scan`** — use `/modernize-audit <path> --defaults` (see Changed).
+- **ai-knowledge Obsidian support** — the vault instructions, `[[wiki-link]]` syntax and the `related` and `sources` frontmatter. Cross-references are plain paths in an optional Related section, the only place Claude sees them, since Claude Code strips frontmatter.
+- **ai-knowledge `/kb-auto`, `/kb-load`, `/kb-ingest`, `/kb-import`, `/kb-harvest`, `/kb-absorb`, `/kb-search`, `/kb-list`, `/kb-organize`, `/kb-remove` and `/kb-upgrade`** — 17 skills become 7. Auto-capture replaces `/kb-auto` (see Added), and an @-mention replaces `/kb-load`. `/kb-add` takes over ingest, import, harvest and absorb, `/kb-query` takes over search and list, `/kb-prune` takes over organize and remove, and `/kb-migrate` takes over upgrade. The plugin README maps each one. Major version bump: ai-knowledge 1.5.2 → 2.0.0.
+- **Wrapper subagents** — `accessibility-auditor`, `modernize-auditor`, `performance-auditor`, `security-dependency-scanner` and `swift-release-auditor`. Each one's instructions were to load its plugin's skill, which Claude Code refuses because those skills set `disable-model-invocation: true`, so a skill that handed off to one reached a subagent without the methodology or report template. `/accessibility-audit`, `/modernize-audit`, `/performance-audit` and `/security-scan-dependencies` now run their audits themselves. For unattended runs, pass the settings as arguments (see Changed); `/swift-preflight --check-only` replaces `swift-release-auditor`. `security-auditor` stays: it's a separate reviewer role with its own instructions that `/security-audit` runs in parallel. Major version bumps: ai-accessibility 1.4.2 → 2.0.0, ai-modernize 1.1.1 → 2.0.0, ai-performance 1.2.2 → 2.0.0, ai-security 2.0.1 → 3.0.0, ai-swift 1.0.2 → 2.0.0.
+
+### Changed
+
+- **Repository and marketplace renamed** — `charlesjones-dev/claude-code-plugins-dev` is now `charlesjones-dev/ai-agent-plugins`, and the marketplace `name` in `.claude-plugin/marketplace.json` changed to match. Install IDs change from `<plugin>@claude-code-plugins-dev` to `<plugin>@ai-agent-plugins`. GitHub redirects the old URLs, so existing installs and links keep working, but Claude Code keeps those installs under the old marketplace name. To switch, remove the old marketplace, add `charlesjones-dev/ai-agent-plugins` and reinstall. Removing the old marketplace uninstalls its plugins. The README has the commands, and a table of renamed commands.
+- **ai-seo covers SEO, AEO and GEO** — six skills, all ai-aeo and ai-geo checks and fixes carried over. Major version bump: ai-seo 1.0.1 → 2.0.0.
+  - `/seo-audit [seo|aeo|geo|all]` audits one lens or all three (the default, asked first when missing) and takes every setting as an argument, with defaults for unattended runs. It writes one report to `docs/seo-audit/` with a section and a score per lens and no combined score. Findings carry lens-prefixed IDs (`SEO-1`, `AEO-1`, `GEO-1`). The report index gets a column per lens, rows from 1.x are converted, and trends compare against reports in the old `docs/aeo-audit/` and `docs/geo-audit/` folders.
+  - `/seo-fix` applies the newest report for every lens it covers, keeps every fix type, confirmation rule and `--dry-run` from the three fix skills, applies fixes two lenses share once, and acts as `--dry-run` in an unattended run. It takes an optional report path, so an older AEO or GEO report can still be applied.
+  - `/seo-schema` owns all JSON-LD generation and validation, including FAQPage/QAPage and Organization/Person with `sameAs`. `/seo-schema`, `/seo-fix` and `/seo-faq` share one `json-ld.md` rule set.
+  - `/seo-faq`, `/seo-questions` and `/seo-llms-txt` take their setup as arguments and have unattended defaults. With no arguments they behave as before. `/seo-questions` can also start from an earlier question map, including one in the old folder.
+- **Audit skills take their settings as arguments** — each asks only for what the arguments leave out, and asks nothing when they cover everything, so the audits can run unattended.
+  - `/accessibility-audit [WCAG version] [level] [path or URL]`, such as `/accessibility-audit 2.2 AA src/`. With a URL from the arguments, it uses Playwright visual testing when the Playwright MCP server responds and otherwise audits the HTML and notes that visual testing was skipped. The Playwright setup step now covers Claude Code (`.mcp.json`), Cursor (`.cursor/mcp.json`) and Codex (`codex mcp add`).
+  - `/modernize-audit [path] [ai=…] [era=…] [stack=…|auto] [categories=all|…] [severity=all|medium|high] [--defaults]`. `--defaults` asks nothing and uses the defaults for any setting the arguments leave out, which replaces `/modernize-scan`. The same defaults apply when no one can answer, and the report marks each one "(default)". The audit also takes a single file as its scope, and skips categories that can't apply to it. Its category checklist moved to `skills/modernize-audit/references/categories.md`.
+  - `/performance-audit [path]` limits the audit to one directory.
+  - `/security-scan-dependencies [URL] [frontend|cms|headers|all]`. With only a URL in an unattended run, the scope is `all`. The skill also gained build-tool detection (Webpack, Vite, Turbopack, Parcel), including a warning when a Vite dev server is exposed.
+  - Their report paths are repository-relative (`docs/accessibility/`, `docs/modernize/`, `docs/performance/`, `docs/security/`) rather than written with a leading slash.
+- **ai-git `/git-commit-push-pr`** — takes `--preflight`, which runs `/git-preflight --fix` first and stops if it applied fixes or problems remain, and `--no-pr`, which stops after the push. It used to ignore all arguments. It reads the default branch from `gh` instead of assuming `main`, returns the URL of a PR that's already open, stops when a push is rejected or `gh` is missing, and writes a test plan with only what was actually run. In Codex and Cursor it runs preflight by loading the `git-preflight` skill.
+- **ai-git `/git-preflight`** — moved from ai-workflow, so it now runs in Codex and Cursor too. It no longer depends on Claude Code for platform detection or questions.
+- **ai-workflow `/workflow-babysit`** — points to `/install-github-app` instead of `/workflow-claude-actions` when Claude Code review is off, including its "Update workflow file with latest version" option, and treats the summary comment a v2.1.229 or later review workflow posts as a clean pass.
+- **ai-security `/security-cvp-audit`** — its ignore rule no longer hides `/security-audit` reports. When git already tracks files in `docs/security/`, it ignores only the audit's own paths (`/docs/security/*cvp*audit*`, `/docs/security/tests/`, `/docs/security/harness/`); otherwise it still adds `/docs/security/` and says that also covers `/security-audit` reports. It no longer suggests `git rm -r --cached docs/security`. Its reports are now named `<date>-security-cvp-audit.md`, so they no longer end in `-security-audit` like `/security-audit`'s. Recon reads only the newest `/security-audit` report pair, and treats `/security-scan-dependencies` reports as leads only.
+- **ai-swift** — `/swift-preflight` can't run `/swift-ci-scaffold` or `/swift-verify`, which are command-only, so its fix step now prints which command to run for which findings, with the path and flags filled in, plus a guided list for the edits no command makes. `--fix` prints that list without asking. `/swift-diagnose` and `/swift-ci-scaffold` also name the command to run instead of handing off, and all five skills read arguments in Codex and Cursor too.
+- **ai-knowledge stores the knowledge base as Claude Code rules** — instead of a CLAUDE.md table that asked Claude to read each article at the right moment. Scoped articles live in `.claude/rules/kb/` with `paths` frontmatter and load when Claude reads, writes or edits a matching file, and pinned ones load every session. Articles with only keywords live in `.claude/kb/` and are read on demand. The always-loaded `.claude/rules/kb/_index.md` lists every scoped and on-demand article with its keywords, so a 1.x row's keywords still bring in a scoped article by topic, and Claude names each scoped or on-demand article it loads in one line (`📖 Loaded KB: conventions/api.md`). CLAUDE.md gets nothing. In frontmatter, `scope` becomes `paths` and an article's folder replaces `pinned`; the `related` and `sources` fields and `[[wiki-links]]` give way to plain paths in an optional Related section. Teammates get the knowledge base without installing the plugin. `/kb-add [note | path, glob or URL ... | --absorb]`, `/kb-query <question> | search <terms> | tag:<tag> | list`, `/kb-prune [remove <article> | organize]` and `/kb-learn [focus]` take arguments.
+- **ai-knowledge `/kb-learn`** — Claude can now run it itself (`auto <learning>`), but only under auto-capture or when you ask it to save something; a user stating a rule isn't enough. Typed as `/kb-learn`, it still reviews the whole conversation and asks before saving.
+- **Codex catalog** — Codex now reads `.agents/plugins/marketplace.json` instead of the Claude Code catalog, so it lists only the 8 plugins that run there. Codex users who installed a Claude Code-only plugin from the old catalog no longer get updates for it.
+- Every plugin's `repository` field, the README install lines, and the report footers in `/seo-audit`, `/seo-questions` and `/compliance-notice-generate` point at the new URL. The `/seo-audit` reports no longer call the plugin a Claude Code plugin.
+- README rewritten with a "Runs in" column, install steps for Claude Code, Codex and Cursor, and a section on moving from `claude-code-plugins-dev` that maps each renamed command. The portable plugins' READMEs add Codex and Cursor install steps and note what works only in Claude Code, such as `claude mcp add`. CONTRIBUTING, SECURITY and CLAUDE.md describe the new files, and CLAUDE.md now says not to write agents that only load a skill, or skills that tell the agent to run a command-only skill.
+- Marketplace descriptions: "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor." for Claude Code, and "Plugins for code audits, release checks, git workflows and writing cleanup in Claude Code, Codex and Cursor." for Cursor.
+
+### Added
+
+- **Codex and Cursor support** — ai-accessibility, ai-compliance, ai-git, ai-modernize, ai-performance, ai-seo, ai-slop and ai-swift are listed in two new catalogs, `.agents/plugins/marketplace.json` (Codex) and `.cursor-plugin/marketplace.json` (Cursor). Each has a root `plugin.json` in the [Agent Plugins](https://agent-plugins.org/) 1.0 format next to its `.claude-plugin/plugin.json`. Codex and Cursor read the root manifest first, and Claude Code ignores it. Minor version bumps: ai-compliance 1.0.1 → 1.1.0, ai-slop 1.0.0 → 1.1.0. The other six get major bumps under Removed and Changed.
+- **ai-slop `/slop-rewrite`** — rewrites a file, a glob, or a block of text pasted right after the command, so it reads as a person wrote it. Leading `type=` (`docs`, `readme`, `blog`, `pr`) and `level=` (`light`, `standard`, `heavy`) settings skip the matching questions. Pasted text comes back as one block to copy, and files change only after you approve the edits. It reads the project's writing rules first, works from the same `signals.md` as `/slop-audit`, and lists any line that needs a fact it doesn't have as a question instead of inventing one. `signals.md` gains the humanize patterns it lacked: copula avoidance, wordy filler phrases, hedging, unnecessary prefixes, trailing -ing analysis, vague attributions, false ranges, upbeat endings, conclusion signposts, chatbot leftovers, formatting habits and developer-text padding.
+- **ai-security `/security-cvp-audit [focus area or path] [--model <audit-model-id>]`** — ai-cvp's sandboxed audit planner. It does read-only recon, then writes a paste-ready audit prompt for a sandboxed session on a stronger model, a launch checklist and a fix prompt. `/security-audit` and `/security-cvp-audit` each name the other.
+- **ai-ado `/ado-create [feature|story|task] [parent ID] [title]`** — one command for Features, User Stories and Tasks. It keeps every question, field and rule from the three old skills and asks only for what the arguments leave out. It looks up the parent first and warns when a story's parent isn't a Feature or a task's parent isn't a User Story.
+- **ai-knowledge `/kb-migrate [--dry-run] [auto=off] [agents=off]`** — moves a 1.x knowledge base to the new layout. It maps each table row and article to pinned, scoped or on-demand and asks before changing anything, moves files with `git mv` so history follows, rewrites `*.ext` globs as `**/*.ext`, drops scopes that pointed at `docs/kb/` itself (in 2.x they'd load the article with every knowledge base read), keeps every row's keywords in `tags`, turns links into plain paths, and removes the CLAUDE.md Knowledge Base section, the `/kb-auto` block and `docs/kb/.obsidian/`. It's safe to re-run, and on a migrated knowledge base it checks and repairs the format. The other commands stop and point to it while a 1.x knowledge base exists. It also finds notes that still point at renamed or removed marketplace commands, plugins and report folders, such as `/writing-humanize`, `/geo-audit` or `docs/geo-audit/`, in the knowledge base, CLAUDE.md, CLAUDE.local.md, AGENTS.md, other `.claude/rules/` files, `.gitignore` and `docs/`. It works from `command-map.md`, a map of every rename and removal since 1.0. Simple renames are applied with the migration and other changes are proposed as sentence rewrites; files outside the knowledge base change only after a separate yes, and dated notes, logs and changelogs are left alone. Its format check runs the same scan, so running `/kb-migrate` again after a marketplace update catches newly stale references.
+- **ai-knowledge auto-capture** — saves team knowledge as it comes up, the way Claude Code's auto memory saves personal notes, so you don't have to run `/kb-learn`. It's set per developer: `/kb-init` and `/kb-migrate` turn it on unless you pass `auto=off`, and it stays off for anyone who hasn't run either. A SessionStart hook in the plugin adds the instruction when the setting is on and the project has a 2.x knowledge base. Claude then saves corrections, stated rules, settled decisions and gotchas, updates an existing article instead of adding a duplicate, skips personal preferences, and picks the load mode. It reports each save in one line, and "undo" reverses it. It works with auto memory off. Running `/kb-init` again keeps an earlier choice, and `/kb-init auto=on|off` switches it. The setting lives in `git config --local ai-knowledge.autoCapture`, or in `.claude/settings.local.json` outside git.
+- **ai-knowledge `AGENTS.md` section** — Codex and Cursor read `AGENTS.md`, not `.claude/rules/`, so `/kb-init` and `/kb-migrate` add a short section between `<!-- ai-knowledge:start -->` and `<!-- ai-knowledge:end -->` markers, creating the file if needed. It tells those agents to read `_index.md` and the pinned articles at the start of a task, the scoped articles whose `paths` match a file before touching it, and an on-demand article when a task matches its index line. Running `/kb-init` again refreshes it, `/kb-migrate`'s format check repairs it, and `agents=off` skips or removes it. It changes nothing in Claude Code.
+- **`scripts/check-manifests.py`** — checks that the three catalogs, both manifest formats and the Codex policy files agree, that each skill's `name` matches its folder, that reference files copied between skills are identical (ai-slop's `signals.md`, ai-seo's `json-ld.md` and report index template, and ai-knowledge's `kb-format.md`), and that every plugin command in ai-knowledge's command map exists. Standard library only.
+- Install lines in the ai-modernize and ai-knowledge READMEs, which had none.
+
+### Fixed
+
+- **Codex could start command-only skills unprompted** — Codex ignores Claude Code's `disable-model-invocation: true`, so when a prompt matched, it could run any skill that's meant to run only when called, such as `/git-commit-push-pr`. Each of those skills (37 after this release) now has `agents/openai.yaml` with `allow_implicit_invocation: false`, which keeps it out of the skill list Codex gives the model until you pick it. Cursor and Claude Code already honored the frontmatter field. ai-statusline gets only this fix and the new URL: 1.5.0 → 1.5.1. Codex doesn't list the Claude Code-only plugins, but they get the file too, so the check script applies one rule to every command-only skill.
+- **ai-ado `/ado-init`** — it told users, and wrote into CLAUDE.md, that the `ado-work-items` skill loads automatically with the Azure DevOps MCP tools. It couldn't: the skill was command-only. The CLAUDE.md section now has four short work item rules (State "New" and unassigned, the parent hierarchy, HTML fields, Story Points and hours) and points to `/ado-create`. Running `/ado-init` on a project whose section mentions `ado-work-items` replaces that paragraph and leaves the settings alone.
+- **ai-ado config reading** — `/ado-init` has written a line-per-value format since 1.1, but the create skills and `/ado-log-story-work` read only the 1.0 format, and `/ado-timesheet-report` read only the newer one. `/ado-create`, `/ado-log-story-work` and `/ado-timesheet-report` now accept either.
+- **ai-git `/git-commit-push-pr`** — the PR footer now names the agent that ran the skill instead of always crediting Claude Code. Commits carry no AI attribution in any agent.
+- **ai-git `/git-preflight`** — no longer pauses at "Ready to run checks?", no longer offers tool setup with `--fix` or `--check-only`, and its two check-order lists now agree.
+- **ai-knowledge 1.x links** — 1.x wrote `related: [[a]], [[b]]`, which isn't valid YAML, and Claude Code doesn't load a rule whose frontmatter won't parse. `/kb-migrate` drops the `related` and `sources` fields and turns their links, and any `[[name]]` links in article bodies, into plain paths.
+- **ai-security `/security-cvp-audit`** — the output contract check skips `/security-audit` and `/security-scan-dependencies` reports, and the fix prompt moves only a report file the check printed and checks staged files instead of `git status` before committing.
+- **ai-seo** — the SEO lens no longer suggests HowTo or FAQ markup for rich results, and `/seo-llms-txt` no longer saves validation output next to `llms.txt` in the public folder, where the site would publish it.
+- **ai-swift `/swift-verify`** pointed at ai-workflow's `/workflow-preflight`. It now points at ai-git's `/git-preflight`.
+- Marketplace metadata version bumped `2.12.0` → `3.0.0`. The major bump is for the changed install IDs, the merged plugins and the removed skills and subagents.
 
 ## [2.12.0] - 2026-10-10
 
@@ -1409,48 +1478,49 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.12.0...HEAD
-[2.12.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.3...v2.12.0
-[2.11.3]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.2...v2.11.3
-[2.11.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.1...v2.11.2
-[2.11.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.11.0...v2.11.1
-[2.11.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.10.0...v2.11.0
-[2.10.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.9.0...v2.10.0
-[2.9.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.8.1...v2.9.0
-[2.8.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.8.0...v2.8.1
-[2.8.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.7.1...v2.8.0
-[2.7.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.7.0...v2.7.1
-[2.7.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.6.0...v2.7.0
-[2.6.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.5.0...v2.6.0
-[2.5.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.4.3...v2.5.0
-[2.4.3]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.4.2...v2.4.3
-[2.4.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.4.1...v2.4.2
-[2.4.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.4.0...v2.4.1
-[2.4.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.3.4...v2.4.0
-[2.2.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.2.1...v2.2.2
-[2.2.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.2.0...v2.2.1
-[2.2.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.1.0...v2.2.0
-[2.1.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.0.1...v2.1.0
-[2.0.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v2.0.0...v2.0.1
-[2.0.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.9.1...v2.0.0
-[1.9.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.9.0...v1.9.1
-[1.9.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.8.0...v1.9.0
-[1.8.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.7.1...v1.8.0
-[1.7.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.7.0...v1.7.1
-[1.7.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.6.3...v1.7.0
-[1.6.3]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.6.2...v1.6.3
-[1.6.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.6.1...v1.6.2
-[1.6.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.5.4...v1.6.0
-[1.5.4]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.5.3...v1.5.4
-[1.5.3]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.5.2...v1.5.3
-[1.5.2]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.5.1...v1.5.2
-[1.5.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.5.0...v1.5.1
-[1.5.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.4.1...v1.5.0
-[1.4.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.4.0...v1.4.1
-[1.4.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.3.0...v1.4.0
-[1.3.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.2.0...v1.3.0
-[1.2.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.1.0...v1.2.0
-[1.1.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.0.1...v1.1.0
-[1.0.1]: https://github.com/charlesjones-dev/claude-code-plugins-dev/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/charlesjones-dev/claude-code-plugins-dev/releases/tag/v1.0.0
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.12.0...v3.0.0
+[2.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.3...v2.12.0
+[2.11.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.2...v2.11.3
+[2.11.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.1...v2.11.2
+[2.11.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.0...v2.11.1
+[2.11.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.10.0...v2.11.0
+[2.10.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.9.0...v2.10.0
+[2.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.8.1...v2.9.0
+[2.8.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.8.0...v2.8.1
+[2.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.7.1...v2.8.0
+[2.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.7.0...v2.7.1
+[2.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.6.0...v2.7.0
+[2.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.5.0...v2.6.0
+[2.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.4.3...v2.5.0
+[2.4.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.4.2...v2.4.3
+[2.4.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.4.1...v2.4.2
+[2.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.4.0...v2.4.1
+[2.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.3.4...v2.4.0
+[2.2.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.2.1...v2.2.2
+[2.2.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.2.0...v2.2.1
+[2.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.1.0...v2.2.0
+[2.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.0.0...v2.0.1
+[2.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.9.1...v2.0.0
+[1.9.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.9.0...v1.9.1
+[1.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.8.0...v1.9.0
+[1.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.7.1...v1.8.0
+[1.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.7.0...v1.7.1
+[1.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.6.3...v1.7.0
+[1.6.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.6.2...v1.6.3
+[1.6.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.5.4...v1.6.0
+[1.5.4]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.5.3...v1.5.4
+[1.5.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.5.2...v1.5.3
+[1.5.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.5.0...v1.5.1
+[1.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.4.1...v1.5.0
+[1.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.4.0...v1.4.1
+[1.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.3.0...v1.4.0
+[1.3.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/releases/tag/v1.0.0

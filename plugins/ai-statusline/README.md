@@ -98,7 +98,8 @@ Edit your existing status line configuration.
 ### Installation
 
 ```
-/plugin install ai-statusline@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-statusline@ai-agent-plugins
 ```
 
 ### Usage
@@ -353,7 +354,7 @@ The script couldn't write to `~/.claude/statusline-spend/` (read-only home direc
 ## Plugin Details
 
 - **Name:** AI-Statusline
-- **Version:** 1.5.0
+- **Version:** 1.5.1
 - **Type:** UI Customization
 - **Features:**
   - Skills: `/statusline-wizard`, `/statusline-edit`

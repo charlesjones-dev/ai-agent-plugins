@@ -1,0 +1,30 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-git",
+  "version": "2.0.0",
+  "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
+  "author": {
+    "name": "Charles Jones",
+    "url": "https://charlesjones.dev"
+  },
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "git",
+    "commit",
+    "commits",
+    "automation",
+    "productivity",
+    "devops",
+    "version-control",
+    "pull-request",
+    "gitignore",
+    "preflight",
+    "code-quality",
+    "typecheck",
+    "lint",
+    "testing",
+    "semgrep"
+  ]
+}

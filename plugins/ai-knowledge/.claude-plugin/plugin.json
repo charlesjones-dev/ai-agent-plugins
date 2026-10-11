@@ -1,26 +1,25 @@
 {
   "name": "ai-knowledge",
-  "version": "1.5.2",
-  "description": "Keeps a git-versioned team knowledge base in docs/kb/ next to Claude Code's per-machine auto memory: capture learnings, import and search articles, load them by task, and browse the base in Obsidian",
+  "version": "2.0.0",
+  "description": "Keeps a team knowledge base in git as Claude Code rules, so each article loads when Claude works on matching files, every session, or on demand from a short index. Capture learnings as you work with auto-capture or on request, add docs, repos and URLs, query and prune it, and migrate a 1.x knowledge base",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",
     "knowledge-base",
+    "kb",
     "learnings",
     "institutional-knowledge",
-    "claude-md",
-    "documentation",
-    "best-practices",
     "lessons-learned",
-    "kb",
-    "productivity",
-    "obsidian",
-    "graph-view",
-    "wiki-links"
+    "best-practices",
+    "documentation",
+    "claude-rules",
+    "path-scoped-rules",
+    "team-knowledge",
+    "auto-capture"
   ]
 }

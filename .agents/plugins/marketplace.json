@@ -1,0 +1,128 @@
+{
+  "name": "ai-agent-plugins",
+  "interface": {
+    "displayName": "AI Agent Plugins"
+  },
+  "plugins": [
+    {
+      "name": "ai-accessibility",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-accessibility"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-git",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-git"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-performance",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-performance"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-modernize",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-modernize"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-compliance",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-compliance"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-seo",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-seo"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-swift",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-swift"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "ai-slop",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-slop"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

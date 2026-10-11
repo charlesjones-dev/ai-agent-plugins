@@ -1,271 +1,79 @@
 ---
 name: kb-init
-description: "Initialize the Knowledge Base section in CLAUDE.md and create the docs/kb/ directory. Idempotent - safe to run multiple times."
+description: "Set up a team knowledge base as Claude Code rules: .claude/rules/kb/ for articles Claude Code loads by itself and .claude/kb/ for on-demand articles. Turns auto-capture on for you unless you pass auto=off. On an existing knowledge base it doesn't redo setup: it turns auto-capture on if you never set it, keeps your earlier choice otherwise, and auto=on|off switches it. Also adds a short section to AGENTS.md so Codex and Cursor read the knowledge base (agents=off to skip). Points to /kb-migrate when the project has a 1.x knowledge base."
+argument-hint: "[auto=on|off] [agents=off]"
 disable-model-invocation: true
 ---
 
-# Knowledge Base Initialization
+# Set up the knowledge base
 
-You are a knowledge base setup assistant. Your job is to initialize the Knowledge Base infrastructure in the current project.
+Read [kb-format.md](kb-format.md) first. It defines the layout, the files, the checks and the auto-capture setting used below.
 
-## Instructions
+Arguments (may be empty): $ARGUMENTS
 
-**CRITICAL**: This command MUST NOT accept any arguments. Ignore any text provided after the command.
+Auto-capture is on by default: `/kb-init` turns it on for this developer in this project without asking. `auto=off` keeps it off, and `auto=on` turns it back on after an earlier `auto=off`. `agents=off` leaves the `AGENTS.md` section out (kb-format.md, The AGENTS.md pointer). Ignore any other text.
 
-**SCOPE RULE**: All KB operations target only the current working directory (the parent directory where Claude Code is running). Never create `docs/kb/` in subdirectories, never modify CLAUDE.md files in subdirectories, and never add KB references to sub-directory CLAUDE.md files. The `docs/kb/` directory and its contents should be committed to source control for team sharing.
+## Step 1: Check the project
 
-### Step 1: Detect Current State
+1. Look for a 1.x knowledge base as kb-format.md describes. If there is one, create nothing, change no setting, and say:
 
-1. **Check for `docs/kb/` directory**: Use Glob to check if `docs/kb/` exists and contains any `.md` files.
-2. **Check for CLAUDE.md**: Read the project's `CLAUDE.md` file (in the current working directory). If it doesn't exist, note that it will be created.
-3. **Check for existing KB section**: If CLAUDE.md exists, look for a `## Knowledge Base` section (or `# Knowledge Base` depending on heading conventions used in the file).
+   > This project has a 1.x knowledge base (the CLAUDE.md table and `docs/kb/`). Run `/kb-migrate` to move it to the new layout, or `/kb-migrate --dry-run` to preview the plan first. Setting up the new layout next to the old one would split the knowledge base in two. At the end of the migration, `/kb-migrate` turns on auto-capture for you unless you pass `auto=off`.
 
-### Step 2: Create Directory Structure
+   Then stop.
+2. If `.claude/rules/kb/_index.md` exists, the knowledge base is already set up: go to Step 4.
+3. Note any other `.md` files already under `.claude/rules/kb/` or `.claude/kb/`, and run the git check from kb-format.md.
 
-**Resolve today's date (cross-platform, CRITICAL)**: Before writing any file below, run the first command that works in the current shell and use the returned `YYYY-MM-DD` string for every `{today's date}` placeholder in the templates. Never guess, never infer, never increment.
+## Step 2: Create the files
 
-- **macOS / Linux / WSL / Git Bash** (bash, zsh, sh): `date +%Y-%m-%d`
-- **Windows PowerShell / pwsh**: `Get-Date -Format 'yyyy-MM-dd'`
-- **Windows cmd.exe**: `powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd'"`
-- **Portable fallback** (Node or Python available): `node -e "console.log(new Date().toISOString().slice(0,10))"` or `python -c "import datetime; print(datetime.date.today().isoformat())"`
+Get today's date once (kb-format.md, Dates). Create only files that don't exist, and never overwrite one.
 
-If `docs/kb/` does not exist, create it with a placeholder README:
+1. **`.claude/rules/kb/_index.md`** from the template in kb-format.md, with `- None yet.` as the list. If articles already exist (added by hand, for example), list every scoped article under `.claude/rules/kb/` and every on-demand article under `.claude/kb/` instead, one line each from the article's title, `tags` and `paths`.
+2. **`.claude/kb/README.md`** from the template in kb-format.md.
+3. **`.claude/kb/_log.md`** as kb-format.md describes, with this entry:
 
-**File: `docs/kb/README.md`**
-```markdown
-# Knowledge Base
+   ```markdown
+   ## [{date}] init | Knowledge base set up
+   - Created: {the files created in this run}
+   ```
 
-This directory contains topic-specific knowledge base files that are dynamically referenced in CLAUDE.md.
+4. **`AGENTS.md`**: add the pointer section from kb-format.md, creating the file if needed, unless the arguments include `agents=off`. This is the one file outside `.claude/` that `/kb-init` writes, and only between its marker comments.
 
-## Structure
+Don't create `_global-learnings.md` yet. `/kb-learn` and `/kb-add` create it with the first cross-cutting rule, so an empty placeholder doesn't load into every session.
 
-KB articles are organized in category folders. Special files (prefixed with `_`) live at the root:
+Don't add anything to CLAUDE.md. Claude Code loads `_index.md` and the scoped articles without being told to.
 
-```
-docs/kb/
-  _global-learnings.md   # Cross-cutting rules (pinned, always loaded)
-  _index.md              # Auto-generated page catalog with summaries
-  _log.md                # Chronological operation log
-  README.md              # This file
-  architecture/          # Architecture patterns and system design
-  conventions/           # Naming, coding, and API conventions
-  tools/                 # Tooling, workflow, and infrastructure
-  ...                    # Other categories as needed
-```
+## Step 3: Auto-capture on a new knowledge base
 
-Category folders are created as needed based on article content. Articles can also be flat at the root for small KBs:
+Don't ask. With `auto=off`, set it off; otherwise set it on (kb-format.md, Auto-capture). Off still writes the `false` setting in a git repository, so a later `/kb-init` keeps that choice and reports it clearly. Go to Step 5.
 
-## Frontmatter Schema
+## Step 4: An existing knowledge base
 
-Every KB file MUST include YAML frontmatter. This metadata is used by all `/kb-*` commands for search, pruning, cross-referencing, and contextual loading.
+Don't redo the setup. Only create `.claude/kb/README.md` or `.claude/kb/_log.md` if one is missing, as Step 2 describes.
 
-```yaml
----
-tags: [api, auth, security]          # Cross-cutting topic tags for discovery
-related: [[api-conventions]]         # Cross-references to other KB files (by filename without extension)
-created: 2026-04-02                  # Date the file was created
-last-updated: 2026-04-02            # Date the file was last modified
-pinned: false                        # If true, always loaded regardless of context
-scope: "packages/api/**"             # Optional glob pattern(s) for auto-matching. String or array of strings.
----
-```
+Bring the `AGENTS.md` pointer up to date (kb-format.md, The AGENTS.md pointer): add it if it's missing, replace it if it differs from the template, and remove it with `agents=off`.
 
-### Field Reference
+Read the current auto-capture state and where it comes from (kb-format.md, Auto-capture). Don't ask:
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `tags` | Yes | Array of lowercase tags for cross-cutting discovery. Used by `/kb-search`. |
-| `related` | No | Array of `[[filename]]` references to other KB files. When one file is loaded, related files may also be consulted. |
-| `created` | Yes | ISO date (YYYY-MM-DD) when the file was first created. |
-| `last-updated` | Yes | ISO date (YYYY-MM-DD) when the file was last modified. Updated automatically by KB commands. |
-| `pinned` | No | Boolean. When `true`, this file is always loaded at the start of every conversation. Default: `false`. Use sparingly. |
-| `scope` | No | Glob pattern(s) matching file paths where this knowledge applies. Can be a single string (`"src/api/**"`) or an array of strings (`["src/api/**", "*.controller.ts"]`). These patterns are surfaced in the CLAUDE.md table's "When to Load" column for efficient context matching. |
+- With `auto=on` or `auto=off`, apply it.
+- With neither, and no setting yet (this developer never ran `/kb-init` or `/kb-migrate` here, as when a teammate clones a project that already has a knowledge base), turn it on.
+- With neither, and a setting already there, keep it. The report says how to switch.
 
-## File Format
+If the `AI_KNOWLEDGE_AUTO_CAPTURE` environment variable decides the state, say that changing the project setting won't take effect until the variable is removed, and say where it's probably set (the shell, or the `env` block of a settings file).
 
-Each KB file should follow this structure:
+## Step 5: Report
 
-```markdown
----
-tags: [topic-tag]
-related: [[other-kb-file]]
-created: YYYY-MM-DD
-last-updated: YYYY-MM-DD
-pinned: false
-scope: []                            # String or array of glob patterns for auto-matching
----
+Show:
 
-# Topic Name
-
-Brief description of what this KB covers and when it applies.
-
-## Key Rules
-
-- Rule or learning (concise, actionable, imperative voice)
-- Another rule or learning
-
-## Context
-
-Any additional context that helps Claude Code apply these rules correctly.
-
-## Related
-
-- [[other-kb-file]]
-```
-
-**Important**: The `## Related` section at the bottom mirrors the `related` frontmatter field using `[[wiki-links]]` in the body text. This enables Obsidian graph view and link navigation (Obsidian does not parse frontmatter values as navigable links). Both the frontmatter and body section must be kept in sync. Omit the `## Related` section if there are no related files.
-
-## Usage
-
-KB files are referenced in CLAUDE.md's Knowledge Base table. Claude Code reads the relevant KB files when working on matching areas of the codebase.
-
-### Commands
-
-- `/kb-learn` - Analyze the current conversation and extract learnings to KB files
-- `/kb-add` - Quickly add a learning or rule with interactive location picker
-- `/kb-import` - Register existing KB files in CLAUDE.md (adds missing frontmatter)
-- `/kb-ingest` - Ingest specific markdown files from anywhere in the project into the KB
-- `/kb-harvest` - Harvest knowledge from external sources: sibling repos, directories, files, or web URLs
-- `/kb-discover` - Analyze source code to extract implicit knowledge into KB articles
-- `/kb-absorb` - Migrate existing CLAUDE.md sections and docs/ content into the KB
-- `/kb-remove` - Remove a KB file and its CLAUDE.md reference
-- `/kb-list` - List all registered KB files with status, tags, dates, and cross-references
-- `/kb-load` - Manually load a KB file into the current conversation by name, topic, or tag
-- `/kb-search` - Search across KB files by keyword, topic, or tag (`tag:security`)
-- `/kb-prune` - Interactive cleanup: stale refs, duplicates, merges, frontmatter health
-- `/kb-query` - Query the KB and synthesize answers (optionally filed back as articles)
-- `/kb-auto` - Toggle automatic knowledge capture at end of conversations
-- `/kb-organize` - Reorganize flat KB files into category folders
-- `/kb-upgrade` - Upgrade KB to latest practices (Obsidian compat, structured loading, preamble)
-```
-
-If `docs/kb/` already exists, skip this step.
-
-### Step 2b: Create Global Learnings File
-
-If `docs/kb/_global-learnings.md` does not exist, create it:
-
-**File: `docs/kb/_global-learnings.md`**
-```markdown
----
-tags: [global, cross-cutting]
-related: []
-created: {today's date}
-last-updated: {today's date}
-pinned: true
----
-
-# Global Learnings
-
-Cross-cutting rules and insights that apply across the entire project.
-
-## Key Rules
-
-_No global learnings captured yet. Run `/kb-learn` at the end of a conversation to save cross-cutting insights._
-```
-
-If `docs/kb/_global-learnings.md` already exists, skip this step.
-
-### Step 2c: Create Index File
-
-If `docs/kb/_index.md` does not exist, create it:
-
-**File: `docs/kb/_index.md`**
-```markdown
----
-tags: [index, meta]
-created: {today's date}
-last-updated: {today's date}
-pinned: true
----
-
-# Knowledge Base Index
-
-Auto-generated catalog of all KB articles. Updated by `/kb-*` commands. Read this file first to find relevant pages before drilling into individual articles.
-
-## All Pages
-
-| Page | Summary | Tags | Scope | Last Updated |
-|------|---------|------|-------|-------------|
-| [[_global-learnings]] | Cross-cutting rules that apply everywhere | global, cross-cutting | _(pinned)_ | {today's date} |
-```
-
-If `docs/kb/_index.md` already exists, skip this step.
-
-### Step 2d: Create Log File
-
-If `docs/kb/_log.md` does not exist, create it:
-
-**File: `docs/kb/_log.md`**
-```markdown
----
-tags: [log, meta]
-created: {today's date}
-last-updated: {today's date}
----
-
-# Knowledge Base Log
-
-Chronological record of KB operations. Append-only — newest entries at the bottom.
-
-## [{ today's date }] init | Knowledge Base initialized
-- Created `docs/kb/` directory structure
-- Created `_global-learnings.md`, `_index.md`, `_log.md`
-- Added Knowledge Base section to CLAUDE.md
-```
-
-If `docs/kb/_log.md` already exists, skip this step.
-
-### Step 3: Initialize CLAUDE.md Knowledge Base Section
-
-If a Knowledge Base section already exists in CLAUDE.md, inform the user:
-> "Knowledge Base section already exists in CLAUDE.md. No changes needed."
-
-If no Knowledge Base section exists, append the following section to CLAUDE.md (or create the file if it doesn't exist). Match the heading level convention used in the existing file (default to `##` for sections, `###` for subsections).
-
-**Section to add:**
-
-```markdown
-## Knowledge Base
-
-Topic-specific knowledge is stored in `docs/kb/` and loaded contextually based on the table below.
-
-**How to use the "When to Load" column:**
-1. **Pinned entries** (`Always (pinned)`): Load at the start of every conversation.
-2. **Scope patterns** (backtick-wrapped globs like `src/api/**`): Load when the files you are editing or creating match any of the listed glob patterns.
-3. **Keywords** (after the `—` dash): Load when the current task involves these topics, even if no file path matches.
-4. **When uncertain**: Read `docs/kb/_index.md` (pinned) for article summaries and scope patterns to help decide.
-
-**Loading notifications**: When you load a KB file, briefly notify the user so they know what context is being applied. Example: `📖 Loading KB: api-conventions.md`. Keep notifications to a single line per file.
-
-When a KB file's frontmatter contains `related: [[other-file]]` cross-references, also read the related file(s) for full context.
-
-| Topic | File | When to Load |
-|-------|------|--------------|
-| Global Learnings | docs/kb/_global-learnings.md | Always (pinned) |
-| KB Index | docs/kb/_index.md | Always (pinned) |
-```
-
-**Placement rules:**
-- If CLAUDE.md has a `## Development Principles` section, place the Knowledge Base section **after** it.
-- Otherwise, append to the end of the file.
-- Always add two blank lines before the new section.
-
-### Step 4: Confirm to User
-
-Display a summary:
-- Whether `docs/kb/` was created or already existed
-- Whether the Knowledge Base section was added to CLAUDE.md or already existed
-- How to use the KB system:
-  - `/kb-learn` - Capture learnings from a conversation
-  - `/kb-add` - Quickly add a single learning or rule
-  - `/kb-query <question>` - Query the KB and get synthesized answers
-  - `/kb-import` - Register an existing KB file in CLAUDE.md
-  - `/kb-ingest` - Ingest specific markdown files into the KB
-  - `/kb-absorb` - Migrate existing docs and CLAUDE.md content into the KB
-  - `/kb-load <name>` - Manually load a KB file into the current conversation
-  - `/kb-list` - View all registered KB files and their status
-  - `/kb-search <keyword>` - Search across KB files
-  - `/kb-prune` - Clean up and consolidate the knowledge base
-  - `/kb-auto` - Toggle automatic learning capture
-  - `/kb-upgrade` - Upgrade KB to latest practices (Obsidian compat, structured loading)
+- which files were created and which already existed (on an existing knowledge base, say it's already set up);
+- any git-ignore warning from Step 1;
+- the `AGENTS.md` section: added, updated, already current, or removed, and that it lets Codex, Cursor and other agents that read `AGENTS.md` use the knowledge base (`/kb-init agents=off` removes it);
+- auto-capture: on or off for this developer, where the setting is stored, and that it starts with the next session or `/clear`. If it was just turned on, follow auto-capture for the rest of this session too, as kb-format.md says. If it's off, mention `/kb-init auto=on`; if it's on, mention `/kb-init auto=off`;
+- for a new knowledge base, how loading works, in three lines: pinned articles load every session; scoped ones load when Claude touches matching files, or when a task matches their line in `_index.md`; on-demand ones only from the index. Claude names each scoped or on-demand article it loads in a one-line notice;
+- that Claude Code's auto memory, when it's on, keeps personal notes on each machine, while this knowledge base holds what the team shares through git;
+- next steps, for a new knowledge base:
+  - `/kb-add <note, path or URL>` adds knowledge; `/kb-add --absorb` reviews CLAUDE.md and `docs/` for content that belongs here
+  - `/kb-learn` reviews the conversation and saves what it taught
+  - `/kb-discover [paths]` writes down conventions found in the code
+  - `/kb-query <question>` answers from the knowledge base, and `/kb-query list` shows what's in it
+  - `/kb-prune` cleans it up
+- a reminder to commit `.claude/rules/kb/`, `.claude/kb/` and `AGENTS.md`.

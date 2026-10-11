@@ -1,12 +1,12 @@
 {
   "name": "ai-statusline",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Builds on Claude Code's native /statusline with a context progress bar, 5h/7d rate limits, a month-to-date spend budget for Enterprise/API seats without rate limits, the reasoning-effort level, a sandbox indicator, cost and duration, and a wizard to change any of it",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",

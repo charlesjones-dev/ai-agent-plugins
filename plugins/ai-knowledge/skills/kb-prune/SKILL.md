@@ -1,211 +1,159 @@
 ---
 name: kb-prune
-description: "Interactive cleanup and consolidation of the knowledge base. Finds stale references, duplicates, orphaned files, frontmatter issues, and opportunities to merge related topics."
+description: "Clean up the team knowledge base: find duplicates, contradictions, broken links, stale articles, scoped globs that match nothing and pinned articles that cost too much context, then merge, fix or remove with your approval. Also removes a single article, or sorts articles into category folders."
+argument-hint: "[remove <article> | organize]"
 disable-model-invocation: true
 ---
 
-# Knowledge Base Pruning
+# Prune the knowledge base
 
-You are a knowledge base maintenance specialist. Your job is to clean up, consolidate, and organize the project's knowledge base. All changes require user approval.
+Read [kb-format.md](kb-format.md) first. It defines the layout, frontmatter, load modes and file-move rules used below.
 
-## Obsidian-Compatible Related Links
+Arguments (may be empty): $ARGUMENTS
 
-When modifying KB files, you MUST keep the `related` frontmatter AND the `## Related` body section (at the end of the file) in sync. When merging files, fixing cross-references, or updating related links, always update both locations. If `related` becomes empty, remove the `## Related` body section entirely.
+| Arguments | Mode |
+|---|---|
+| None | **Audit**: review the whole knowledge base |
+| `remove {article}` | **Remove** one article (a file name, path or topic) |
+| `remove` | **Remove**, choosing the article from a list |
+| `organize` | **Organize** articles into category folders |
 
-## Frontmatter Schema
+Every change needs the user's approval.
 
-When modifying KB files during pruning (merges, promotions, etc.), always maintain valid frontmatter and, if the file's content actually changed, set `last-updated` to today's date.
+## Step 1: Check the knowledge base
 
-```yaml
----
-tags: [topic-tag-1, topic-tag-2]       # Required: lowercase tags for discovery
-related: [[other-kb-file]]             # Optional: cross-references to related KB files
-created: YYYY-MM-DD                    # Required: date created
-last-updated: YYYY-MM-DD              # Required: date last modified (update on every write)
-pinned: false                          # Optional: true = always loaded. Default false
-scope: "src/api/**"                    # Optional: glob pattern(s) for auto-matching. String or array.
----
+Run the checks from kb-format.md: stop if there's a 1.x knowledge base (point to `/kb-migrate`) or no knowledge base (point to `/kb-init`). Then read every article under `.claude/rules/kb/` and `.claude/kb/` with its frontmatter, plus `_index.md`.
+
+## Audit mode
+
+### Find issues
+
+1. **Index**: scoped or on-demand articles with no line in `_index.md`; lines pointing at files that don't exist, or at pinned articles; lines whose summary, keywords or "loads with" globs no longer match the article.
+2. **Load modes**:
+   - Scoped articles whose `paths` match no file (check each pattern with Glob). They never load.
+   - Pinned articles and `_index.md` against the budget in kb-format.md (Layout). Flag pinned articles over about 100 lines in total or more than five of them, and suggest which to scope or make on-demand. Flag an index over about 150 lines, and suggest merges.
+   - Pinned or on-demand articles whose rules are clearly about certain folders or file types: suggest `paths` so they load only there.
+   - Files under `.claude/rules/kb/` that aren't articles (a README, log or notes). They load every session.
+3. **Frontmatter**: no frontmatter; YAML that won't parse; missing `tags`, `created` or `last-updated`; 1.x fields (`scope`, `pinned`, `related`, `sources`) or `[[name]]` links, which `/kb-migrate` fixes. Flag articles whose `last-updated` is more than 90 days old as **review suggested**: stable knowledge is fine, but worth a quick check.
+4. **Duplicates and merges**: articles that overlap heavily, and articles on closely related topics that would read better as one (`api-auth.md` and `api-tokens.md`). Shared tags are a good hint. Merging scoped articles combines their `paths`.
+5. **Contradictions**: rules in different articles, or between an article and the global learnings, that conflict.
+6. **Related**: entries that point at files that don't exist (**broken**), usually because an article moved or was deleted.
+7. **Global learnings** (`_global-learnings.md`): entries that are **outdated** (check whether the files or patterns they mention still exist), **duplicated** in another article, or **area-specific**, which should move to a scoped article so they stop loading every session.
+8. **Organization**: if five or more articles sit loose at the root of `.claude/rules/kb/` or `.claude/kb/`, suggest category folders (see Organize mode).
+
+### Report
+
+```text
+Knowledge base audit
+====================
+
+Index ({n})
+- tools/release.md is on-demand but missing from _index.md
+
+Load modes ({n})
+- testing/e2e.md: paths match no files (e2e/**; the folder is now tests/e2e/)
+- Pinned: 4 articles, 210 lines. Suggest scoping security/auth.md to src/auth/**
+- .claude/rules/kb/notes.md isn't an article and loads every session
+
+Frontmatter ({n})
+- conventions/naming.md: missing created
+- tools/ci.md: last updated 140 days ago (review suggested; may still be right)
+
+Merge candidates ({n})
+- api-auth.md + api-tokens.md → api-auth.md (shared tags: api, auth)
+
+Contradictions ({n})
+- api-conventions.md: "Return 404 for missing records" vs api-errors.md: "Return 410"
+
+Related ({n})
+- tools/release.md → .claude/kb/tools/deploy.md doesn't exist (broken; moved to .claude/kb/ops/deploy.md?)
+
+Global learnings ({n})
+- "Use the query builder in src/db/" is area-specific: move to a scoped article for src/db/**
+
+Summary: {n} healthy articles, {n} issues
 ```
 
-**Resolving today's date (cross-platform, CRITICAL)**: Never guess, infer, or increment prior dates. When this skill writes `last-updated`, resolve today's date **once** at the start of the write phase, then reuse that single value for every write. Try these commands in order and use the first that returns a `YYYY-MM-DD` string:
+With no issues: "The knowledge base is clean: {n} articles, {n} global learnings, no issues found."
 
-- **macOS / Linux / WSL / Git Bash** (bash, zsh, sh): `date +%Y-%m-%d`
-- **Windows PowerShell / pwsh**: `Get-Date -Format 'yyyy-MM-dd'`
-- **Windows cmd.exe**: `powershell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd'"`
-- **Portable fallback** (Node or Python available): `node -e "console.log(new Date().toISOString().slice(0,10))"` or `python -c "import datetime; print(datetime.date.today().isoformat())"`
+### Approve
 
-Only update `last-updated` when the file's content actually changed. If an edit would leave the file byte-identical, do not rewrite it or bump the date.
+Ask (Header: "KB Cleanup Plan"; Question: "Here's what I recommend. How do you want to proceed?"; Options: "Apply all" | "Let me review each one" | "Cancel"). When reviewing, ask about each action:
 
-## Instructions
+- index line: "Add, fix or remove the line for {article}?"
+- globs that match nothing: "Fix the paths to {suggestion}, make it on-demand, or leave it?"
+- pinned budget or an area-specific pinned article: "Scope {article} to {globs}, make it on-demand, or keep it pinned?"
+- non-article file in `.claude/rules/kb/`: "Move {file} to `.claude/kb/`, or delete it?"
+- frontmatter: "Add or fix frontmatter for {article}?" (show it)
+- merge: "Merge {a} and {b} into {target}?"
+- contradiction: "Which is right: '{rule a}' or '{rule b}'?"
+- broken Related entry: "Point it at {new path}, or remove it?"
+- duplicate: "Keep it in {article} and remove it from the global learnings?"
+- global learning: "Move '{rule}' to {article}?"
 
-**CRITICAL**: This command MUST NOT accept any arguments. Ignore any text provided after the command.
+### Apply
 
-### Phase 1: Full KB Audit
+Get today's date once (kb-format.md, Dates). Apply only what was approved:
 
-Perform a comprehensive audit of the knowledge base:
+1. **Index**: add, fix or remove lines.
+2. **Load modes**: move articles between the trees and set or remove `paths` (kb-format.md, Moving and deleting files). Moving doesn't change `last-updated`; new or changed `paths` do.
+3. **Frontmatter**: add missing fields and fix the YAML. Leave 1.x fields for `/kb-migrate` and mention it.
+4. **Merges**: combine the content into the target, merge `tags`, `paths`, `source` and the Related sections, delete the merged-away file, point other articles' Related entries at the target, and update `_index.md`.
+5. **Contradictions**: correct the wrong rule.
+6. **Related**: repoint or remove broken entries.
+7. **Duplicates and global learnings**: remove or move entries as approved. Create the target article if needed.
 
-#### 1a: Parse CLAUDE.md
+Update `last-updated` on every article whose content changed, and on no other. Remove empty sections and folders left behind.
 
-1. Read CLAUDE.md and find the Knowledge Base section.
-2. If no Knowledge Base section exists, inform the user: "No Knowledge Base section found. Run `/kb-init` first." and stop.
-3. Parse the reference table (Topic, File, When to Load).
-4. Parse the Global Learnings subsection.
+Append to the log:
 
-#### 1b: Verify File References
-
-For each entry in the table:
-1. Check if the referenced file exists.
-2. Categorize as **OK** or **STALE** (file missing).
-
-#### 1c: Find Orphaned Files
-
-1. Glob all `.md` files under `docs/kb/` (excluding `docs/kb/README.md`).
-2. Identify files not referenced in the CLAUDE.md table. Categorize as **ORPHANED**.
-
-#### 1d: Frontmatter Health Check
-
-For each existing KB file:
-1. Check if YAML frontmatter exists.
-2. Check if all required fields are present (`tags`, `created`, `last-updated`).
-3. Categorize issues:
-   - **NO FRONTMATTER** - File has no YAML frontmatter at all.
-   - **INCOMPLETE FRONTMATTER** - Missing required fields.
-   - **REVIEW SUGGESTED** - `last-updated` is older than 90 days. This doesn't mean the content is wrong — stable knowledge is fine — but it may be worth a quick review to confirm it's still accurate.
-
-#### 1e: Detect Duplicates and Merge Candidates
-
-1. Read all existing KB files.
-2. Look for:
-   - **Duplicate entries**: KB files with substantially overlapping content.
-   - **Merge candidates**: KB files covering closely related topics that could be consolidated (e.g., `api-auth.md` and `api-tokens.md` could merge into `api-auth.md`). Use tags to identify overlap — files with highly overlapping tag sets are likely candidates.
-   - **Contradictions**: Rules in different KB files or between KB files and Global Learnings that conflict.
-
-#### 1f: Cross-Reference Integrity
-
-1. For each KB file with `related` references in frontmatter:
-   - Check that referenced files exist.
-   - Check for one-way references (A links to B but B doesn't link to A).
-   - Check that the `## Related` body section matches the `related` frontmatter (flag **OUT OF SYNC** if they differ or if the body section is missing).
-2. Categorize as **BROKEN LINK**, **ONE-WAY REFERENCE**, or **OUT OF SYNC**.
-
-#### 1g: Review Global Learnings
-
-Global learnings are stored in `docs/kb/_global-learnings.md`. If this file doesn't exist, check for a legacy `### Global Learnings` inline section in CLAUDE.md — if found, flag it as **NEEDS MIGRATION** and suggest running `/kb-upgrade`.
-
-1. Read `docs/kb/_global-learnings.md` (or the legacy inline section if the file doesn't exist).
-2. Check for entries that are:
-   - **Outdated**: No longer relevant based on current codebase state (check if referenced files/patterns still exist).
-   - **Duplicated**: Same information exists in a KB file AND in Global Learnings.
-   - **Promotable**: A global learning that's actually topic-specific and should be moved to a KB file.
-
-### Phase 2: Present Findings
-
-Display a comprehensive audit report:
-
-```
-Knowledge Base Audit Report
-============================
-
-## Issues Found
-
-### Stale References ({count})
-These CLAUDE.md table entries point to files that no longer exist:
-- {Topic} -> {file path} (MISSING)
-
-### Orphaned Files ({count})
-These KB files exist but aren't referenced in CLAUDE.md:
-- {file path} (tags: {tags})
-
-### Frontmatter Issues ({count})
-- {file path} — NO FRONTMATTER
-- {file path} — Missing fields: tags, created
-- {file path} — Last updated 120 days ago (review suggested, may still be valid)
-
-### Merge Candidates ({count})
-These KB files have overlapping content and could be consolidated:
-- {file1} + {file2} -> Suggested merge into {target}
-  Overlapping tags: {shared tags}
-  Reason: {brief explanation}
-
-### Cross-Reference Issues ({count})
-- {file1} references [[{file2}]] but {file2} doesn't reference [[{file1}]] (one-way)
-- {file1} references [[{file2}]] but {file2} doesn't exist (broken)
-
-### Duplicate/Redundant Entries ({count})
-- Global learning "{entry}" duplicates content in {kb file}
-
-### Contradictions ({count})
-- {file1} says "{rule1}" but {file2} says "{rule2}"
-
-### Promotable Global Learnings ({count})
-- "{learning}" could move to {suggested kb file} (tags: {suggested tags})
-
-## Summary
-- {ok_count} healthy KB files
-- {total_issues} issues found
+```markdown
+## [{date}] prune | Cleanup
+- Index fixes: {n}; load-mode changes: {n}; frontmatter fixes: {n}
+- Merges: {n}; contradictions resolved: {n}; link fixes: {n}
+- Deleted: {paths}
 ```
 
-If no issues found:
-> "Knowledge base is clean. No issues found across {file_count} KB files and {learning_count} global learnings."
+Report the files created, updated, moved and deleted, and the final count of articles by load mode with the pinned line total.
 
-### Phase 3: Propose Actions
+## Remove mode
 
-If issues were found, present a remediation plan:
+1. **Find the article.** Match the argument against file names (with or without `.md`), paths and titles. With several matches, or no argument, list the articles with their load modes and ask which one (Header: "KB Remove"). If nothing matches, say so and suggest `/kb-query list`.
+2. **Confirm.** Show the file, its load mode, its `_index.md` line if any, and every article whose Related section points at it. Ask (Header: "Confirm Removal"; Options: "Delete it" | "Move it out of the knowledge base" | "Cancel"). Moving out keeps the file but stops it loading: ask where (default `docs/{name}.md`).
+3. **Remove.** Delete it (`git rm` if tracked) or move it (`git mv`). Remove its `_index.md` line. Remove its entry from other articles' Related sections, dropping a section that ends up empty, and update `last-updated` on the articles that changed (with today's date, from kb-format.md).
+4. **Log**: append `## [{date}] prune | Removed {name}` with whether the file was deleted or moved, and which articles had links cleaned.
+5. **Report** what was removed and which links were cleaned.
 
-Use AskUserQuestion:
-- Question: "Here's my recommended cleanup plan. How would you like to proceed?"
-- Show the proposed actions grouped by type
-- Options: "Apply all recommendations" | "Let me review each one" | "Cancel"
-- Header: "KB Cleanup Plan"
+## Organize mode
 
-If "Let me review each one", present each proposed action individually:
-- For stale references: "Remove row for '{Topic}' from CLAUDE.md table?"
-- For orphaned files: "Register '{file}' in CLAUDE.md, or delete it?"
-- For frontmatter issues: "Add/fix frontmatter for '{file}'?" (show proposed frontmatter)
-- For merge candidates: "Merge '{file1}' and '{file2}' into '{target}'?"
-- For cross-reference issues: "Add missing reverse reference? / Remove broken reference?"
-- For duplicates: "Remove duplicate from Global Learnings (kept in KB file)?"
-- For contradictions: "Which rule is correct: '{rule1}' or '{rule2}'?"
-- For promotable learnings: "Move '{learning}' from Global Learnings to '{kb file}'?"
+1. Find articles loose at the root of `.claude/rules/kb/` or `.claude/kb/`. `_index.md`, `_global-learnings.md`, `_log.md` and `README.md` stay where they are. With fewer than three loose articles, say there's too little to organize yet and stop.
+2. For each loose article, read its tags and content and suggest a category folder, reusing existing folders first:
 
-### Phase 4: Execute Approved Actions
+   | Folder | For |
+   |---|---|
+   | `architecture/` | system design, patterns, data flow, module boundaries |
+   | `conventions/` | naming, style, API contracts |
+   | `testing/` | test patterns, fixtures, mocking |
+   | `tools/` | build tools, deployment, CI/CD, environments |
+   | `external/` | knowledge from other repos or websites |
+   | `domain/` | business rules and domain logic |
 
-Apply only the user-approved changes:
+   Use other names when the content calls for them, and don't create a folder that duplicates an existing one.
+3. Show the moves:
 
-1. **Stale references**: Remove rows from the CLAUDE.md table.
-2. **Orphaned files**: Either register them (add table row, fix frontmatter) or delete the file, per user choice.
-3. **Frontmatter fixes**: Add/complete frontmatter on affected files. Update `last-updated`.
-4. **Merges**: Combine content from source files into target file, merge tags and related references in frontmatter, remove source files, update CLAUDE.md table. Update `last-updated`.
-5. **Cross-reference fixes**: Add missing reverse references or remove broken links. Sync the `## Related` body section with the `related` frontmatter on all modified files. Update `last-updated` on modified files.
-6. **Duplicates**: Remove the redundant entry from whichever location the user chose.
-7. **Contradictions**: Update the incorrect entry with the correct rule. Update `last-updated`.
-8. **Promotions**: Move the learning from `docs/kb/_global-learnings.md` to the target KB file, add table reference if needed. Update `last-updated` on `_global-learnings.md`.
-9. **Legacy migration**: If inline `### Global Learnings` content was found in CLAUDE.md, migrate it to `docs/kb/_global-learnings.md` and remove the inline section.
+   ```text
+   KB organize
+   ===========
 
-After all changes:
-- Re-sort the CLAUDE.md reference table alphabetically by Topic.
-- Remove any placeholder text if real entries now exist.
-- Ensure no empty sections remain.
+   | Now | Moves to | Why |
+   |---|---|---|
+   | .claude/rules/kb/api-conventions.md | .claude/rules/kb/conventions/api-conventions.md | tags: api, conventions |
+   | .claude/kb/release.md | .claude/kb/tools/release.md | tags: release, ci |
 
-### Phase 5: Update Index and Log
-
-1. **Update `docs/kb/_index.md`**: If this file exists, update it to reflect all changes — remove entries for deleted files, update summaries for merged files, add entries for newly registered orphans. Update `last-updated` in its frontmatter.
-2. **Append to `docs/kb/_log.md`**: If this file exists, append:
-   ```
-   ## [YYYY-MM-DD] prune | KB cleanup and consolidation
-   - Stale refs removed: {count}
-   - Orphans registered/deleted: {count}
-   - Frontmatter fixes: {count}
-   - Merges: {count}
-   - Cross-ref fixes: {count}
+   New folders: conventions/, tools/
+   Staying: _index.md, _global-learnings.md, _log.md, README.md
    ```
 
-### Phase 6: Confirmation
-
-Display a summary of all changes made:
-- Files created/updated/deleted
-- Frontmatter fixes applied
-- Cross-references added/removed
-- CLAUDE.md table rows added/removed/updated
-- Global learnings added/removed/moved
-- Final KB file count and health status
+   Ask (Header: "KB Organize"; Options: "Apply all" | "Let me adjust" | "Cancel"). With "Let me adjust", take new destinations as free text and show the plan again.
+4. Move each file (kb-format.md, Moving and deleting files), staying in the same tree so its load mode doesn't change. Update the paths in `_index.md` and in other articles' Related sections. Don't change `last-updated`: the knowledge didn't change.
+5. Append `## [{date}] prune | Organized {n} articles into folders` with the moves to the log, and report the files moved and folders created.

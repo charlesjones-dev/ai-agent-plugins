@@ -1,27 +1,33 @@
 {
   "name": "ai-seo",
-  "version": "1.0.1",
-  "description": "Audits a site's code for SEO patterns LLMs still generate, like the keywords meta tag and IE-era markup, checks structured data, semantic HTML and performance signals, and applies framework-specific fixes",
+  "version": "2.0.0",
+  "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO). Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",
     "seo",
-    "web",
-    "accessibility",
-    "performance",
+    "aeo",
+    "geo",
     "audit",
+    "answer-engine-optimization",
+    "generative-engine-optimization",
     "meta-tags",
     "structured-data",
     "json-ld",
     "schema-org",
-    "open-graph",
     "core-web-vitals",
-    "semantic-html",
+    "featured-snippets",
+    "voice-search",
+    "faq",
+    "ai-crawlers",
+    "citation-optimization",
+    "llms-txt",
+    "answer-engines",
     "skills"
   ]
 }

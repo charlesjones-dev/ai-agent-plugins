@@ -14,7 +14,9 @@ Scope discipline: this is **not** a general bug hunt or a style cleanup. Hand ge
 
 ## What to review
 
-Default to the **changed** Swift files (`git diff --name-only` + staged + untracked `*.swift`). If `$ARGUMENTS` names a path or files, review those. If a KB exists at `docs/kb/conventions/swift-6-patterns.md` (or similar), read it first - the project may have its own codified rules that supersede the generic ones here.
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
+
+Default to the **changed** Swift files (`git diff --name-only` + staged + untracked `*.swift`). If the arguments name a path or files, review those. If the project has a knowledge base with Swift conventions (for example `swift-6-patterns.md` under `.claude/rules/kb/`, `.claude/kb/` or `docs/kb/`), read it first - the project may have its own codified rules that supersede the generic ones here.
 
 ## Review dimensions
 

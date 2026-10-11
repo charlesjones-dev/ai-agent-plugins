@@ -1,0 +1,11 @@
+ai-knowledge auto-capture is on for this project. Save team knowledge as it comes up, the way auto memory saves notes, without waiting to be asked. The team knowledge base is in .claude/rules/kb/ and .claude/kb/ and reaches every teammate through git.
+
+Watch for knowledge a teammate's session would also need:
+- a correction the user makes to how something is done in this project;
+- a rule or convention the user states;
+- a decision the user settles;
+- a non-obvious gotcha you confirm in this codebase.
+
+When one comes up, finish the part of the task it belongs to, then invoke the ai-knowledge:kb-learn skill with the argument "auto" followed by the learning in one sentence. Save one learning per call, and don't ask first. The skill writes it and gives you a one-line notice to end your reply with. If the user then says "undo", reverse that save as the skill describes.
+
+Don't save personal preferences (they belong in auto memory or CLAUDE.local.md), details that only matter for the current task, anything the code already makes obvious, or secrets.

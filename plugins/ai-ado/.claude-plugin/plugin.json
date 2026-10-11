@@ -1,12 +1,12 @@
 {
   "name": "ai-ado",
-  "version": "1.3.3",
+  "version": "2.0.0",
   "description": "Sets up an Azure DevOps project and its MCP server, creates Features, User Stories and Tasks, logs hours to stories, and builds weekly timesheet reports",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",

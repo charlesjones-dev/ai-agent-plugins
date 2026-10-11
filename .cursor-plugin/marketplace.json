@@ -1,0 +1,60 @@
+{
+  "name": "ai-agent-plugins",
+  "owner": {
+    "name": "Charles Jones"
+  },
+  "metadata": {
+    "description": "Plugins for code audits, release checks, git workflows and writing cleanup in Claude Code, Codex and Cursor.",
+    "version": "3.0.0"
+  },
+  "plugins": [
+    {
+      "name": "ai-accessibility",
+      "source": "plugins/ai-accessibility",
+      "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes. Takes its settings as arguments for unattended runs",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-git",
+      "source": "plugins/ai-git",
+      "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-performance",
+      "source": "plugins/ai-performance",
+      "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-modernize",
+      "source": "plugins/ai-modernize",
+      "description": "Finds technical debt and anti-patterns in code written with older AI models or vibe coding, and saves a scored report with a prioritized roadmap. Takes its settings as arguments, and --defaults skips the setup questions for quick or unattended runs",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-compliance",
+      "source": "plugins/ai-compliance",
+      "description": "Audits the licenses of your open-source dependencies, flags copyleft and missing-license risks, and generates NOTICE or ATTRIBUTION files",
+      "version": "1.1.0"
+    },
+    {
+      "name": "ai-seo",
+      "source": "plugins/ai-seo",
+      "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO). Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-swift",
+      "source": "plugins/ai-swift",
+      "description": "Catches Xcode Cloud and TestFlight blockers before upload (XcodeGen pbxproj drift, static build numbers, missing ci_scripts, macOS App Store entitlements/Info.plist, headless-CI keychain test failures, ad-hoc signing entitlement rejections, flaky-UITest release gating), diagnoses ITMS rejection emails and red CI logs, scaffolds Xcode Cloud CI, runs a local verify gate, and reviews Swift 6 strict-concurrency and SwiftUI code",
+      "version": "2.0.0"
+    },
+    {
+      "name": "ai-slop",
+      "source": "plugins/ai-slop",
+      "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
+      "version": "1.1.0"
+    }
+  ]
+}

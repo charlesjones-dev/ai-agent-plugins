@@ -14,7 +14,9 @@ This is the reactive counterpart to `/swift-preflight` (which is proactive). Use
 
 ## Input
 
-`$ARGUMENTS` may contain the pasted text directly, or a path to a log file, or just a code like `ITMS-90296` or `-25293`. If it is a path, read the file. If it is empty, ask the user to paste the failing log / email / code.
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
+
+The arguments may contain the pasted text directly, or a path to a log file, or just a code like `ITMS-90296` or `-25293`. If it is a path, read the file. If it is empty, ask the user to paste the failing log / email / code.
 
 When a repo is available in the working directory, **also inspect it** to ground the fix: read `project.yml`, the entitlements file, `ci_scripts/`, Info.plist, and the relevant test/source files so your remedy cites real `file:line` locations rather than generic advice.
 
@@ -22,7 +24,7 @@ When a repo is available in the working directory, **also inspect it** to ground
 
 1. **Classify the symptom.** Match against the catalog. Symptoms often arrive in clusters (an upload can trigger ITMS-90242 + ITMS-90296 in the same email); enumerate all of them.
 2. **Locate the cause in the repo** (if present). Confirm the diagnosis against the actual files.
-3. **Prescribe the fix** with concrete edits and the one-line why. Note whether the fix is repo-side (you can do it / hand to a writer skill) or App Store Connect UI-side (you can only describe the clicks).
+3. **Prescribe the fix** with concrete edits and the one-line why. Note whether the fix is repo-side or App Store Connect UI-side (you can only describe the clicks). This skill doesn't edit files: for a repo-side fix, give the exact edit for the user to make, or, where the catalog names `/swift-ci-scaffold`, tell the user to run it (with the repo path if it isn't the current directory). It's a command-only skill, so you can't run it for them.
 4. **Prevent recurrence.** Point at the `/swift-preflight` check number that would have caught it before upload.
 
 ---

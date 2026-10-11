@@ -1,12 +1,12 @@
 {
   "name": "ai-performance",
-  "version": "1.2.2",
-  "description": "Audits a codebase for performance bottlenecks and saves a timestamped report with an impact score for each finding, with an agent for unattended runs",
+  "version": "2.0.0",
+  "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",

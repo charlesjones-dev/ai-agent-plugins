@@ -1,12 +1,12 @@
 {
   "name": "ai-git",
-  "version": "1.3.2",
-  "description": "Generates .gitignore files, commits and pushes with a message in your repo's style, opens PRs, and loops a PR through Codex Code Review until it comes back clean",
+  "version": "2.0.0",
+  "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",
@@ -18,7 +18,12 @@
     "devops",
     "version-control",
     "pull-request",
-    "codex",
-    "code-review"
+    "gitignore",
+    "preflight",
+    "code-quality",
+    "typecheck",
+    "lint",
+    "testing",
+    "semgrep"
   ]
 }

@@ -15,21 +15,19 @@ These failures are expensive because they arrive late: a red CI run after a full
 ## Core principles
 
 1. **Probe before you check.** Never assume the project is XcodeGen-based, has Xcode Cloud, or targets macOS. Detect the shape first, then run only the checks that apply. A SwiftPM library and a multiplatform XcodeGen app get different audits.
-2. **Report, do not mutate (by default).** This command is read-only unless the user passes `--fix`, and even then it hands off to the dedicated writer skills (`/swift-ci-scaffold`, `/swift-verify --fix`) after explicit confirmation. Never silently edit `project.yml`, entitlements, or the pbxproj.
+2. **Report, never write.** This command is read-only, with or without `--fix`. Never edit `project.yml`, entitlements, the pbxproj or any other file. For fixes, tell the user which command to run (`/swift-ci-scaffold`, `/swift-verify`) with the path and flags filled in, and give a guided list for the edits no command makes. Those are command-only skills, so the user has to run them; you can't. See Fix handoff.
 3. **Every finding teaches.** Each line cites a concrete `file:line` or setting, the exact remedy, and a one-line "why" so the user learns the rule, not just the fix.
 4. **`project.yml` is the source of truth on XcodeGen projects. The pbxproj is generated.** Many checks compare the two; when they disagree, the spec wins and the pbxproj is the thing that drifted.
 
 ## Arguments
 
-Parse `$ARGUMENTS`:
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
 
 - `path` (optional) - repo root to audit. Default: current working directory.
-- `--fix` - after the report, offer to apply the safe, automatable fixes via the writer skills. Still confirms before any write.
-- `--check-only` - never offer fixes, even interactively. Pure report.
+- `--fix` - after the report, print the fix commands and the guided manual list without asking. Still writes nothing.
+- `--check-only` - pure report: no fix commands and no questions. Use it for unattended runs.
 - `--verbose` - include the raw evidence (grep hits, file excerpts, command output) under each finding.
-- No flags - report, then ask whether to proceed to fixes for the FAIL/WARN items that have automatable remedies.
-
-User provided: $ARGUMENTS
+- No flags - report, print the fix commands, then ask whether to also print the guided manual list.
 
 ---
 
@@ -213,7 +211,7 @@ Generalize the rule: isolate every system dependency (keychain, GUI, signing, ne
 
 **Why:** Local/dev builds are often ad-hoc signed (`CODE_SIGN_IDENTITY="-"`, no `DEVELOPMENT_TEAM`). Ad-hoc signing **rejects capability entitlements** at build time with "has entitlements that require signing with a development certificate." Sandbox entitlements (`app-sandbox`, `network.client`) build fine ad-hoc; capability entitlements do not.
 
-**How:** If signing posture is ad-hoc (Check 0), read the entitlements file and flag any of:
+**How:** If signing posture is ad-hoc (Phase 0), read the entitlements file and flag any of:
 
 - `keychain-access-groups`
 - `com.apple.security.application-groups` (app groups)
@@ -296,17 +294,41 @@ N/A
   (none — all checks applicable)
 
 Summary: 2 FAIL · 2 WARN · 4 PASS
-Next: /swift-ci-scaffold to fix [2][3], then re-run /swift-preflight.
 ```
 
 ## Fix handoff
 
+This skill never writes files, and it can't run `/swift-ci-scaffold` or `/swift-verify`: both are command-only skills that the user has to start. So tell the user exactly which command to type for which findings.
+
 - `--check-only`: stop after the report.
-- Default or `--fix`: if any FAIL/WARN has an automatable remedy, ask (one `AskUserQuestion`) whether to:
-  - run `/swift-ci-scaffold` for ci_scripts / build-number / CI-scheme fixes,
-  - run `/swift-verify --fix` for format/lint,
-  - or hand the test-isolation and entitlements edits back as a guided manual list (these touch app/test code and are not blindly automatable).
-  Never write files from this skill directly; delegate to the writers, which show diffs and confirm.
+- Default or `--fix`: print a **Fixes** block after the report, as described below.
+
+**Fix commands.** One line per command, with the check numbers it clears, the command with its path and flags filled in, and what it does. Put the audited path in the command when the user gave one, and leave it out otherwise (both commands default to the current directory). In Codex these skills are `ai-swift:swift-ci-scaffold` and `ai-swift:swift-verify`, so write the commands the way the user's agent runs skills. List only commands that clear a finding in this report.
+
+| Findings | Command | What it does |
+|----------|---------|--------------|
+| Check 2 (no CI build-number stamp), Check 3 (`ci_post_clone.sh` missing or malformed) or Check 7 (no unit-test-only CI scheme), on an XcodeGen or Tuist project | `/swift-ci-scaffold <path>` | Writes `ci_post_clone.sh` with the guarded stamp, proposes the CI scheme in `project.yml`, and prints the App Store Connect steps. Shows each diff and confirms before writing. |
+| Check 8, no pre-push gate | `/swift-ci-scaffold <path> --hook` | Installs the opt-in `.githooks/pre-push` gate. |
+| Check 8, no local gate run yet | `/swift-verify <path>` | Runs regenerate, format lint, strict lint and tests. Add `--fix` to let SwiftFormat rewrite files. |
+
+Order and exceptions:
+
+- If Check 1 FAILs, the `project.yml` reconciliation comes first. Say so on the `/swift-ci-scaffold` line: the scaffolder stops while `project.yml` lacks the deployed bundle id and team, and a CI regen step would revert them.
+- On a plain `.xcodeproj` or SwiftPM project, `/swift-ci-scaffold` doesn't apply (it stops on non-generator projects). Move Check 2, 3 and 7 fixes to the guided manual list.
+
+**Guided manual list.** It covers the edits no command makes: test isolation (Check 5), entitlements and Info.plist keys (Checks 4 and 6), the Check 1 reconciliation, any Check 7 scheme that isn't shared, and the non-generator cases above. These touch app and test code, so they aren't safe to automate. For each item give the file, the exact edit and the check it clears.
+
+- With `--fix`, print the list right after the fix commands.
+- With no flags, ask once whether to print it (use AskUserQuestion, or ask in plain text if it isn't available). If no one can answer, print it.
+
+End with the command to re-run the audit, such as `/swift-preflight <path>`.
+
+```
+Fixes (run these yourself)
+  [2]  /swift-ci-scaffold ./MyApp   adds the guarded CI_BUILD_NUMBER stamp to ci_post_clone.sh
+Manual edits: [4] App Sandbox entitlement · [4] ITSAppUsesNonExemptEncryption · [5] keychain seam in AuthServiceTests
+Then re-run /swift-preflight ./MyApp.
+```
 
 ## Reference constant catalog
 

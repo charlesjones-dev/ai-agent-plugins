@@ -1,6 +1,7 @@
 ---
 name: modernize-audit
-description: "Interactive codebase modernization assessment to identify technical debt, anti-patterns, and quality issues from older AI-generated or legacy code."
+description: "Assesses a repository, directory or single file for technical debt, anti-patterns and quality issues from older AI-generated or legacy code, and saves a scored report with a roadmap. Asks for its settings, takes them as arguments, or uses defaults with --defaults."
+argument-hint: "[path] [ai=<tools>] [era=<period>] [stack=<stack>|auto] [categories=all|<list>] [severity=all|medium|high] [--defaults]"
 disable-model-invocation: true
 ---
 
@@ -10,11 +11,53 @@ You are a comprehensive codebase modernization assessor with deep expertise in s
 
 ## Instructions
 
-**CRITICAL**: This command MUST NOT accept any arguments. If the user provided any text, URLs, or paths after this command (e.g., `/modernize-audit ./src` or `/modernize-audit --quick`), you MUST COMPLETELY IGNORE them. Do NOT use any paths or other arguments that appear in the user's message. You MUST ONLY gather requirements through the interactive AskUserQuestion tool as specified below.
+### Arguments
 
-**BEFORE DOING ANYTHING ELSE**: Use the AskUserQuestion tool to interactively determine the audit configuration. DO NOT skip this step even if the user provided arguments after the command.
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
 
-Before starting the audit, gather the following configuration through interactive questions:
+Each argument answers one of the configuration questions below, and that question is then skipped:
+
+| Argument | Answers | Values |
+|----------|---------|--------|
+| A path, such as `src/api` | Question 5, Audit Scope | A file or directory in the repository. `.` means the entire solution. |
+| `ai=<tools>` | Question 1, AI Tool History | Tool names separated by commas, matched to the Question 1 options, such as `ai=copilot,chatgpt`. `ai=unsure` and `ai=none` also work. |
+| `era=<period>` | Question 2, Codebase Era | One of the Question 2 options, or a year such as `2024`. `era=unsure` also works. |
+| `stack=<stack>` | Question 3, Technology Stack | The stack, such as `stack="Next.js, TypeScript"`. `stack=auto` uses the detected stack without asking. |
+| `categories=<list>` | Question 4, Assessment Categories | `all`, or category numbers (1-12, as numbered under Core Assessment Categories) or names separated by commas, such as `categories=security,performance` |
+| `severity=<level>` | Question 6, Severity Threshold | `all` (all findings), `medium` (Medium and above) or `high` (High and Critical only) |
+| `--defaults` | Every question the other arguments leave open | No value. Asks nothing and uses the defaults below for any setting the other arguments leave out. |
+
+Quote values that contain spaces. If the arguments are plain language instead (for example "only security, high and critical"), map what clearly matches a setting and treat the rest as missing. If the path doesn't exist, tell the user and stop.
+
+Examples:
+
+- `/modernize-audit` asks all six questions.
+- `/modernize-audit src/api categories=security,performance` audits `src/api` for those two categories, then asks about AI tools, era, stack and severity.
+- `/modernize-audit . ai=copilot era=2024 stack=auto categories=all severity=medium` asks nothing and audits the whole repository.
+- `/modernize-audit src/services --defaults` asks nothing and audits `src/services` with the defaults.
+- `/modernize-audit src/services/auth.ts --defaults severity=high` asks nothing, audits one file and reports only High and Critical findings.
+
+### Gathering the Configuration
+
+Ask only for the settings the arguments don't supply, using the questions in Steps 1-5 below and skipping any question the arguments answer. When the arguments supply all six settings, ask nothing and start the assessment.
+
+If AskUserQuestion isn't available, ask in plain text and wait for the answer.
+
+Don't ask anything, and use the defaults below for every setting the arguments leave out, when either of these is true:
+
+- The arguments include `--defaults`.
+- No one can answer, as in an unattended run such as a scheduled or headless session.
+
+Mark each default "(default)" in the report's Audit Configuration table.
+
+| Setting | Default |
+|---------|---------|
+| AI Tool History | Multiple tools / Not sure (infer from code patterns) |
+| Codebase Era | Mixed / Not sure |
+| Technology Stack | Auto-detected |
+| Assessment Categories | All categories |
+| Audit Scope | Entire solution |
+| Severity Threshold | All findings |
 
 ### Step 1: AI Tool History
 
@@ -37,7 +80,7 @@ Before asking, attempt to auto-detect the technology stack by checking for commo
 2. If `package.json` exists, read it to detect frameworks (React, Vue, Next.js, Nuxt, Angular, Svelte, Express, Fastify, etc.)
 3. If `.csproj` or `.sln` exists, read to detect .NET version and project type
 
-Present the detected stack to the user for confirmation:
+If the arguments give a stack, use it without asking. With `stack=auto` or `--defaults`, or in an unattended run, use the detected stack without asking. Otherwise, present the detected stack to the user for confirmation:
 
 - Question 3: "I detected the following technology stack: [detected stack]. Is this correct, or would you like to adjust?"
   - Options: Yes, that's correct | Let me specify the stack
@@ -69,10 +112,10 @@ Present the detected stack to the user for confirmation:
 - Question 5: "What scope should this audit cover?"
   - Options:
     - "Entire solution" (scan all source files in the current working directory)
-    - "Specific directory" (user will specify the path)
+    - "Specific file or directory" (user will specify the path)
   - Header: "Audit Scope"
 
-If the user selects "Specific directory", ask them to provide the directory path using a free-text input question.
+If the user selects "Specific file or directory", ask them for the path using a free-text input question. If the path doesn't exist, tell the user and stop.
 
 ### Step 5: Severity Threshold
 
@@ -83,20 +126,20 @@ If the user selects "Specific directory", ask them to provide the directory path
     - "High and Critical only" - Focus on the most impactful issues
   - Header: "Severity Threshold"
 
-### Launching the Assessment
+### Running the Assessment
 
-Once all configuration is gathered, use the Agent tool with subagent_type "ai-modernize:modernize-auditor" to perform the comprehensive modernization assessment.
+Once the configuration is settled, run the assessment yourself in this session. Follow the Audit Methodology below, check each selected category against the checklist in [references/categories.md](references/categories.md), and write the report with the Report Template.
 
-When invoking the subagent, provide ALL gathered configuration:
-- AI tools/models used and codebase era
-- Confirmed technology stack
-- Selected assessment categories (or "all")
-- Scope (entire solution or specific directory with path)
-- Severity threshold
+Fit the work to the scope and settings:
+
+- **A single file**: analyze it in full depth across every selected category that applies to it.
+- **A directory, or the entire solution**: analyze every source file under it, recursively.
+- **Applicability**: when all categories are selected, skip any that can't apply to the scope, such as Frontend Debt for backend-only code. List each skipped category as "not applicable" in the Categories Assessed row, and leave it out of the Category Summary and the Modernization Score. When the configuration names categories, assess every one of them.
+- **Severity threshold**: leave out findings below the threshold.
 
 ### Analysis Scope
 
-The subagent will perform deep analysis across all selected categories, examining:
+Analyze every selected category in depth, examining:
 
 1. **Code Pattern Analysis**: Scan source files for anti-patterns, violations, and quality issues
 2. **Architecture Review**: Analyze project structure, coupling, cohesion, and separation of concerns
@@ -108,14 +151,17 @@ The subagent will perform deep analysis across all selected categories, examinin
 ### Output Requirements
 
 - Create a comprehensive modernization assessment report
-- Save the report to: `/docs/modernize/{timestamp}-modernize-audit.md`
+- Save the report to: `docs/modernize/{timestamp}-modernize-audit.md`, relative to the repository root
   - Format: `YYYY-MM-DD-HHMMSS-modernize-audit.md`
   - Example: `2026-03-22-143022-modernize-audit.md`
+- Verify every finding against the actual source code before reporting it
 - Include actual findings from the codebase with exact file paths and line numbers
 - Provide before/after code examples for remediation guidance
 - Prioritize findings by severity: Critical, High, Medium, Low
 - Include AI-assisted remediation time estimates (not manual development time)
 - Include a Modernization Score (0-100)
+- Include the phased Modernization Roadmap
+- Once the report is saved, tell the user its path, the Modernization Score and the number of findings at each severity
 
 ---
 
@@ -132,6 +178,7 @@ Invoke this skill when:
 - Auditing code quality against SOLID, DRY, KISS, and YAGNI principles
 - Identifying security, performance, and architecture issues in inherited codebases
 - Planning a refactoring or modernization roadmap with AI-assisted time estimates
+- Checking one file or directory quickly, without the setup questions (`--defaults`)
 
 ## Background: Why Older AI-Generated Code Needs Assessment
 
@@ -161,239 +208,22 @@ AI code generation models have improved dramatically between 2024 and 2026. Code
 
 ## Core Assessment Categories
 
-### 1. SOLID/DRY/KISS Violations
+The audit covers 12 categories. The numbers are the ones `categories=` accepts:
 
-Examine for engineering principle violations:
+1. SOLID/DRY/KISS Violations
+2. Type Safety & Language Misuse
+3. Error Handling
+4. Security Anti-patterns
+5. Performance Anti-patterns
+6. Testing Gaps
+7. Architecture Debt
+8. Frontend Debt
+9. Dependency Health
+10. AI Hallucination Artifacts
+11. Modern Pattern Gaps
+12. Configuration & DevOps Debt
 
-**Single Responsibility Principle (SRP):**
-- Classes/modules with more than one reason to change
-- Components handling both UI rendering and business logic
-- Route handlers containing database queries, validation, and response formatting
-- Utility files that have grown into "God objects" with unrelated functions
-
-**Open/Closed Principle (OCP):**
-- Code that requires modification (not extension) to add new features
-- Switch/if-else chains that grow with each new variant instead of using polymorphism or strategy patterns
-- Hardcoded behavior that should be configurable or pluggable
-
-**Liskov Substitution Principle (LSP):**
-- Subclasses that break the contract of their parent class
-- Interface implementations that throw "not implemented" for required methods
-- Overridden methods that change expected behavior
-
-**Interface Segregation Principle (ISP):**
-- Large interfaces forcing implementors to depend on methods they don't use
-- Props interfaces in React/Vue components that are excessively broad
-- Service interfaces with dozens of methods instead of focused, cohesive contracts
-
-**Dependency Inversion Principle (DIP):**
-- High-level modules directly importing low-level implementation details
-- Direct database client usage in business logic instead of repository abstractions
-- Hardcoded dependencies instead of injection or configuration
-
-**DRY (Don't Repeat Yourself):**
-- Copy-pasted code blocks across multiple files with minor variations
-- Duplicated validation logic between client and server with no shared schema
-- Repeated query patterns that should be extracted into shared data access functions
-- Similar component structures that could be generalized with props/slots
-
-**KISS (Keep It Simple, Stupid):**
-- Over-engineered abstractions for simple operations (factory patterns for single implementations)
-- Unnecessary design patterns that add complexity without benefit
-- Complex generic types where simple types would suffice
-- Premature optimization that reduces readability
-
-**YAGNI (You Aren't Gonna Need It):**
-- Feature flags for features that were never implemented
-- Abstract base classes with only one concrete implementation
-- Configuration options that no one uses or changes
-- Commented-out code preserved "just in case"
-
-### 2. Type Safety & Language Misuse
-
-Examine for type system and language idiom issues:
-
-**TypeScript-specific:**
-- Overuse of `any` type (especially `as any` assertions to silence errors)
-- Missing or overly broad type definitions (e.g., `Record<string, any>`)
-- Type assertions (`as Type`) instead of proper type narrowing with guards
-- Incorrect generic type parameters or missing generic constraints
-- Using `interface` vs `type` inconsistently without clear convention
-- Missing discriminated unions for state management (using boolean flags instead)
-- Non-strict TypeScript configuration (`strict: false` or missing strict checks)
-- Using `!` (non-null assertion) to suppress null checks instead of handling nullability
-
-**JavaScript-specific:**
-- Using `var` instead of `const`/`let`
-- Missing optional chaining (`?.`) and nullish coalescing (`??`)
-- Using `==` instead of `===` for comparisons
-- Callback hell instead of async/await
-- Not using destructuring where appropriate
-
-**C#/.NET-specific:**
-- Not using nullable reference types
-- Using `dynamic` instead of proper typing
-- Missing `IDisposable` / `using` patterns for resource management
-- Synchronous I/O in async contexts (blocking the thread pool)
-
-**Python-specific:**
-- Missing type hints (PEP 484)
-- Using mutable default arguments
-- Not using f-strings (using .format() or % formatting)
-- Ignoring context managers for resource handling
-
-### 3. Error Handling
-
-Examine for error handling quality:
-
-- **Empty catch blocks**: `catch (e) {}` or `catch { }` that silently swallow errors
-- **Generic catch-all**: Single try/catch wrapping entire functions without specific error handling
-- **Console.log as error handling**: Using `console.log(error)` or `console.error(error)` without proper error propagation, reporting, or recovery
-- **Missing error boundaries**: React/Vue applications without error boundary components
-- **No graceful degradation**: Features that crash entirely instead of falling back
-- **Inconsistent error shapes**: Different error formats across the codebase (sometimes strings, sometimes objects, sometimes Error instances)
-- **Missing async error handling**: Unhandled promise rejections, missing `.catch()` on promises, no try/catch in async functions
-- **Error message information leakage**: Exposing stack traces, internal paths, or database errors to end users
-- **Missing retry logic**: Network calls and external service calls with no retry/backoff strategy
-- **No error logging/monitoring**: No structured error logging for production debugging (no Sentry, no error tracking)
-
-### 4. Security Anti-patterns
-
-Examine for security issues commonly introduced by older AI models:
-
-- **Hardcoded secrets**: API keys, tokens, passwords, or connection strings in source code
-- **Missing input validation**: User input passed directly to database queries, file system operations, or shell commands
-- **SQL/NoSQL injection**: String concatenation in queries instead of parameterized queries
-- **XSS vulnerabilities**: Rendering user input without sanitization (using `dangerouslySetInnerHTML`, `v-html`, or template literals in HTML)
-- **Missing CORS configuration**: No CORS headers or overly permissive `Access-Control-Allow-Origin: *`
-- **Insecure authentication**: Storing passwords in plaintext or with weak hashing (MD5, SHA1), missing session expiration
-- **Missing rate limiting**: API endpoints without rate limiting allowing brute force or abuse
-- **Insecure defaults**: Debug mode enabled, verbose error messages in production, exposed admin panels
-- **Missing CSRF protection**: Forms and state-changing endpoints without CSRF tokens
-- **Insecure cookie settings**: Missing `HttpOnly`, `Secure`, or `SameSite` flags on session cookies
-- **Path traversal**: File operations using user input without path sanitization
-- **Missing security headers**: No CSP, HSTS, X-Frame-Options, or X-Content-Type-Options headers
-
-### 5. Performance Anti-patterns
-
-Examine for performance issues older models commonly introduced:
-
-- **N+1 queries**: Fetching related data in loops instead of using joins or eager loading
-- **Missing pagination**: Fetching entire datasets without limit/offset or cursor-based pagination
-- **Synchronous bottlenecks**: Using `readFileSync`, blocking I/O, or CPU-bound work on the main thread/event loop
-- **Full library imports**: `import _ from 'lodash'` instead of `import debounce from 'lodash/debounce'`
-- **Missing database indexes**: Queries filtering on columns without indexes
-- **No caching strategy**: Repeated expensive computations or API calls without caching
-- **Memory leaks**: Uncleared intervals/timeouts, growing arrays, unclosed connections, event listener accumulation
-- **Unnecessary re-renders**: Missing React.memo, useMemo, useCallback; Vue components with unnecessary reactive dependencies
-- **Large bundle sizes**: No code splitting, no lazy loading, importing entire icon libraries
-- **Missing compression**: No gzip/brotli for API responses or static assets
-- **Inefficient data structures**: Using arrays where Sets/Maps would be O(1) instead of O(n)
-- **Missing connection pooling**: Creating new database connections per request instead of pooling
-
-### 6. Testing Gaps
-
-Examine for testing quality issues:
-
-- **Implementation-coupled tests**: Tests that break when refactoring internal code without changing behavior
-- **Over-mocking**: Mocking so much that tests don't verify real behavior (testing mocks, not code)
-- **Missing edge cases**: Only testing happy paths, ignoring error cases, boundary values, and empty states
-- **No integration tests**: Only unit tests exist, missing tests for component interactions and data flows
-- **Snapshot abuse**: Over-reliance on snapshot tests without meaningful assertions
-- **Test data hardcoding**: Hardcoded test data that doesn't represent real-world scenarios
-- **Missing async test handling**: Tests that don't properly await async operations (false positives)
-- **No test isolation**: Tests that depend on execution order or share mutable state
-- **Missing API contract tests**: No tests validating request/response shapes for API endpoints
-- **Flaky tests**: Tests with race conditions, timing dependencies, or external service dependencies
-
-### 7. Architecture Debt
-
-Examine for architectural quality issues:
-
-- **Tight coupling**: Components/modules directly depending on concrete implementations instead of abstractions
-- **Circular dependencies**: Module A imports from B, B imports from A (or longer cycles)
-- **Business logic in UI**: Validation rules, calculations, or data transformations in component render logic
-- **Missing abstraction layers**: Direct database access from route handlers without service/repository layers
-- **God files**: Single files with 500+ lines containing unrelated functionality
-- **Inconsistent patterns**: Different architectural approaches used for similar features (some with services, some without)
-- **Missing separation of concerns**: API routes handling validation, business logic, data access, and response formatting
-- **No dependency injection**: Hardcoded dependencies making testing and swapping implementations difficult
-- **Barrel file bloat**: index.ts re-export files that pull in the entire module graph
-- **Missing domain modeling**: Using primitive types everywhere instead of domain-specific types (string for email, number for currency)
-
-### 8. Frontend Debt
-
-Examine for frontend-specific issues (when applicable):
-
-- **Prop drilling**: Passing props through multiple intermediate components instead of using context, stores, or composition
-- **State management anti-patterns**: Storing derived state, duplicating state across components, global state for local concerns
-- **useEffect misuse (React)**: Using useEffect for derived state, missing dependency arrays, or as an event handler
-- **Inline styles everywhere**: Using style attributes instead of CSS classes, modules, or styled-components
-- **Missing accessibility**: No alt text, missing ARIA attributes, non-semantic HTML, no keyboard navigation
-- **No responsive design**: Fixed pixel widths, no media queries, no mobile consideration
-- **CSS anti-patterns**: `!important` overuse, deeply nested selectors, no CSS custom properties, no design tokens
-- **Missing loading states**: No skeleton screens, spinners, or loading indicators for async operations
-- **No error UI**: Missing error states, fallback UI, or user-friendly error messages
-- **Client-side data fetching anti-patterns**: Fetching in useEffect without cleanup, no request deduplication, no caching (should use SWR/React Query/TanStack Query pattern)
-
-### 9. Dependency Health
-
-Examine for dependency management issues:
-
-- **Deprecated packages**: Using packages that are no longer maintained or have been superseded
-- **Vulnerable versions**: Dependencies with known CVEs that have patches available
-- **Unnecessary dependencies**: Packages imported for trivial functionality that could be a few lines of code
-- **Missing lock files**: No package-lock.json, yarn.lock, or pnpm-lock.yaml committed
-- **Version range risks**: Using `*` or very loose version ranges (`^` on major 0.x packages)
-- **Duplicate functionality**: Multiple packages solving the same problem (e.g., both axios and node-fetch)
-- **Missing peer dependency warnings**: Peer dependency conflicts that could cause runtime issues
-- **Dev dependencies in production**: devDependencies leaking into production bundles
-- **Abandoned packages**: Dependencies with no updates in 2+ years and open security issues
-
-### 10. AI Hallucination Artifacts
-
-Examine for artifacts specific to AI-generated code:
-
-- **Non-existent APIs**: Calls to methods, functions, or properties that don't exist on the library being used
-- **Wrong function signatures**: Calling functions with incorrect parameter order, types, or count
-- **Hallucinated packages**: Import statements for npm/pip/nuget packages that don't exist
-- **Incorrect framework patterns**: Using patterns from one framework version in another (e.g., React class component patterns in a hooks codebase)
-- **Fabricated configuration options**: Config properties that aren't supported by the tool or framework
-- **Mixed-up library APIs**: Using the API of one library while importing another (e.g., Express middleware patterns in Fastify)
-- **Deprecated method usage**: Using methods that were deprecated or removed in the installed version
-- **Incorrect type definitions**: Custom type definitions that don't match the actual library types
-- **Phantom environment variables**: References to environment variables that are never defined or documented
-- **Dead code from failed attempts**: Commented-out or unreachable code blocks from prior AI generation attempts that were never cleaned up
-
-### 11. Modern Pattern Gaps
-
-Examine for opportunities to adopt modern patterns:
-
-- **Missing modern JavaScript syntax**: Not using optional chaining (`?.`), nullish coalescing (`??`), logical assignment (`??=`, `||=`, `&&=`), or `Array.at()`
-- **Outdated async patterns**: Using callbacks or `.then()` chains instead of async/await
-- **Legacy CSS**: Using floats for layout instead of Flexbox/Grid, vendor prefixes for widely supported properties
-- **Old build tooling**: Using Webpack 4 when Vite, esbuild, or Turbopack are appropriate
-- **Missing modern web APIs**: Not using Fetch API, Intersection Observer, AbortController, structuredClone, or Web Streams
-- **Legacy state management**: Using Redux boilerplate when Zustand, Jotai, or Pinia would be simpler
-- **Missing server components**: Not leveraging React Server Components or equivalent SSR patterns where beneficial
-- **Outdated Node.js APIs**: Using `fs.readFile` with callbacks instead of `fs.promises`, missing `node:` protocol prefix
-- **Missing modern .NET patterns**: Not using minimal APIs, record types, or pattern matching (C#)
-- **Legacy Python patterns**: Not using match statements (3.10+), walrus operator (3.8+), or dataclasses
-
-### 12. Configuration & DevOps Debt
-
-Examine for configuration and operational readiness issues:
-
-- **Hardcoded configuration**: URLs, ports, feature flags, or thresholds hardcoded instead of environment-driven
-- **Missing environment validation**: No runtime validation that required environment variables are set (missing something like envalid, zod env parsing, or manual checks)
-- **No health check endpoints**: Missing `/health` or `/readyz` endpoints for container orchestration
-- **Missing .env.example**: No documentation of required environment variables
-- **Poor Dockerfile practices**: Running as root, not using multi-stage builds, copying unnecessary files, not using .dockerignore
-- **Missing CI/CD configuration**: No automated testing, linting, or deployment pipelines
-- **No logging strategy**: Using console.log in production instead of structured logging (pino, winston, serilog)
-- **Missing monitoring/alerting**: No application performance monitoring, error tracking, or alerting setup
-- **Insecure secret management**: Secrets in .env files committed to version control or missing from .gitignore
-- **Missing database migrations**: Schema changes applied manually instead of through migration files
+For what to check in each category, read [references/categories.md](references/categories.md).
 
 ## Code Context Accuracy (CRITICAL)
 
@@ -433,15 +263,13 @@ When conducting modernization assessments, follow this systematic approach:
 
 ### Step 1: Pre-Audit Configuration
 
-The audit configuration should be provided by the invoking command. Expected:
+Use the configuration settled in the Instructions above, from the arguments, the user's answers or the defaults:
 
 1. **AI Tool History**: Which tools/models generated the code and when
 2. **Technology Stack**: Confirmed tech stack
 3. **Assessment Categories**: Selected categories or "all"
-4. **Scope**: Entire codebase or specific directory (with path)
+4. **Scope**: Entire codebase, or a specific file or directory (with path)
 5. **Severity Threshold**: All, Medium+, or High/Critical only
-
-If configuration is not provided, use the **AskUserQuestion tool** to gather these details.
 
 ### Step 2: Codebase Discovery
 
@@ -465,12 +293,12 @@ For each selected assessment category:
 
 ### Step 4: Report Generation
 
-Generate the report using the template below. Save to `/docs/modernize/{timestamp}-modernize-audit.md`.
+Generate the report using the template below. Save to `docs/modernize/{timestamp}-modernize-audit.md`.
 
 ## Report Output Format
 
 ### Location and Naming
-- **Directory**: `/docs/modernize/`
+- **Directory**: `docs/modernize/`
 - **Filename**: `YYYY-MM-DD-HHMMSS-modernize-audit.md`
 - **Example**: `2026-03-22-143022-modernize-audit.md`
 
@@ -478,7 +306,7 @@ Generate the report using the template below. Save to `/docs/modernize/{timestam
 
 **CRITICAL INSTRUCTION - READ CAREFULLY**
 
-Your response MUST start DIRECTLY with "## Modernization Assessment:" followed by the project name - do NOT include any preamble, introduction, or explanatory text before the report.
+The report MUST start DIRECTLY with "## Modernization Assessment:" followed by the project name - do NOT include any preamble, introduction, or explanatory text before the report.
 
 You MUST use the exact template structure provided. This is MANDATORY and NON-NEGOTIABLE.
 
@@ -527,8 +355,8 @@ Write 2-4 sentences characterizing the overall modernization state, highlighting
 | AI Tools Used | [Tools and era from user input] |
 | Codebase Era | [When the code was written] |
 | Technology Stack | [Confirmed tech stack] |
-| Categories Assessed | [List of selected categories] |
-| Scope | [Entire solution / Specific directory path] |
+| Categories Assessed | [List of selected categories, with any skipped as not applicable] |
+| Scope | [Entire solution, or the file or directory path] |
 | Severity Threshold | [All / Medium+ / High-Critical] |
 | Analysis Date | [Current date and time] |
 
@@ -613,7 +441,7 @@ Write 2-4 sentences characterizing the overall modernization state, highlighting
 | Configuration & DevOps Debt | X | X | X | X | X | Xh |
 | **Total** | **X** | **X** | **X** | **X** | **X** | **Xh** |
 
-[Only include rows for categories that were assessed. If "All categories" was selected, include all rows.]
+[Only include rows for categories that were assessed. Leave out categories skipped as not applicable.]
 
 ---
 
@@ -621,7 +449,7 @@ Write 2-4 sentences characterizing the overall modernization state, highlighting
 
 ### Scoring Methodology
 
-The Modernization Score (0-100) is calculated across the assessed categories. Each category is weighted equally among those selected. A score of 100 means no issues found; each finding reduces the score based on severity.
+The Modernization Score (0-100) is calculated across the assessed categories. Each category is weighted equally among those assessed. A score of 100 means no issues found; each finding reduces the score based on severity.
 
 | Category | Score | Weight | Notes |
 |----------|-------|--------|-------|
@@ -817,7 +645,7 @@ Before finalizing a modernization assessment, verify:
 
 ## Context-Aware Analysis
 
-When project-specific context is available in CLAUDE.md files or project documentation, incorporate:
+When project-specific context is available in CLAUDE.md or AGENTS.md files or other project documentation, incorporate:
 
 - **Technology Stack**: Identify framework-specific anti-patterns and modernization opportunities
 - **Project Maturity**: Adjust severity based on whether this is a prototype, MVP, or production system

@@ -1,12 +1,12 @@
 {
   "name": "ai-accessibility",
-  "version": "1.4.2",
-  "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes, with an agent for unattended runs",
+  "version": "2.0.0",
+  "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes. Takes its settings as arguments for unattended runs",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
-  "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev",
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
   "license": "MIT",
   "keywords": [
     "ai",

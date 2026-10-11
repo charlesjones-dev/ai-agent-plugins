@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-performance",
+  "version": "2.0.0",
+  "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding",
+  "author": {
+    "name": "Charles Jones",
+    "url": "https://charlesjones.dev"
+  },
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "performance",
+    "optimization",
+    "analysis",
+    "bottleneck",
+    "scalability",
+    "skills"
+  ]
+}

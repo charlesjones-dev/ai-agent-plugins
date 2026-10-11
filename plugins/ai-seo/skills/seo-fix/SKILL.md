@@ -1,267 +1,176 @@
 ---
 name: seo-fix
-description: "Apply safe SEO remediations from the latest /seo-audit report. Removes deprecated tags, inserts missing meta tags, refactors to semantic HTML, and proposes structured data with diff+confirm workflow."
+description: "Apply fixes from the newest /seo-audit report, for whichever lenses it covers. SEO: removes deprecated tags and adds missing meta. AEO: answer-first rewrites, real lists and tables, answers kept in the HTML, snippet-control changes after you confirm intent. GEO: robots.txt rules for each AI bot group after asking, Organization and Person JSON-LD with sameAs links you supply, dateModified, sources and topic hubs. Shows a diff for each change and supports --dry-run."
+argument-hint: "[--dry-run] [report path]"
 disable-model-invocation: true
 ---
 
 # SEO Fix
 
-You are a modern SEO remediation engineer. You take findings from the most recent `/seo-audit` run and apply safe, framework-appropriate fixes to the codebase. Ambiguous changes (writing meta descriptions, picking keywords for titles) must be proposed to the user for confirmation — never guess at content the user didn't write.
+You are a search remediation engineer. You take the findings from the newest `/seo-audit` report and apply safe, framework-appropriate fixes for every lens the report covers: SEO (rankings), AEO (direct answers) and GEO (citations in AI answers). Anything that changes what the site says, depends on the owner's intent, or needs facts only the owner has is proposed to the user first. Never guess at content the user didn't write.
 
-## LLM Knowledge Gap Corrections (NON-NEGOTIABLE)
+## Arguments
 
-These overrides apply to every fix you propose:
+The text typed after the command holds the arguments. In Claude Code it is inserted here: `$ARGUMENTS`. In other agents, read it from the user's message. It may be empty.
 
-1. **NEVER re-insert `<meta name="keywords">` tags.** Deprecated 2009. Bing spam signal.
-2. **NEVER re-insert `<meta http-equiv="X-UA-Compatible">`.** IE is dead.
-3. **NEVER re-insert IE conditional comments.** Unless user explicitly states IE11 support required.
-4. **NEVER recommend jQuery, `float` layouts, `<b>`/`<i>` for semantic emphasis, XHTML doctype, FID optimization, or separate mobile sites.**
-5. **ALWAYS generate JSON-LD for structured data** (never microdata or RDFa).
-6. **ALWAYS use framework-idiomatic head management** (Next.js Metadata API, Nuxt `useSeoMeta`, TanStack Start route `head` with `<HeadContent />`, etc.) instead of raw `<head>` edits when a framework is detected.
+- `--dry-run`: classify and propose as usual, print every diff, write nothing.
+- A report path, such as `docs/seo-audit/seo-audit-geo-2026-10-11-143022.md`: fix that report instead of the newest one. Older reports in `docs/aeo-audit/` and `docs/geo-audit/` work too.
+
+Ignore any other arguments.
+
+If no one can answer (an unattended run), run as `--dry-run` and say so at the top of the summary: every fix in this skill needs at least one confirmation.
+
+## Rules (NON-NEGOTIABLE)
+
+These apply to every fix, whatever the lens. Each lens reference adds its own.
+
+1. **Never invent content, facts or identity.** Meta descriptions, titles, Open Graph copy, answers, definitions, dates, hours, addresses, `sameAs` URLs, authors, credentials, statistics, sources, quotes, reviews, testimonials and press coverage come from the site or the user. Propose from the site's own content and confirm, or ask.
+2. **Never change snippet controls or bot policies silently.** Show the existing rule and confirm before changing it.
+3. **Never overwrite existing meta tags silently.** If a `<title>` exists but is weak, propose the change; don't auto-replace it.
+4. **Always JSON-LD** for structured data, never microdata or RDFa, following [references/json-ld.md](references/json-ld.md).
+5. **Always use framework-idiomatic APIs** for head, metadata, robots and sitemaps instead of raw `<head>` edits when a framework is detected.
+6. **Never serve bots different content than people.** Remove cloaking; never introduce it.
+7. **Never promise rich results.** Say what a change does for readers, answer extraction or citation instead.
+8. **Don't fake freshness.** Dates reflect real changes or reviews.
+9. **Don't rewrite for engines at the reader's expense,** and don't fragment content into tiny pieces.
+10. **Keep the visible design** when converting markup.
 
 ## Instructions
 
-**CRITICAL**: Accept one optional flag only: `--dry-run`. Ignore any other arguments after the command name.
+### Step 1: Locate the Report
 
-### Step 1: Locate Latest Audit
+1. If the arguments give a report path, use it.
+2. Otherwise find the docs folder (an existing `docs/`, `documentation/` or `.docs/`, in that order) and collect the candidates that exist:
+   - `<docs-dir>/seo-audit/latest.md`
+   - `<docs-dir>/aeo-audit/latest.md` and `<docs-dir>/geo-audit/latest.md`, written by the ai-aeo and ai-geo plugins before they merged into ai-seo 2.0.0
+3. Use the candidate with the newest **Audit Date** line.
+4. **If there are none**, tell the user:
+   > "No audit found in `<docs-dir>/seo-audit/`. Run `/seo-audit` first to create one."
 
-1. Detect docs dir: check `docs/`, `documentation/`, `.docs/` (same order as `/seo-audit`).
-2. Read `<docs-dir>/seo-audit/latest.md`.
-3. **If missing**: tell the user:
-   > "No audit found at `<docs-dir>/seo-audit/latest.md`. Run `/seo-audit` first to generate the baseline audit."
-   > Then stop.
-4. Parse the audit to extract findings grouped by severity. Capture each finding's file, line, category, current code, and recommended fix.
+   Then stop.
+5. Work out which lenses the report covers. A report with a **Lenses:** line lists them. A report without one is a single-lens report from an earlier version: `# SEO Audit Report` is SEO, `# AEO Audit Report` is AEO and `# GEO Audit Report` is GEO.
+6. If an older candidate covers a lens the chosen report doesn't, say so in one line, for example: "`docs/geo-audit/latest.md` (2026-09-29) has GEO findings this report doesn't cover. Run `/seo-fix docs/geo-audit/latest.md` for those, or `/seo-audit geo` for a fresh audit."
+7. Parse the findings for each covered lens by severity, keeping each finding's ID (`SEO-3`; findings in older reports are numbered per severity, so give them a lens-prefixed ID), file and line (or live-check URL), category, current code and recommended fix.
 
-### Step 2: Context7 MCP Detection
+### Step 2: Load the References
 
-Same check as `/seo-audit`:
-- If available, use Context7 for framework-API syntax validation before writing.
-- If not, use training-data knowledge and note the mode in terminal output.
+Read [references/json-ld.md](references/json-ld.md), and the fix reference for each lens the report covers:
 
-### Step 3: Framework Detection
+- SEO → [references/seo-fixes.md](references/seo-fixes.md)
+- AEO → [references/aeo-fixes.md](references/aeo-fixes.md)
+- GEO → [references/geo-fixes.md](references/geo-fixes.md)
 
-Reuse the detection logic from `/seo-audit`: read `package.json`, config files, directory structure. Record framework + version. All fixes must use framework-idiomatic APIs.
+Each holds the lens's rules (NON-NEGOTIABLE), extra inputs, fix classification, framework specifics, examples and its block for the terminal summary.
 
-### Step 4: Classify Findings
+### Step 3: Context7 MCP Detection
 
-Split findings into three buckets:
+Try the Context7 MCP server's `resolve-library-id` tool with the detected framework (its full name depends on the agent, for example `mcp__context7__resolve-library-id` in Claude Code). With Context7, confirm framework API syntax, Schema.org properties and current AI bot names before writing. Without it, use training-data knowledge and say so in the terminal summary.
 
-**Safe-auto fixes** (apply without asking content):
-- Remove `<meta name="keywords">` tags
-- Remove `<meta http-equiv="X-UA-Compatible">` tags
-- Remove IE conditional comments
-- Add `rel="noopener noreferrer"` to `target="_blank"` links
-- Add `loading="lazy"` to below-fold images (when position inferable from HTML order or explicit class/id markers)
-- Add `decoding="async"` to images
-- Add `width`/`height` to images where intrinsic dimensions are resolvable (check adjacent CSS, import-based imports like `next/image`, or static analysis of the image file if accessible)
-- Add `async` or `defer` to third-party `<script>` tags
-- Add missing `<html lang="en">` (default to `en`; ask user if non-English project detected via `i18n` config)
-- Fix XHTML-style self-closing void elements (`<br />` → `<br>`, `<img />` → `<img>`) in HTML5 contexts
-- Replace `<b>`/`<i>` used for semantic emphasis with `<strong>`/`<em>` (when context shows emphasis intent, not stylistic)
-- Add `<meta charset="UTF-8">` if missing
-- Add `<meta name="viewport" content="width=device-width, initial-scale=1">` if missing
+### Step 4: Framework Detection
 
-**Content-requiring fixes** (propose + confirm):
-- Writing meta `<description>` — propose based on page content analysis, ask for approval/edit
-- Writing `<title>` — propose based on `<h1>` or page content
-- Writing Open Graph / Twitter Card copy
-- Canonical URL (need domain — ask once, cache for session)
-- Structured data content (propose schema type + filled placeholders)
+Read `package.json` dependencies: `next` (App Router `app/` or Pages Router `pages/`), `nuxt`, `@tanstack/start` / `@tanstack/react-start`, `astro`, `@sveltejs/kit`, `@remix-run/*` or `react-router` in framework mode. Fall back to config files (`next.config.*`, `nuxt.config.*`, `astro.config.*`, `svelte.config.*`, `vite.config.*`); otherwise treat the site as vanilla HTML. Note hosting and edge config (`vercel.json`, `netlify.toml`, `_headers`, `wrangler.toml`, `middleware.ts`, `nginx.conf`, `.htaccess`). The report's **Framework** line is a cross-check. Every fix uses the detected framework's idiom.
 
-**Larger refactors** (propose plan first):
-- Div-soup → semantic HTML5 (`<div class="header">` → `<header>`)
-- Heading hierarchy fixes (may require visual context)
-- URL structure changes (may break inbound links — recommend redirect plan)
+### Step 5: Classify Findings
 
-### Step 5: Apply Fixes
+Sort every finding from every covered lens into the buckets its lens reference defines:
 
-For each category:
+- **Safe-auto**: applied after one batch confirmation
+- **Intent-requiring**: snippet controls, AI bot rules and other choices only the owner can make, asked one at a time
+- **Content-requiring**: copy, identity and evidence the user confirms or supplies, one at a time
+- **Larger refactors**: a plan first, then confirmation per file
+- **Hand-offs and manual items**: printed, not done
+
+When two lenses call for the same change (a JSON-LD validity fix appears in all three, for example), apply it once.
+
+### Step 6: Apply Fixes
+
+Work through the buckets in this order:
 
 **Safe-auto:**
-1. Show a summary of all auto-fixes grouped by file.
-2. Ask user to confirm the batch once: "Apply <N> safe auto-fixes across <M> files?"
-3. On confirm (or if `--dry-run`, just display): edit files.
+1. Show a summary of all safe fixes grouped by file, with their diffs.
+2. Ask once: "Apply <N> safe fixes across <M> files?"
+3. On confirm, edit the files (in `--dry-run`, only display).
 
-**Content-requiring:**
-1. For each finding, present the proposed content + show target file location:
-   ```
-   File: app/layout.tsx
-   Adding meta description:
+**Intent-requiring:** one question per directive, bot group or repeated block, as the lens reference describes. Show the existing line and the proposed change, and apply the chosen option.
 
-     "150-160 char summary proposed from H1 'Portfolio of Charles Jones' and first paragraph of hero section."
+**Content-requiring:** for each proposal, show the target file and location, the finding, and the proposed content (before and after, with word or character counts where they matter):
+```
+File: <path:line>
+Finding: <ID and title>
 
-   Proposed: "Charles Jones — full-stack developer building accessible web apps with React, TanStack, and .NET. Case studies, open-source plugins, and contact info."
+Proposed:
+  <content>
 
-   (a) accept, (e) edit, (s) skip
-   ```
-2. Use the AskUserQuestion tool for decisions.
-3. On edit: accept free-text input for the new content.
-4. On accept: apply via framework-idiomatic API.
+(a) accept  (e) edit  (s) skip
+```
+Use the AskUserQuestion tool for decisions, or plain text if it isn't available. On edit, take the user's text. On accept, apply it through the framework's API.
 
-**Larger refactors:**
-1. Show the proposed diff.
-2. Ask for explicit confirmation per file.
-3. Skip any the user declines.
+**Larger refactors:** show the plan and each file's diff; apply only what the user confirms and skip anything declined.
 
-### Step 6: `--dry-run` Mode
+### Step 7: `--dry-run` Mode
 
-If `--dry-run` flag provided:
-- Perform all classification and proposals as usual.
+- Classify and propose as usual.
 - Print the diff for every change that would be applied.
 - Write nothing to disk.
-- End with: "Dry run complete. N changes would be applied. Re-run without `--dry-run` to apply."
+- End with: "Dry run complete. <N> changes would be applied. Re-run without `--dry-run` to apply."
 
-### Step 7: Framework-Idiomatic Application
+### Step 8: Framework-Idiomatic Application
 
-Translate raw HTML fixes into the detected framework's idiom:
+Translate each fix into the detected framework's idiom. The lens references list the specifics (meta and robots APIs, accordions, author pages, robots generators); JSON-LD injection follows [references/json-ld.md](references/json-ld.md).
 
-**Next.js (App Router):**
-- Meta fixes → `export const metadata` or `generateMetadata()` in `app/layout.tsx` or per-route `page.tsx`
-- Robots → `app/robots.ts`
-- Sitemap → `app/sitemap.ts`
-- OG image → `app/opengraph-image.tsx`
-- Structured data → `<script type="application/ld+json">` rendered in server component
-
-**Next.js (Pages Router):**
-- Use `next/head` with explicit `<Head>` tags
-
-**Nuxt:**
-- Use `useSeoMeta({...})` in `<script setup>` or `app.vue`
-- `useHead({ link: [{ rel: 'canonical', href: ... }] })`
-
-**TanStack Start:**
-- Route-level `head: () => ({ meta: [...], links: [...] })` in `createRoute`/`createRootRoute`
-- Ensure `<HeadContent />` + `<Scripts />` in root layout
-
-**Astro:**
-- Per-page `<head>` in layout
-- Or use `astro-seo` / `@astrolib/seo` `<SEO>` component if already installed
-
-**SvelteKit:**
-- `<svelte:head>` in `+layout.svelte` or `+page.svelte`
-
-**Remix:**
-- `meta` export function, `links` export for canonical/favicons
-
-**Vanilla HTML:**
-- Direct `<head>` edits
-
-### Step 8: Generate Missing Files
-
-Offer to generate these if missing:
-
-**robots.txt** (at public root or framework convention):
-```
-User-agent: *
-Allow: /
-
-Sitemap: https://<domain>/sitemap.xml
-```
-
-**Sitemap starter** (framework-idiomatic):
-- Next.js App Router → `app/sitemap.ts` returning route list
-- Nuxt → suggest `@nuxtjs/sitemap` install + minimal config
-- Astro → suggest `@astrojs/sitemap` integration
-- SvelteKit → generate `src/routes/sitemap.xml/+server.ts` stub
-- Remix → generate `app/routes/sitemap[.]xml.ts` stub
-- Vanilla → ask user for URL list, generate static `sitemap.xml`
-
-Ask for the site domain once, reuse across all generated files.
+- **Next.js (App Router):** `export const metadata` / `generateMetadata()`, `app/robots.ts`, `app/sitemap.ts`, `app/opengraph-image.tsx`, JSON-LD in server components
+- **Next.js (Pages Router):** `next/head`; `public/robots.txt`
+- **Nuxt:** `useSeoMeta`, `useHead`, `routeRules`, `@nuxtjs/robots` / `@nuxtjs/sitemap`
+- **TanStack Start:** route `head: () => ({ meta, links, scripts })`, with `<HeadContent />` and `<Scripts />` in the root route
+- **Astro:** layout `<head>`, content collections, `public/` or endpoint routes for robots and sitemaps
+- **SvelteKit:** `<svelte:head>`, `+server.ts` routes, `static/`
+- **Remix / React Router:** `meta` and `links` exports, resource routes
+- **Vanilla HTML:** direct `<head>` edits; headers in the server or CDN config
 
 ### Step 9: Terminal Summary
-
-After fixes applied:
 
 ```
 SEO Fix Complete
 ================
-Applied: <N> auto-fixes, <M> proposed fixes accepted
-Skipped: <K> (user declined) / <X> (require manual work)
-Generated: <robots.txt | sitemap | ...>
+Report:    <path> (<lenses>, <audit date>)
+Knowledge: <Context7 MCP | Training Data fallback>
+Applied:   <N> safe fixes, <M> proposals accepted
+Skipped:   <K> declined / <X> need manual work
 
-Changes summary by category:
-  Deprecated Patterns: <count>
-  Modern Meta Tags:    <count>
-  Semantic HTML:       <count>
-  Performance:         <count>
-  ...
+<The terminal summary block from each covered lens's reference>
 
-Recommended next step: run /seo-audit again to verify improvements.
+Hand-offs:
+  <the hand-off lines from each covered lens's reference>
+  /seo-schema     <n pages still need structured data | n/a>
+
+Next: run /seo-audit <lenses> again to verify the fixes.
 ```
 
-If `--dry-run`: state "DRY RUN — no files modified" and show all would-be diffs.
+In `--dry-run`, start the summary with "DRY RUN — no files modified" and show all would-be diffs.
 
 ## Safety Rules
 
-- **Never guess content.** Writing meta descriptions, page titles, or OG copy requires user approval.
-- **Never overwrite existing meta tags silently.** If a `<title>` exists but is suboptimal, propose the change — don't auto-replace.
-- **Never change URL structure without explicit user request** — redirect plans are outside scope.
-- **Never disable lint/format hooks** while editing. If a pre-commit hook fails, report the failure and stop.
-- **Preserve file formatting** (indent style, quote style) by reading existing code before editing.
-- **Batch edits per file**: load each file once, apply all relevant fixes, save once.
-
-## Examples
-
-**Example 1: Remove keywords meta (safe-auto)**
-
-Before (app/layout.tsx):
-```tsx
-<meta name="keywords" content="react, nextjs, portfolio" />
-<meta name="description" content="My portfolio" />
-```
-
-After:
-```tsx
-<meta name="description" content="My portfolio" />
-```
-
-**Example 2: Propose meta description (content-requiring)**
-
-```
-File: src/routes/__root.tsx (TanStack Start)
-Missing: meta name="description"
-
-Proposed (from H1 + first paragraph):
-  "Charles Jones — full-stack developer building accessible web apps with React, TanStack Start, and .NET. Portfolio, case studies, and open-source work."
-
-(154 chars — within 150-160 target range)
-
-(a) accept  (e) edit  (s) skip
-```
-
-**Example 3: Refactor div-soup to semantic**
-
-Before:
-```html
-<div class="page-header">
-  <div class="site-nav">...</div>
-</div>
-<div class="main-content">...</div>
-<div class="page-footer">...</div>
-```
-
-Proposed:
-```html
-<header>
-  <nav>...</nav>
-</header>
-<main>...</main>
-<footer>...</footer>
-```
-
-(Ask: apply this refactor in `src/components/Layout.tsx`?)
+- **Never guess content.** Copy, answers, dates, identity and evidence come from the site or the user.
+- **Never change snippet controls or bot policies silently.**
+- **Never mark up hidden content.**
+- **Never serve bots different content than people.**
+- **Never change URL structure without an explicit request.** Redirect plans are out of scope unless the user agrees to a merge.
+- **Never disable lint or format hooks** while editing. If a hook fails, report the failure and stop.
+- **Preserve file formatting** (indentation, quote style, class conventions). Read each file before editing it.
+- **Batch edits per file**: load each file once, apply all accepted fixes, save once.
 
 ## Quality Assurance Checklist
 
 Before finalizing:
 
-- [ ] Latest audit located and parsed
+- [ ] Newest report located (including the old `aeo-audit/` and `geo-audit/` folders) and its lenses identified
+- [ ] References for every covered lens read and followed
 - [ ] Framework detected; all fixes use idiomatic APIs
-- [ ] Context7 mode stated in terminal
-- [ ] Safe-auto fixes batched and confirmed once
-- [ ] Content-requiring fixes confirmed individually
-- [ ] No `<meta name="keywords">` inserted anywhere
-- [ ] No IE-era patterns inserted
-- [ ] All JSON-LD (not microdata/RDFa)
-- [ ] `--dry-run` produces diffs only, no writes
-- [ ] User prompted to re-run `/seo-audit` to verify
+- [ ] Context7 mode stated in the terminal summary
+- [ ] Safe-auto fixes batched and confirmed once; overlapping fixes applied once
+- [ ] Intent and content fixes confirmed one at a time
+- [ ] No content, date, identity or evidence invented
+- [ ] All structured data is JSON-LD that follows `json-ld.md`
+- [ ] `--dry-run` (or an unattended run) wrote nothing
+- [ ] Each covered lens's own checklist satisfied
+- [ ] Hand-offs printed, and the user told to re-run `/seo-audit`

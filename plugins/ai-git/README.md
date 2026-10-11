@@ -1,6 +1,6 @@
 # AI-Git Plugin
 
-**Git skills for Claude Code.** Generate a .gitignore, commit and push with a message in your repo's style, open a PR, and loop a PR through Codex review.
+**Git skills for Claude Code, Codex and Cursor.** Generate a .gitignore, run your project's checks before you commit, and commit, push and open a PR with a message in your repo's style.
 
 ---
 
@@ -27,54 +27,79 @@ Create or update `.gitignore` with patterns for your project's technology stack.
 
 ### `/git-commit-push-pr`
 
-Commit, push, and create a pull request in one interactive flow. It doesn't run preflight checks.
+Commit, push and open a pull request in one interactive flow. Two flags change what it does:
+
+- `--preflight` runs `/git-preflight --fix` first. If preflight applied fixes, it stops so you can review them before running the command again. If problems remain that preflight couldn't fix, it stops and reports them.
+- `--no-pr` commits and pushes without opening a PR.
 
 **What it does:**
 
-- Prompts for branch selection (prevents direct commits to main/master)
-- Stages and commits with an auto-generated message
-- Pushes to remote with automatic upstream tracking
-- Creates a PR against the branch you pick (offers staging when it exists on origin)
-- PR includes summary bullets, test plan, and Claude Code attribution
+- Reads `git status`, the diff and your last five commit subjects. Stops early if there's nothing to commit
+- Asks whether to commit to the current branch or a new one. On main, master or the default branch, it creates a new branch
+- Stages the changed files by name, skipping secrets (`.env`, `credentials.*`, `*.key`, `*.pem`, etc.)
+- Writes a concise message that says what changed and why, with conventional commit prefixes (`feat:`, `fix:`, `docs:`) if your repo uses them. It adds no AI attribution to the commit
+- Pushes, setting upstream with `-u` if needed. It never force pushes
+- Asks for the PR target, offering staging first when it exists on origin, then the default branch
+- Opens the PR with summary bullets, a test plan that lists only what was actually run, and a last line naming the agent that ran the skill (Claude Code, Codex or Cursor). If the branch already has an open PR, the push updates it and you get its URL
+
+`/git-commit-push` is now `/git-commit-push-pr --no-pr`.
 
 **Usage:**
 
 ```
-/git-commit-push-pr
+/git-commit-push-pr                      # Commit, push and open a PR
+/git-commit-push-pr --no-pr              # Commit and push only
+/git-commit-push-pr --preflight          # Run /git-preflight --fix first, then commit, push and open a PR
+/git-commit-push-pr --preflight --no-pr  # Run the checks, then commit and push
 ```
 
-### `/git-pr-codex-loop`
+### `/git-preflight`
 
-Open a PR for the current branch, then loop on Codex Code Review until it comes back clean. You make the final merge decision. This skill never merges.
-
-> **Note:** Claude Code's native `/code-review` (with `--fix`, `--comment`, and cloud "ultra" mode) now covers automated review-and-fix loops without external dependencies. This skill is specifically for repositories standardized on OpenAI's Codex Code Review bot, where it remains the right tool for that cross-tool workflow.
+Run your project's code quality checks before a commit, PR or deploy.
 
 **What it does:**
 
-- Opens or finds the PR for the current branch (refuses to run on main/master)
-- Waits for CI to go green before involving Codex, then waits for the `chatgpt-codex-connector` bot's review to settle. Codex acknowledges with a 👀 reaction ("received," not "done"), then trickles findings in as several comments seconds apart, so the loop never acts on the first comment alone
-- Handles Codex's no-comment "all clear": when nothing is found, Codex may post no review and add a 👍 reaction to the PR description instead, which the skill treats as a clean pass
-- Resolves every finding worst-priority-first (P0 → P1 → P2): fixes, commits, pushes, and replies per thread (no `@codex` tag), then posts one `@codex review` comment after the whole pass to re-request a single review
-- Reads and resolves review threads via the GitHub GraphQL API (the REST endpoint can't mark threads resolved)
-- Loops until a pass comes back clean (summary verdict or a 👍 on the PR description) and every thread is resolved, then hands back the PR URL and a summary
-- Makes every fix locally with Claude and never delegates fixes to Codex (the only mention it posts is one `@codex review` per pass). If Codex never picks the PR up, it stops and tells you to enable Automatic reviews
-- Never merges, never force pushes, and pushes back with a reasoned reply when Codex is wrong
+- Detects the quality tools each ecosystem in the project has configured
+- Runs checks in this order: typecheck, lint, format check, security, tests
+- Detects security tools: pnpm/npm/yarn audit, pip-audit, cargo audit, eslint-plugin-security and Semgrep
+- Finds Semgrep through package.json scripts, config files, CI workflows or README docs, with a Docker fallback
+- Reports each check as pass, warning or fail
+- Asks before fixing, or fixes without asking with `--fix`
+- Uses the project's own scripts (`npm run lint` over raw `eslint`)
+
+The agent also runs it when you ask to check code before committing.
 
 **Usage:**
 
 ```
-/git-pr-codex-loop
+/git-preflight                  # Interactive mode (default)
+/git-preflight --fix            # Auto-fix all fixable issues
+/git-preflight --check-only     # Report only, no fixes
+/git-preflight --verbose        # Show detailed output
 ```
 
-### `/git-commit-push`
+In Codex, run it as `$ai-git:git-preflight`.
 
-Stages the files you changed by name, writes a message in the style of your last three commits, and pushes. See [How It Works](#how-it-works) for each step.
+**Supported ecosystems:**
 
-**Usage:**
+| Ecosystem | Type Check | Lint | Format | Security | Test |
+|-----------|------------|------|--------|----------|------|
+| **Node.js/TypeScript** | tsc | ESLint, Biome | Prettier | pnpm/npm/yarn audit, eslint-plugin-security, Semgrep | Jest, Vitest |
+| **Python** | MyPy | Ruff | Black, Ruff | pip-audit, safety, Semgrep | Pytest |
+| **.NET** | dotnet build | Analyzers | dotnet format | Semgrep | dotnet test |
+| **Go** | go build | golangci-lint | gofmt | Semgrep | go test |
+| **Rust** | cargo check | Clippy | cargo fmt | cargo audit, Semgrep | cargo test |
 
-```
-/git-commit-push
-```
+Use `--fix` locally and `--check-only` in CI, and keep local checks in line with your CI configuration.
+
+### Removed and moved skills (October 2026)
+
+| Skill | Status |
+|-------|--------|
+| `/git-commit-push` | Merged into `/git-commit-push-pr`. Run `/git-commit-push-pr --no-pr` |
+| `/git-pr-codex-loop` | Removed. Claude Code's built-in `/code-review --fix` covers review-and-fix loops, and `/workflow-babysit` in ai-workflow (Claude Code only) still answers Codex Code Review findings while it takes a branch through merge and deploy |
+| `/workflow-ship` (ai-workflow) | Moved here as `/git-commit-push-pr --preflight` |
+| `/workflow-preflight` (ai-workflow) | Moved here as `/git-preflight` |
 
 ---
 
@@ -82,9 +107,26 @@ Stages the files you changed by name, writes a message in the style of your last
 
 ### Installation
 
+Claude Code:
+
 ```
-/plugin install ai-git@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-git@ai-agent-plugins
 ```
+
+Codex:
+
+```
+codex plugin marketplace add charlesjones-dev/ai-agent-plugins
+codex plugin add ai-git@ai-agent-plugins
+```
+
+Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-git`. See the [Cursor install steps](../../README.md#cursor).
+
+### Requirements
+
+- Opening a PR needs the GitHub CLI (`gh`), installed and authenticated. `--no-pr` doesn't
+- `/git-preflight` runs the tools your project already has. It doesn't install them
 
 ---
 
@@ -114,14 +156,15 @@ Simplify error handling logic
 
 ## How It Works
 
-`/git-commit-push` runs these steps:
+`/git-commit-push-pr` runs these steps:
 
-1. **Analyze**: Runs `git status`, `git diff`, and `git log -3` to see your changes and your recent commit style. Stops early if there's nothing to commit.
-2. **Branch check**: Stops on main or master and suggests a feature branch or `/git-commit-push-pr`.
-3. **Stage**: Stages the changed files by name, skipping secrets (`.env`, `credentials.*`, `*.key`, `*.pem`, etc.).
-4. **Commit**: Writes a concise message that says what changed and why, with conventional commit prefixes (`feat:`, `fix:`, `docs:`) if your repo uses them. It doesn't add Claude attribution.
-5. **Push**: Pushes to origin, setting upstream with `-u` if needed. It never force pushes.
-6. **Confirm**: Shows the commit hash.
+1. **Preflight** (with `--preflight`): Runs `/git-preflight --fix`. Stops if it applied fixes or if problems remain.
+2. **Analyze**: Runs `git status`, `git diff` and `git log -5` to see your changes and your recent commit style. Stops early if there's nothing to commit.
+3. **Branch**: Asks whether to commit to the current branch or a new one. On main, master or the default branch, it creates a new one.
+4. **Stage**: Stages the changed files by name, skipping secrets.
+5. **Commit**: Writes the message in your repo's style, with no AI attribution.
+6. **Push**: Pushes to origin, setting upstream with `-u` if needed. It never force pushes. With `--no-pr`, it stops here and shows the commit hash.
+7. **PR**: Asks for the target branch, opens the PR and returns its URL.
 
 ---
 
@@ -146,9 +189,9 @@ There's nothing to configure.
 
 - **Name:** AI-Git Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 1.3.2
-- **Skills:** `/git-init`, `/git-commit-push`, `/git-commit-push-pr`, `/git-pr-codex-loop`
-- **License:** [MIT](LICENSE)
+- **Version:** 2.0.0
+- **Skills:** `/git-init`, `/git-commit-push-pr`, `/git-preflight`
+- **License:** MIT
 - **Author:** Charles Jones
 
 ---
@@ -156,3 +199,9 @@ There's nothing to configure.
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
+
+---
+
+## License
+
+MIT License. See [LICENSE](LICENSE).

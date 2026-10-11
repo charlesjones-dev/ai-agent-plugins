@@ -1,12 +1,12 @@
 {
-  "name": "claude-code-plugins-dev",
+  "name": "ai-agent-plugins",
   "owner": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
   },
   "metadata": {
-    "description": "Claude Code plugins for code audits, release checks and day-to-day git and project workflows.",
-    "version": "2.12.0",
+    "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
+    "version": "3.0.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "ai-ado",
       "source": "./plugins/ai-ado",
       "description": "Sets up an Azure DevOps project and its MCP server, creates Features, User Stories and Tasks, logs hours to stories, and builds weekly timesheet reports",
-      "version": "1.3.3",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "azure-devops",
@@ -30,13 +30,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-accessibility",
       "source": "./plugins/ai-accessibility",
-      "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes, with an agent for unattended runs",
-      "version": "1.4.2",
+      "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes. Takes its settings as arguments for unattended runs",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "accessibility",
@@ -51,13 +51,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-git",
       "source": "./plugins/ai-git",
-      "description": "Generates .gitignore files, commits and pushes with a message in your repo's style, opens PRs, and loops a PR through Codex Code Review until it comes back clean",
-      "version": "1.3.2",
+      "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "git",
@@ -68,20 +68,25 @@
         "devops",
         "version-control",
         "pull-request",
-        "codex",
-        "code-review"
+        "gitignore",
+        "preflight",
+        "code-quality",
+        "typecheck",
+        "lint",
+        "testing",
+        "semgrep"
       ],
       "author": {
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-performance",
       "source": "./plugins/ai-performance",
-      "description": "Audits a codebase for performance bottlenecks and saves a timestamped report with an impact score for each finding, with an agent for unattended runs",
-      "version": "1.2.2",
+      "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "performance",
@@ -95,13 +100,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-security",
       "source": "./plugins/ai-security",
-      "description": "Audits a repository for security problems and saves Markdown and JSON reports that track findings across audits, plus a live-site dependency scan, file-access deny rules for secrets and pnpm supply-chain hardening",
-      "version": "2.0.1",
+      "description": "Audits a repository for security problems and saves Markdown and JSON reports that track findings across audits, plans a sandboxed audit on a stronger model that proves each finding with a failing test, scans a live site's dependencies, and sets up file-access deny rules for secrets and pnpm supply-chain hardening",
+      "version": "3.0.0",
       "keywords": [
         "ai",
         "security",
@@ -115,49 +120,43 @@
         "supply-chain",
         "dependencies",
         "pnpm",
+        "sandbox",
+        "auto-mode",
+        "cyber-verification-program",
+        "cvp",
+        "threat-modeling",
+        "proof-of-concept",
+        "regression-tests",
         "skills"
       ],
       "author": {
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-workflow",
       "source": "./plugins/ai-workflow",
-      "description": "Runs typecheck, lint, format, security and test checks before you commit, ships a change as commit, push and PR, babysits a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, sets up the Claude Code GitHub Actions on the newest Opus, writes a Development Principles section, and manages a library of CLAUDE.md behavior rules",
-      "version": "2.1.0",
+      "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
+      "version": "3.0.0",
       "keywords": [
         "ai",
         "workflow",
-        "preflight",
-        "code-quality",
-        "typecheck",
-        "lint",
-        "testing",
-        "security",
-        "audit",
-        "semgrep",
-        "ship",
-        "commit",
-        "push",
-        "pull-request",
         "babysit",
+        "pull-request",
         "code-review",
         "codex",
         "cursor",
         "bugbot",
         "github-actions",
-        "opus",
         "merge",
         "release",
         "deploy",
         "production",
         "automation",
         "productivity",
-        "principles",
-        "standards",
+        "commit",
         "claude-md",
         "rules",
         "behavior-rules"
@@ -166,13 +165,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-statusline",
       "source": "./plugins/ai-statusline",
       "description": "Builds on Claude Code's native /statusline with a context progress bar, 5h/7d rate limits, a month-to-date spend budget for Enterprise/API seats without rate limits, the reasoning-effort level, a sandbox indicator, cost and duration, and a wizard to change any of it",
-      "version": "1.5.0",
+      "version": "1.5.1",
       "keywords": [
         "ai",
         "statusline",
@@ -187,35 +186,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
-    },
-    {
-      "name": "ai-writing",
-      "source": "./plugins/ai-writing",
-      "description": "Rewrites text to remove the patterns that make it read as AI-generated, using a catalog based on Wikipedia's Signs of AI writing guide",
-      "version": "1.0.1",
-      "keywords": [
-        "ai",
-        "writing",
-        "humanizer",
-        "editing",
-        "content",
-        "quality",
-        "natural-language",
-        "ai-detection",
-        "skills"
-      ],
-      "author": {
-        "name": "Charles Jones",
-        "url": "https://charlesjones.dev"
-      },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-modernize",
       "source": "./plugins/ai-modernize",
-      "description": "Finds technical debt and anti-patterns in code written with older AI models or vibe coding, and saves a scored report with a prioritized roadmap. Includes a full audit, a quick scan and an agent for unattended runs",
-      "version": "1.1.1",
+      "description": "Finds technical debt and anti-patterns in code written with older AI models or vibe coding, and saves a scored report with a prioritized roadmap. Takes its settings as arguments, and --defaults skips the setup questions for quick or unattended runs",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "modernization",
@@ -232,13 +209,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-compliance",
       "source": "./plugins/ai-compliance",
       "description": "Audits the licenses of your open-source dependencies, flags copyleft and missing-license risks, and generates NOTICE or ATTRIBUTION files",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "keywords": [
         "ai",
         "compliance",
@@ -256,124 +233,71 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-knowledge",
       "source": "./plugins/ai-knowledge",
-      "description": "Keeps a git-versioned team knowledge base in docs/kb/ next to Claude Code's per-machine auto memory: capture learnings, import and search articles, load them by task, and browse the base in Obsidian",
-      "version": "1.5.2",
+      "description": "Keeps a team knowledge base in git as Claude Code rules, so each article loads when Claude works on matching files, every session, or on demand from a short index. Capture learnings as you work with auto-capture or on request, add docs, repos and URLs, query and prune it, and migrate a 1.x knowledge base",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "knowledge-base",
+        "kb",
         "learnings",
         "institutional-knowledge",
-        "claude-md",
-        "documentation",
-        "best-practices",
         "lessons-learned",
-        "kb",
-        "productivity",
-        "obsidian",
-        "graph-view",
-        "wiki-links"
+        "best-practices",
+        "documentation",
+        "claude-rules",
+        "path-scoped-rules",
+        "team-knowledge",
+        "auto-capture"
       ],
       "author": {
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-seo",
       "source": "./plugins/ai-seo",
-      "description": "Audits a site's code for SEO patterns LLMs still generate, like the keywords meta tag and IE-era markup, checks structured data, semantic HTML and performance signals, and applies framework-specific fixes",
-      "version": "1.0.1",
+      "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO). Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
+      "version": "2.0.0",
       "keywords": [
         "ai",
         "seo",
-        "web",
-        "accessibility",
-        "performance",
+        "aeo",
+        "geo",
         "audit",
+        "answer-engine-optimization",
+        "generative-engine-optimization",
         "meta-tags",
         "structured-data",
         "json-ld",
         "schema-org",
-        "open-graph",
         "core-web-vitals",
-        "semantic-html",
-        "skills"
-      ],
-      "author": {
-        "name": "Charles Jones",
-        "url": "https://charlesjones.dev"
-      },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
-    },
-    {
-      "name": "ai-geo",
-      "source": "./plugins/ai-geo",
-      "description": "Audits how likely AI answer engines like ChatGPT, Perplexity, Claude, Copilot and Google AI Overviews are to cite and mention a site: crawler rules for training, search and user-triggered bots, topical authority, original research, expert authorship, third-party validation and entity markup. Applies fixes, generates llms.txt, and can check the live site and search for brand mentions",
-      "version": "1.2.0",
-      "keywords": [
-        "geo",
-        "ai-seo",
-        "generative-engine-optimization",
-        "ai-crawlers",
-        "citation-optimization",
-        "answer-engines",
-        "topical-authority",
-        "original-research",
-        "brand-mentions",
-        "llms-txt",
-        "chatgpt",
-        "perplexity",
-        "claude",
-        "gemini",
-        "copilot",
-        "schema-org",
-        "structured-data",
-        "skills"
-      ],
-      "author": {
-        "name": "Charles Jones",
-        "url": "https://charlesjones.dev"
-      },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
-    },
-    {
-      "name": "ai-aeo",
-      "source": "./plugins/ai-aeo",
-      "description": "Audits how ready a site's pages are to be picked as the single direct answer in featured snippets, voice assistants and answer boxes: answer-first paragraphs, question headings, definitions, real lists and tables, snippet controls and FAQ sections. Maps target questions to pages, builds FAQ sections and applies fixes",
-      "version": "1.0.0",
-      "keywords": [
-        "ai",
-        "aeo",
-        "answer-engine-optimization",
         "featured-snippets",
         "voice-search",
-        "answer-engines",
         "faq",
-        "faqpage",
-        "qapage",
-        "schema-org",
-        "structured-data",
-        "snippet-controls",
-        "question-mapping",
+        "ai-crawlers",
+        "citation-optimization",
+        "llms-txt",
+        "answer-engines",
         "skills"
       ],
       "author": {
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-swift",
       "source": "./plugins/ai-swift",
       "description": "Catches Xcode Cloud and TestFlight blockers before upload (XcodeGen pbxproj drift, static build numbers, missing ci_scripts, macOS App Store entitlements/Info.plist, headless-CI keychain test failures, ad-hoc signing entitlement rejections, flaky-UITest release gating), diagnoses ITMS rejection emails and red CI logs, scaffolds Xcode Cloud CI, runs a local verify gate, and reviews Swift 6 strict-concurrency and SwiftUI code",
-      "version": "1.0.2",
+      "version": "2.0.0",
       "keywords": [
         "swift",
         "swift-6",
@@ -402,13 +326,13 @@
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     },
     {
       "name": "ai-slop",
       "source": "./plugins/ai-slop",
-      "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells, and checks the facts in them, such as a privacy policy that misses the trackers the code loads. Scores each area and asks before editing",
-      "version": "1.0.0",
+      "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
+      "version": "1.1.0",
       "keywords": [
         "ai",
         "ai-slop",
@@ -422,39 +346,23 @@
         "legal",
         "privacy-policy",
         "fact-checking",
+        "writing",
+        "humanizer",
+        "rewriting",
+        "editing",
         "skills"
       ],
       "author": {
         "name": "Charles Jones",
         "url": "https://charlesjones.dev"
       },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
-    },
-    {
-      "name": "ai-cvp",
-      "source": "./plugins/ai-cvp",
-      "description": "Reads a repo you own or are authorized to test and writes a tailored prompt for a sandboxed security audit on the strongest model you can use, with a launch checklist and a follow-up prompt for verifying and fixing what the audit proves",
-      "version": "1.0.3",
-      "keywords": [
-        "ai",
-        "security",
-        "audit",
-        "defensive",
-        "vulnerability",
-        "sandbox",
-        "auto-mode",
-        "cyber-verification-program",
-        "cvp",
-        "threat-modeling",
-        "proof-of-concept",
-        "regression-tests",
-        "skills"
-      ],
-      "author": {
-        "name": "Charles Jones",
-        "url": "https://charlesjones.dev"
-      },
-      "repository": "https://github.com/charlesjones-dev/claude-code-plugins-dev"
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
     }
-  ]
+  ],
+  "renames": {
+    "ai-writing": "ai-slop",
+    "ai-aeo": "ai-seo",
+    "ai-geo": "ai-seo",
+    "ai-cvp": "ai-security"
+  }
 }

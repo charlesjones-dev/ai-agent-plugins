@@ -1,12 +1,12 @@
 # AI-Performance Plugin
 
-**Performance audits for Claude Code.** `/performance-audit` reads your codebase and saves a timestamped report with an impact score for each bottleneck it finds.
+**Performance audits for Claude Code, Codex and Cursor.** `/performance-audit` reads your codebase and saves a timestamped report with an impact score for each bottleneck it finds.
 
 ---
 
 ## What This Plugin Does
 
-The plugin ships one skill and one agent. Run the audit during development to catch code-level performance problems before they reach production.
+The plugin ships one skill. Run the audit during development to catch code-level performance problems before they reach production.
 
 ## Limits
 
@@ -16,13 +16,9 @@ The plugin ships one skill and one agent. Run the audit during development to ca
 
 ### `/performance-audit`
 
-Audits the whole codebase. It takes no arguments; anything typed after the slash command is ignored.
+Audits the whole repository by default. To limit the audit to one part of the code, pass a directory path relative to the repository root, for example `/performance-audit src/api`. The report still goes to `docs/performance/` at the repository root. Other text after the command is ignored.
 
-## Available Agents
-
-### `performance-auditor`
-
-Runs the audit in a fresh context and writes the report. `/performance-audit` invokes it, and you can also use it for unattended or scheduled reviews.
+The audit asks no questions while it runs, so you can use it for unattended or scheduled reviews.
 
 ---
 
@@ -30,17 +26,32 @@ Runs the audit in a fresh context and writes the report. `/performance-audit` in
 
 ### Installation
 
+Claude Code:
+
 ```
-/plugin install ai-performance@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-performance@ai-agent-plugins
 ```
+
+Codex:
+
+```
+codex plugin marketplace add charlesjones-dev/ai-agent-plugins
+codex plugin add ai-performance@ai-agent-plugins
+```
+
+Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-performance`. See the [Cursor install steps](../../README.md#cursor).
 
 ### Usage
 
 ```
-# Run a performance audit
+# Audit the whole repository
 /performance-audit
 
-# Review the generated report in /docs/performance/
+# Audit one directory
+/performance-audit src/api
+
+# Review the generated report in docs/performance/
 ```
 
 ---
@@ -81,7 +92,7 @@ Reports include 2-4 before/after examples built from code in the findings, each 
 
 ## How It Works
 
-`/performance-audit` hands the audit to this plugin's `performance-auditor` agent, which scans source files for the patterns above and tailors findings to the detected stack. Findings are grouped as Critical, High, Medium or Low, and the report ends with a phased optimization roadmap.
+`/performance-audit` scans source files for the patterns above, only under the given directory if you pass one, and tailors findings to the detected stack. Findings are grouped as Critical, High, Medium or Low, and the report ends with a phased optimization roadmap.
 
 ---
 
@@ -109,18 +120,17 @@ Reports include 2-4 before/after examples built from code in the findings, each 
 
 There's nothing to configure.
 
-Reports are saved to `/docs/performance/` as `YYYY-MM-DD-HHMMSS-performance-audit.md` (e.g., `2025-10-17-143022-performance-audit.md`). This timestamp-based naming ensures multiple audits on the same day don't overwrite each other.
+Reports are saved to `docs/performance/` at the repository root as `YYYY-MM-DD-HHMMSS-performance-audit.md` (e.g., `2025-10-17-143022-performance-audit.md`). This timestamp-based naming ensures multiple audits on the same day don't overwrite each other.
 
 ---
 
 ## Plugin Details
 
 - **Name:** AI-Performance
-- **Version:** 1.2.2
-- **Type:** Skill and agent
+- **Version:** 2.0.0
+- **Type:** Skill
 - **Features:**
   - Skills: `/performance-audit`
-  - Agents: `performance-auditor`
 - **License:** MIT
 - **Author:** Charles Jones
 

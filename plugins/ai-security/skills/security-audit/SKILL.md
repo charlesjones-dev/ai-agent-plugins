@@ -10,6 +10,7 @@ allowed-tools: [Bash, Read, Glob, Grep, Agent, Task, TaskOutput, TaskStop, SendM
 Produce a defensible audit of the requested repository. Consistent coverage, evidence,
 and visible uncertainty matter more than finding counts or agreement between reviewers.
 This workflow cannot guarantee identical findings or the absence of vulnerabilities.
+This skill runs the audit in the current session; `/security-cvp-audit`, in this plugin, plans one for a sandboxed session on a stronger model.
 
 ## Instructions
 

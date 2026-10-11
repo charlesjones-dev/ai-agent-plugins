@@ -17,10 +17,10 @@ Check once per run, in step 0. It is on only if all three hold:
    git grep -l "anthropics/claude-code-action" "origin/<default>" -- .github/workflows
    ```
 
-   Keep the files that trigger on `pull_request` or `pull_request_target`. `/install-github-app` creates two workflows: `claude-code-review.yml` (job `claude-review`) reviews PRs, and `claude.yml` (job `claude`) answers `@claude` mentions, so ignore the second. The action only runs a workflow whose file matches the default branch, so a copy that exists only on a PR branch doesn't count.
+   Keep the files that trigger on `pull_request` or `pull_request_target`. Claude Code's built-in `/install-github-app` opens a PR that adds `claude.yml` (job `claude`), which answers `@claude` mentions, and optionally `claude-code-review.yml` (job `claude-review`), which reviews PRs. Ignore the first. The action only runs a workflow whose file matches the default branch, so a copy that exists only on a PR branch doesn't count.
 2. **Credentials.** `gh secret list --repo {owner}/{repo} --json name` includes the secret that workflow reads: `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`. If the repo belongs to an organization and the secret isn't there, check `gh secret list --org <owner> --json name,visibility` as well, since an organization secret can serve the repo. Workflows that set `use_bedrock` or `use_vertex` authenticate through the cloud provider instead, so skip this check for them. If a call is refused (no admin rights), say you couldn't verify the secret and rely on the other two checks.
 3. **Enabled.** `gh workflow list --all --json path,state` shows that path with `state` `active`, not `disabled_manually` or `disabled_inactivity`.
-4. **Posts to the PR.** The review job has a way to put its findings on the PR: its prompt passes `--comment` to `/code-review`, it sets `use_sticky_comment` or `track_progress`, or its allowed tools include `mcp__github_inline_comment__create_inline_comment` or `gh pr comment`. Without one of those, the findings stay inside the Actions run, and a successful run with nothing on the PR would look like a clean review. Treat Claude Code as off, and tell the user that `/workflow-claude-actions` fixes it by adding `--comment` and the inline-comment tool to the workflow.
+4. **Posts to the PR.** The review job has a way to put its findings on the PR: its prompt passes `--comment` to `/code-review`, it sets `use_sticky_comment` or `track_progress`, or its allowed tools include `mcp__github_inline_comment__create_inline_comment` or `gh pr comment`. Without one of those, the findings stay inside the Actions run, and a successful run with nothing on the PR would look like a clean review. Treat Claude Code as off, and tell the user to run `/install-github-app` again and pick "Update workflow file with latest version". Since Claude Code v2.1.229, the review workflow it writes posts inline comments, or one summary comment when it finds nothing.
 
 The check run to wait on is named after the review job: its `name:` if it has one, otherwise the job ID (`claude-review` in the default workflow).
 
@@ -43,7 +43,7 @@ Give it 30 minutes. A skipped review, a `failure` conclusion (often an expired t
 
 ### Findings
 
-Inline review comments from `claude[bot]`, plus any findings in its top-level summary comment on the PR. When it re-runs on pushes, never ask it for a re-review. After each push, wait for its check run on the new head commit and triage what that run posts.
+Inline review comments from `claude[bot]`, plus any findings in its top-level summary comment on the PR. A review workflow from `/install-github-app` in Claude Code v2.1.229 or later posts one summary comment when it finds nothing. That comment is a clean pass, not a finding. When it re-runs on pushes, never ask it for a re-review. After each push, wait for its check run on the new head commit and triage what that run posts.
 
 It re-reviews the whole PR each time, not just the new commits, so it can raise a finding again after it was already fixed, deferred or answered "by design". Treat a repeat as already answered: reply with a link to the earlier thread or issue, resolve it, and leave the code alone. Raise it again only if the new commits really changed the answer.
 

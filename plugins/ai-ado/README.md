@@ -6,7 +6,7 @@
 
 ## What This Plugin Does
 
-The skills work through Microsoft's official Azure DevOps MCP server. Run `/ado-init` first: the other skills, except `/ado-work-items`, read their settings from `CLAUDE.md` and stop if they're missing.
+The skills work through Microsoft's official Azure DevOps MCP server. Run `/ado-init` first: the other skills read their settings from `CLAUDE.md` and stop if they're missing.
 
 ## Available Skills
 
@@ -20,51 +20,39 @@ Initialize Azure DevOps configuration by creating or updating `CLAUDE.md` with y
 - Sets the default Area Path and Iteration Path for work items
 - Sets the naming convention (decimal notation or descriptive names)
 - Optionally creates `.mcp.json` for the Azure DevOps MCP server, after asking which OS you use
-- Points Claude Code to `/ado-work-items` for hierarchy, HTML formatting and estimation rules
-- Stops without changes if `CLAUDE.md` already has an Azure DevOps section
+- Adds the work item rules Claude follows when it uses the Azure DevOps MCP tools directly (State, hierarchy, HTML fields, Story Points and hours), and points to `/ado-create` for the full guidelines
+- If `CLAUDE.md` already has an Azure DevOps section, leaves it unchanged, except that a section from ai-ado 1.x that refers to the removed `ado-work-items` skill gets that paragraph replaced with the current rules
 
 **Naming conventions:**
 
 - **Decimal notation** (recommended): Features `1: Feature One`, `2: Feature Two`; User Stories `1.1: Story One`, `1.2: Story Two`, `2.1: Story One`; Tasks get descriptive titles without numbering
 - **Descriptive names**: Features are numbered for priority; User Stories and Tasks get descriptive titles
 
-The three create skills below and `/ado-log-story-work` ask whether to use AI or Manual mode. In AI mode you describe the work, Claude drafts the fields using your naming convention, and you confirm or override each one. In Manual mode you type each field.
+`/ado-create` and `/ado-log-story-work` ask whether to use AI or Manual mode. In AI mode you describe the work, Claude drafts the fields using your naming convention, and you confirm or override each one. In Manual mode you type each field.
 
-### `/ado-create-feature`
+### `/ado-create [feature|story|task] [parent ID] [title]`
 
-Create a Feature work item following your configured conventions.
-
-**What it does:**
-
-- Asks for the title and description, or drafts them in AI mode
-- Creates the Feature with HTML formatting
-- Sets Area Path, Iteration Path, and State automatically
-- Shows the work item ID and its Azure DevOps link
-
-### `/ado-create-story`
-
-Create a User Story as a child of an existing Feature.
+Create a Feature, a User Story under an existing Feature, or a Task under an existing User Story, following your configured conventions. Each argument is optional: the command asks for whatever you leave out, starting with the type.
 
 **What it does:**
 
-- Asks for the parent Feature ID
-- Asks for the title, persona statement ("As a... I want to... so that..."), background, and Given/When/Then acceptance criteria, or drafts them in AI mode
-- Asks for Story Points (1, 2, 3, 5, 8, 13, etc.)
-- Creates the User Story linked to the Feature, with HTML formatting
-- Sets Area Path, Iteration Path, and State automatically
+- **Feature**: asks for the title and description, or drafts them in AI mode
+- **User Story**: asks for the parent Feature ID, then the title, persona statement ("As a... I want to... so that..."), background, Given/When/Then acceptance criteria and Story Points (1, 2, 3, 5, 8, 13, etc.), drafting all but the Story Points in AI mode
+- **Task**: asks for the parent User Story ID, the title (drafted in AI mode from the parent story) and an hour estimate. Sets Original Estimate and Remaining Work to the same value, leaves Completed Work empty, and keeps the description to one line that points to the parent story
+- Looks up the parent first and warns if it isn't a Feature (for a story) or a User Story (for a task)
+- Writes Description and Acceptance Criteria as HTML, and sets Area Path, Iteration Path and State automatically
+- Shows the work item ID, its Azure DevOps link, and the command for the next level down
 
-### `/ado-create-task`
+```
+/ado-create                                  # asks for the type, then everything else
+/ado-create feature                          # creates a Feature
+/ado-create story 1234                       # creates a User Story under Feature 1234
+/ado-create task 5678 "Write unit tests"     # creates a Task under User Story 5678 with that title
+```
 
-Create a Task as a child of an existing User Story, with an hour estimate.
+The work item guidelines it follows (hierarchy, HTML formatting, acceptance criteria, Story Points, hour estimation, naming conventions and default fields) are in [`skills/ado-create/references/work-items.md`](skills/ado-create/references/work-items.md).
 
-**What it does:**
-
-- Asks for the parent User Story ID, the title (drafted in AI mode) and an hour estimate
-- In AI mode, reads the parent User Story before drafting the title
-- Sets Original Estimate and Remaining Work to same value
-- Leaves Completed Work empty (to be filled during progress)
-- Sets Area Path, Iteration Path, and State automatically
-- Keeps task description lightweight (references parent story)
+**Replaces (2.0.0):** `/ado-create-feature`, `/ado-create-story` and `/ado-create-task` are now `/ado-create feature`, `/ado-create story` and `/ado-create task`. The `/ado-work-items` guidelines are now that reference file, which `/ado-create` reads each time it runs.
 
 ### `/ado-log-story-work`
 
@@ -91,10 +79,6 @@ In AI mode, the skill looks for git commit hashes in your description:
 - Useful for tracking hours from a pre-allocated hour bucket
 - Subtracts from both "Original Estimate" and "Remaining Work", never going below zero
 - Shows before/after values and links to both tasks
-
-### `/ado-work-items`
-
-Reference guide for creating Azure DevOps work items with the ADO MCP tools. Covers the Feature → User Story → Task hierarchy, required HTML formatting for Description and Acceptance Criteria fields, naming conventions, and Story Points and hour estimation standards.
 
 ### `/ado-timesheet-report`
 
@@ -214,7 +198,8 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 ### Installation
 
 ```
-/plugin install ai-ado@claude-code-plugins-dev
+/plugin marketplace add charlesjones-dev/ai-agent-plugins
+/plugin install ai-ado@ai-agent-plugins
 ```
 
 ### Usage
@@ -238,14 +223,14 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 # Restart Claude Code to apply settings
 
 # Step 2: Create work items using the configured conventions
-/ado-create-feature
+/ado-create feature
 # Creates a Feature work item
 
-/ado-create-story
-# Creates a User Story under a Feature
+/ado-create story 1234
+# Creates a User Story under Feature 1234
 
-/ado-create-task
-# Creates a Task under a User Story
+/ado-create task 5678
+# Creates a Task under User Story 5678
 
 # Step 3: Log completed work to user stories
 /ado-log-story-work
@@ -373,8 +358,8 @@ See the [Azure DevOps MCP server](https://github.com/microsoft/azure-devops-mcp)
 
 - **Name:** AI-ADO Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 1.3.3
-- **Skills:** `/ado-init`, `/ado-create-feature`, `/ado-create-story`, `/ado-create-task`, `/ado-log-story-work`, `/ado-work-items`, `/ado-timesheet-report`
+- **Version:** 2.0.0
+- **Skills:** `/ado-init`, `/ado-create`, `/ado-log-story-work`, `/ado-timesheet-report`
 - **MCP Integration:** Microsoft Azure DevOps MCP Server (optional, OS-aware configuration)
 - **Requirements:** Node.js 20+
 - **License:** MIT
