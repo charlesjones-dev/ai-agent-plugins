@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.1] - 2026-10-11
+
+### Added
+
+#### AI-Workflow Plugin (v3.0.0 → v3.0.1)
+
+- **`/workflow-babysit --to staging`** — ends the run once the PR is merged into staging and the staging deploy has finished, and leaves the release PR for later. It's meant for repos where staging builds go to testers first, such as an internal TestFlight group, and production waits for their sign-off. "Babysit this to staging" works too. With `--to staging`, a staging branch on origin counts as a staging flow even before any release PR, and the step 0 question about other people's unreleased staging commits is skipped. The skill doesn't run CLAUDE.md's cleanup for when staging is done, such as taking staging services down, and lists it in the report as pending. The report says how to promote: run `/workflow-babysit` from the staging branch, which starts at the release step. If there's no staging branch or an existing PR targets the default branch, it stops before doing anything.
+- **Xcode Cloud deploy target** — `/workflow-babysit` now finds Xcode Cloud through its `xcode-cloud` check runs. It treats a workflow that archives commits on staging or the default branch as that branch's deploy, and watches its check runs and commit status on the merge commit. On failure it reports the App Store Connect build link, and on success it notes that TestFlight processing takes a few more minutes and isn't reported to GitHub.
+- Marketplace metadata version bumped `3.0.0` → `3.0.1`.
+
 ## [3.0.0] - 2026-10-11
 
 The repository and marketplace are renamed from `claude-code-plugins-dev` to `ai-agent-plugins`, and 8 plugins are now packaged for Codex and Cursor as well as Claude Code. Four plugins merge into others (ai-aeo and ai-geo into ai-seo, ai-cvp into ai-security, ai-writing into ai-slop), which leaves 13. Skills that repeated another skill are merged, skills that Claude Code now covers are removed, ai-knowledge moves to Claude Code's path-scoped rules, and five wrapper subagents that couldn't load their skills are removed. The marketplace goes from 64 skills to 41.
@@ -1478,7 +1488,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.12.0...v3.0.0
 [2.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.3...v2.12.0
 [2.11.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.2...v2.11.3

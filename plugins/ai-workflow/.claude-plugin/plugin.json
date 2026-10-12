@@ -1,6 +1,6 @@
 {
   "name": "ai-workflow",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
   "author": {
     "name": "Charles Jones",

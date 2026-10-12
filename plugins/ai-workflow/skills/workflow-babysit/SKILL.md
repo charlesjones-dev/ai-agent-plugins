@@ -5,11 +5,12 @@ description: |
   Takes the current branch to production in one unattended run: commits and
   opens the PR if needed, waits for Claude Code, Codex and Cursor Bugbot
   reviews, fixes or triages every finding, merges, promotes staging to production when the repo
-  uses a staging branch, and watches the deploy until it is live. Use when the
-  user says "babysit this to prod", "babysit to production" or runs
-  /workflow-babysit. Merging is part of the job, so don't use it when the user
-  only wants a PR opened or reviewed.
-argument-hint: "[PR number] [what to do once it is live]"
+  uses a staging branch, and watches the deploy until it is live. With
+  --to staging it stops once the change is merged and deployed to staging.
+  Use when the user says "babysit this to prod", "babysit to production",
+  "babysit this to staging" or runs /workflow-babysit. Merging is part of the
+  job, so don't use it when the user only wants a PR opened or reviewed.
+argument-hint: "[PR number] [--to staging] [what to do once it is live]"
 allowed-tools:
   - Bash
   - Read
@@ -29,7 +30,15 @@ Assume the user has walked away. Ask every question in step 0, before any waitin
 
 User provided: $ARGUMENTS
 
-The arguments may name a PR number to babysit instead of the current branch's PR, and may say what to do once the change is live.
+The arguments may name a PR number to babysit instead of the current branch's PR, may say where the run ends, and may say what to do once the change is live.
+
+## Where the run ends
+
+By default the run ends on production: merged into the default branch and deployed. `--to staging` ends it on staging instead. The PR merges into staging, the staging deploy is watched (step 4), and the release into the default branch is left for later. This suits repos where staging builds go to testers first, such as an internal TestFlight group, and production waits for their sign-off. To promote later, the user runs the skill again from the staging branch, which starts at the release step.
+
+- `--to` takes `staging` or the staging branch's name (`develop` when that's the repo's staging branch). `production`, `prod` and the default branch's name mean the full run. For any other value, stop in step 0 and say which values the repo accepts.
+- Plain wording works the same way: "babysit this to staging", "only to staging" or "stop at staging" mean `--to staging`.
+- A resumed run (step 0) only promotes staging, so with `--to staging` it has nothing to do. Say so and stop.
 
 ## Repo settings
 
@@ -49,10 +58,10 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
    - If the arguments name a PR, or the branch has an open PR, read its `baseRefName`.
    - If you're on the staging branch with nothing uncommitted, no local commits ahead of `origin/staging`, and staging ahead of the default branch, this is a resumed run: go straight to step 5 after step 0.
    - Otherwise a new PR will be opened in step 1.
-3. **Branch flow**: the repo has a staging flow if a `staging` (or `develop`) branch exists on origin and recent PRs into the default branch come from it (`gh pr list --state merged --base <default> --limit 5 --json headRefName`). An existing PR's own base decides what happens to it: a PR into staging goes through steps 4 and 5, and a PR straight into the default branch skips them. A new PR targets staging when the repo has a staging flow, and the default branch otherwise.
+3. **Branch flow**: the repo has a staging flow if a `staging` (or `develop`) branch exists on origin and recent PRs into the default branch come from it (`gh pr list --state merged --base <default> --limit 5 --json headRefName`). An existing PR's own base decides what happens to it: a PR into staging goes through steps 4 and 5, and a PR straight into the default branch skips them. A new PR targets staging when the repo has a staging flow, and the default branch otherwise. With `--to staging`, a staging branch on origin is enough to count as a staging flow, even with no release PRs yet. If there's no staging branch, or an existing PR targets the default branch, stop before asking anything: the run would never stop at staging.
 4. **Merge method**: for feature PRs, CLAUDE.md first, then what recent merged PRs used, then whichever single method the repo allows. Release PRs from staging use a merge commit so staging and the default branch don't diverge. If the repo doesn't allow merge commits, use the method past release PRs used.
 5. **Uncommitted changes**: list them. They'll be committed into the PR in step 1. If some look unrelated to the change (scratch files, logs, local config, work in progress elsewhere), ask which to leave out.
-6. **Unreleased staging work** (staging flow only): list the commits staging would promote, with their GitHub logins:
+6. **Unreleased staging work** (staging flow only, and skipped with `--to staging`, which promotes nothing): list the commits staging would promote, with their GitHub logins:
 
    ```bash
    gh api "repos/{owner}/{repo}/compare/<default>...staging" \
@@ -67,7 +76,7 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
    - **Stop**: set up the action with Claude Code's built-in `/install-github-app` and run this skill again. To fix an existing workflow, run `/install-github-app` again and pick "Update workflow file with latest version".
 
    One answer covers the whole run, release PR included. Codex and Bugbot can only be detected once a PR is open (step 2), and their being off is never a reason to stop.
-9. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. If there is none, the run ends after the last merge and says so.
+9. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. With `--to staging`, only staging's target matters. If there is none, the run ends after the last merge and says so.
 
 ## 1. Get a PR open
 
@@ -112,7 +121,7 @@ Run this on every PR the skill merges: the feature PR, any fix PRs into staging,
 
 If the merge into staging deploys (the deploy target shows a deployment that includes the merge commit within about 5 minutes), watch it until it succeeds, then run the staging health check if a URL is known. If the deploy or the health check fails, stop: don't promote a broken staging deploy to production. If nothing deploys staging, move on.
 
-If the user chose in step 0 to stop after staging, the run ends here: report.
+If the run ends at staging (`--to staging`, or the user chose in step 0 to stop after staging), it ends here: go to step 7. Don't run the cleanup CLAUDE.md asks for once staging is done, such as taking staging services down, because people are about to test on staging. The report lists it as still pending.
 
 ## 5. Promote to production (PRs into staging, and resumed runs)
 
@@ -134,9 +143,10 @@ Tell the user:
 - what merged, with PR links and merge commit SHAs;
 - which reviewers ran on each PR, which were off, and what the local review found if it ran;
 - findings fixed, deferred (with issue links) or answered "by design", and any Known limitations;
-- which services deployed, their status, and the health-check result.
+- which services deployed, their status, and the health-check result;
+- for a run that ended at staging: what staging now holds that production doesn't (`git log --oneline origin/<default>..origin/staging`), any staging cleanup from CLAUDE.md still pending, and how to promote it: check out staging, `git pull`, and run `/workflow-babysit`.
 
-Then do whatever the arguments asked for once the change is live. If your client has a push-notification tool, send a one-line notification when the run finishes or stops.
+Then do whatever the arguments asked for once the change is live, which for a run that ended at staging means live on staging. If your client has a push-notification tool, send a one-line notification when the run finishes or stops.
 
 ## When to stop
 
@@ -150,7 +160,7 @@ Stop, say exactly where the run stopped and what it needs, and send a notificati
 - a rebase onto commits a bot pushed hits a conflict you can't resolve;
 - a staging or production deploy or health check fails.
 
-When stopping, also list any cleanup that CLAUDE.md asks for after a deploy and that hasn't run yet (for example, staging services still up), so the user can decide. Don't run it on a failed run, since the user may want to look at the failure first. To resume, the user runs the skill again: it picks up the open PR, or the release step when it's run from staging.
+When stopping, also list any cleanup that CLAUDE.md asks for after a deploy and that hasn't run yet (for example, staging services still up), so the user can decide. Don't run it on a failed run, since the user may want to look at the failure first. To resume, the user runs the skill again: it picks up the open PR, or the release step when it's run from staging. A run that stopped on its way to staging needs `--to staging` again to end there.
 
 ## Rules
 

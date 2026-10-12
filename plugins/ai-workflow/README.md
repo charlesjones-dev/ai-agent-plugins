@@ -22,6 +22,7 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 - Runs Claude Code's built-in `/code-review` locally in place of the GitHub Action when the action isn't set up, if you choose that
 - Merges with the repo's merge method, and only the commit that was reviewed
 - With a staging branch, it watches the staging deploy, opens or reuses a `Release:` PR into the default branch, reviews it the same way, and merges it
+- With `--to staging`, it stops once the change is merged into staging and the staging deploy has finished, for example when staging builds go to an internal TestFlight group for testing first. It leaves staging services running and the release for later: run `/workflow-babysit` from the staging branch to promote
 - Watches the production deploy until every affected service is live, then runs a health check
 - Reports what merged, which reviewers ran, what was deferred and how the deploy went, then does whatever you asked for once the change is live
 
@@ -32,6 +33,7 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 ```
 /workflow-babysit                              # The current branch
 /workflow-babysit 142                          # PR #142
+/workflow-babysit --to staging                 # Stop once it's on staging, promote later
 /workflow-babysit then close issue #87         # Something to do once it's live
 ```
 
@@ -41,7 +43,7 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 - At least one PR reviewer: the Claude Code GitHub Action (set up with Claude Code's built-in `/install-github-app`), Codex Code Review with automatic reviews on, or Cursor Bugbot. Without the Claude Code action, it can run `/code-review` locally instead
 - To walk away, permission for `gh`, `git`, `curl` and your host's CLI, or auto mode. Otherwise the first permission prompt pauses the run until you're back
 
-**Deploy targets:** your host deploys on merge, and the skill only watches. It finds the deploy through GitHub deployments (Vercel, Railway and other hosts that report back to GitHub), a GitHub Actions deploy workflow, or a host CLI linked to the repo. For Railway it uses the CLI for per-service status, logs and domains. If it finds no deploy target, it stops after the merge and says so.
+**Deploy targets:** your host deploys on merge, and the skill only watches. It finds the deploy through GitHub deployments (Vercel, Railway and other hosts that report back to GitHub), a GitHub Actions deploy workflow, Xcode Cloud's check runs for app builds, or a host CLI linked to the repo. For Railway it uses the CLI for per-service status, logs and domains. If it finds no deploy target, it stops after the merge and says so.
 
 **Per-repo settings:** the skill reads your project and user CLAUDE.md, and anything there about reviews, merges or deploys overrides its defaults. For example:
 
@@ -131,7 +133,7 @@ ai-git is a separate plugin. To keep using the moved skills, install it once wit
 
 - **Name:** AI-Workflow Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 3.0.0
+- **Version:** 3.0.1
 - **Skills:** `/workflow-babysit`, `/workflow-rules`
 - **License:** MIT
 - **Author:** Charles Jones

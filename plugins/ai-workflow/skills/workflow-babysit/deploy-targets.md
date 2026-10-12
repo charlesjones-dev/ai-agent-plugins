@@ -21,8 +21,16 @@ Check these in order. A repo can have more than one target (a frontend on one ho
    gh run list --branch <default> --event push --limit 10 --json workflowName,headSha,status,conclusion
    ```
 
-4. **A host CLI linked to the repo**, used alongside the sources above when it adds detail such as per-service status or logs. Railway is covered below. For other hosts, use their CLI only if it's installed and the repo is linked to it (`.vercel/project.json`, `fly.toml`, `netlify.toml`).
-5. **None found.** Merge, then report that no deploy target was found and the deploy wasn't watched.
+4. **Xcode Cloud.** Apple's CI builds apps for TestFlight and the App Store, and reports each build to GitHub as check runs from the `xcode-cloud` app, named `<product> | <workflow> | <action> - <platform>`. A repo with a `ci_scripts/` folder probably uses it. Look at the latest commit on each branch:
+
+   ```bash
+   gh api "repos/{owner}/{repo}/commits/<branch>/check-runs" \
+     --jq '.check_runs[] | select(.app.slug == "xcode-cloud") | {name, conclusion}'
+   ```
+
+   A workflow that runs an Archive action on commits to staging or the default branch is that branch's deploy. GitHub doesn't show whether the workflow sends the build on to TestFlight, so treat the Archive as the deploy.
+5. **A host CLI linked to the repo**, used alongside the sources above when it adds detail such as per-service status or logs. Railway is covered below. For other hosts, use their CLI only if it's installed and the repo is linked to it (`.vercel/project.json`, `fly.toml`, `netlify.toml`).
+6. **None found.** Merge, then report that no deploy target was found and the deploy wasn't watched.
 
 ## Snapshot (before each merge that deploys)
 
@@ -54,6 +62,23 @@ gh run watch <run-id> --exit-status --interval 30
 ```
 
 Run `gh run watch` in the background. On failure, `gh run view <run-id> --log-failed | tail -100` gives the error.
+
+### Xcode Cloud
+
+Xcode Cloud posts its check runs on the merge commit itself, usually within a minute of the merge, so no snapshot is needed.
+
+```bash
+gh api "repos/{owner}/{repo}/commits/<merge-sha>/check-runs" \
+  --jq '.check_runs[] | select(.app.slug == "xcode-cloud") | {name, status, conclusion, details_url}'
+gh api "repos/{owner}/{repo}/commits/<merge-sha>/status" \
+  --jq '.statuses[] | {context, state, description}'
+```
+
+- Wait for every `xcode-cloud` check run on the commit. `completed` with `success` means done. `failure`, `cancelled`, `timed_out` or `action_required` means it failed. `queued` and `in_progress` mean keep waiting.
+- The commit status has one entry per workflow (`<product> | <workflow>`) covering the whole build. The workflow is done when its state is `success`, and it failed on `failure` or `error`.
+- No `xcode-cloud` check runs within about 5 minutes of the merge means no workflow builds this branch.
+- Build logs aren't available through `gh`. On failure, report the failing check run's name and its `details_url`, which opens the build in App Store Connect.
+- After the checks pass, App Store Connect still processes a TestFlight build for a few minutes before testers get it, and GitHub doesn't report that step. Say so in the report.
 
 ### Railway
 
