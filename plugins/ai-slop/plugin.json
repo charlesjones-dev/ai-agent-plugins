@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-slop",
-  "version": "1.1.0",
-  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
+  "version": "1.2.0",
+  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -26,6 +26,8 @@
     "humanizer",
     "rewriting",
     "editing",
+    "code-comments",
+    "refactoring",
     "skills"
   ]
 }

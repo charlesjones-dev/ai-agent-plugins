@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-10-14
+
+### Added
+
+#### AI-Slop Plugin (v1.1.0 → v1.2.0)
+
+- **`/slop-comments`** — finds code comments that add nothing to the code, and the workarounds they explain. Agents copy what's already in a codebase, so a comment that narrates the code or excuses a workaround spreads. With no arguments it reviews the comments the current branch adds or changes against the default branch. A path or glob, or `all` for the whole repo, widens it, and large scopes are split across read-only subagents. It skips vendored and generated code, migrations that have run, config files and prose. Every comment gets one verdict: delete (narration, history, commented-out code, stale notes, signature restatements, banners, agent leftovers, vague TODOs), rewrite, encode (a "must be called after init" note becomes a type, assertion, test, lint rule or CODEOWNERS entry), workaround, or keep. Keeps are a short list in `comment-rules.md`: tooling directives, legal headers, public API contracts, reasons a reader can't see in the code, surprises, dense notation and TODOs that link an issue. Doc comments a lint rule or doc generator needs stay. For each workaround, including lint and type suppressions, it reads the git history, names the cause and checks whether it still exists, then plans to fix the cause, delete the workaround with its comment, or keep it with a comment that names the cause and when it can go. It never deletes a workaround's comment and leaves the workaround. The report ends with a batched plan and numbered questions, and nothing changes until you answer. Applying runs the typecheck, lint and tests between batches and reverts a cause fix that breaks tests. `--fix` applies the plan unattended, leaving medium and large refactors, code changes no test covers, and anything waiting on a question. Afterward it offers a comment rule for `AGENTS.md`, `CLAUDE.md` or a Cursor rule. The agent can run it when you ask to prune or clean up code comments.
+- Marketplace metadata version bumped `3.0.1` → `3.1.0`.
+
 ## [3.0.1] - 2026-10-11
 
 ### Added
@@ -1488,7 +1497,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.12.0...v3.0.0
 [2.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.11.3...v2.12.0

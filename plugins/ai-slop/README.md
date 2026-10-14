@@ -1,6 +1,6 @@
 # AI-Slop Plugin
 
-**AI slop audits and rewrites for Claude Code, Codex and Cursor.** Find what a codebase shows its users that reads as machine-made and what in it is wrong, or rewrite one piece of text so it reads as a person wrote it.
+**AI slop audits and rewrites for Claude Code, Codex and Cursor.** Find what a codebase shows its users that reads as machine-made and what in it is wrong, rewrite one piece of text so it reads as a person wrote it, or prune the code comments and workarounds that agents copy.
 
 ---
 
@@ -16,6 +16,8 @@
 The audit changes nothing until you answer its questions.
 
 `/slop-rewrite` works on one piece of text instead: a file, or text you paste after the command. It uses the same signal list.
+
+`/slop-comments` works on code comments. Agents copy what's already in a codebase, so a comment that narrates the code or excuses a workaround spreads. It deletes the comments that add nothing and traces each workaround to its cause.
 
 ## Available Skills
 
@@ -65,9 +67,37 @@ It runs only when you call it.
 <paste the text on the lines after the command>
 ```
 
+### `/slop-comments`
+
+Reviews code comments and the workarounds they explain. With no arguments it reviews the comments your branch adds or changes, compared with the default branch. Pass a path or glob, or `all` for the whole repo. It skips vendored and generated code, migrations, config files and prose.
+
+**How it works:**
+
+1. Reads the project's rules and lint config first, so it keeps the doc comments a lint rule or doc generator needs and follows any documented comment convention
+2. Sorts every comment into delete, rewrite, encode, workaround or keep. Deletion is the default. Narration, history, commented-out code, stale notes, signature restatements, banners, agent leftovers and vague TODOs go
+3. Keeps only tooling directives, legal headers, public API contracts, reasons a reader can't see in the code (a spec, a vendor bug, a measured trade-off), surprises, dense notation and TODOs that link an issue
+4. Turns rules written as comments ("must be called after init", "keep in sync with X") into a type, assertion, test, lint rule or CODEOWNERS entry, then deletes the comment
+5. Investigates each workaround, including lint and type suppressions: reads its git history, names the cause, and checks whether the cause still exists. Each one is planned as a fix at the cause (sized, with the tests that cover it), a deletion because the cause is gone, or a keep with a comment that names the cause and when it can go. It never deletes a workaround's comment and leaves the workaround
+6. Ends with a batched plan and numbered questions, and changes nothing until you answer
+
+After you answer, it applies the batches in order and runs the typecheck, lint and tests between them. A cause fix that breaks tests is reverted and reported. It then offers a short comment rule for `AGENTS.md`, `CLAUDE.md` or a Cursor rule, so agents stop writing new ones.
+
+`--fix` applies the plan without asking, for unattended runs. It leaves medium and large refactors, code changes no test covers, and anything that waits on a question in the report. The keep and delete rules are in [`comment-rules.md`](skills/slop-comments/comment-rules.md).
+
+The agent also runs the skill when you ask it to prune or clean up code comments.
+
+**Usage:**
+
+```
+/slop-comments
+/slop-comments src/billing/
+/slop-comments all
+/slop-comments "src/**/*.ts" --fix
+```
+
 ### Related plugins
 
-- `/modernize-audit` ([ai-modernize](../ai-modernize/)) covers slop in the code itself: anti-patterns and technical debt left by older AI-generated code.
+- `/modernize-audit` ([ai-modernize](../ai-modernize/)) covers the rest of the code: anti-patterns and technical debt left by older AI-generated code.
 
 ---
 
@@ -97,8 +127,8 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 
 - **Name:** AI-Slop Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Skills:** `/slop-audit`, `/slop-rewrite`
-- **Version:** 1.1.0
+- **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`
+- **Version:** 1.2.0
 - **License:** MIT
 - **Author:** Charles Jones
 

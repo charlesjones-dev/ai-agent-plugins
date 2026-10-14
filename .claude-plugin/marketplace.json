@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
-    "version": "3.0.1",
+    "version": "3.1.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -331,8 +331,8 @@
     {
       "name": "ai-slop",
       "source": "./plugins/ai-slop",
-      "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, and rewrites a file or pasted text to remove AI writing patterns",
-      "version": "1.1.0",
+      "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround",
+      "version": "1.2.0",
       "keywords": [
         "ai",
         "ai-slop",
@@ -350,6 +350,8 @@
         "humanizer",
         "rewriting",
         "editing",
+        "code-comments",
+        "refactoring",
         "skills"
       ],
       "author": {
