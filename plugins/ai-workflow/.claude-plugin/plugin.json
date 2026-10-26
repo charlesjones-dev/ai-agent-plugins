@@ -1,7 +1,7 @@
 {
   "name": "ai-workflow",
-  "version": "3.0.1",
-  "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
+  "version": "3.1.0",
+  "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs, refreshes stale ones, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -27,6 +27,12 @@
     "commit",
     "claude-md",
     "rules",
-    "behavior-rules"
+    "behavior-rules",
+    "council",
+    "second-opinion",
+    "takeover",
+    "rebase",
+    "t3-code",
+    "tstack"
   ]
 }

@@ -192,6 +192,15 @@ These rules came from an AI slop audit (October 2026). They apply to READMEs, ma
 - Cut "comprehensive", "intelligent", "professional" and "streamline" unless the sentence needs them.
 - Before a release that changes docs, run `/slop-audit` from the ai-slop plugin.
 
+### Third-party Material
+
+When a plugin adapts someone else's skills, scripts or docs, as ai-workflow and ai-git do with Theo Browne's [tstack](https://github.com/t3dotgg/tstack) (MIT):
+
+1. Check that the source's license allows it, and keep its copyright and permission notice. Ship `plugins/{plugin-name}/THIRD-PARTY-NOTICES.md` with the full license text, the source URL and commit, and a table of the adapted files. Plugins install one at a time, so the notice must sit inside the plugin's own folder.
+2. End each adapted `SKILL.md` with a credit line that names the source, its author and its license, and points to `THIRD-PARTY-NOTICES.md`.
+3. Keep the copyright header in an adapted script, and add a line on what changed.
+4. Credit the source in the plugin README's Credits section, the root README's Credits section and the CHANGELOG entry.
+
 ### Deprecating or Removing Plugins and Skills
 
 When Claude Code ships a native feature that supersedes a plugin or skill (e.g., native Dynamic Workflows superseded `/workflow-plan-phases`, the native Learning output style superseded ai-learn):

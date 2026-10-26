@@ -2,15 +2,19 @@
 name: workflow-babysit
 version: 1.0.0
 description: |
-  Takes the current branch to production in one unattended run: commits and
-  opens the PR if needed, waits for Claude Code, Codex and Cursor Bugbot
-  reviews, fixes or triages every finding, merges, promotes staging to production when the repo
-  uses a staging branch, and watches the deploy until it is live. With
-  --to staging it stops once the change is merged and deployed to staging.
-  Use when the user says "babysit this to prod", "babysit to production",
-  "babysit this to staging" or runs /workflow-babysit. Merging is part of the
-  job, so don't use it when the user only wants a PR opened or reviewed.
-argument-hint: "[PR number] [--to staging] [what to do once it is live]"
+  Takes the current branch to production in one unattended run: finishes and
+  proves the change, commits and opens the PR if needed, waits for Claude Code,
+  Codex and Cursor Bugbot reviews, fixes or triages every finding, merges,
+  promotes staging to production when the repo uses a staging branch, and
+  watches the deploy until it is live. With --to staging it stops once the
+  change is merged and deployed to staging. With --to ready it stops when the
+  PR is ready to merge, and never merges. "Full send" merges into the PR's own
+  base without promoting it. Use when the user runs
+  /workflow-babysit, or clearly asks to ship the current change this way:
+  "babysit this to prod", "babysit this to staging", "full send" or "full
+  stop" said as a request to ship. Don't use it for those words in passing,
+  or when the user only wants a PR opened or reviewed.
+argument-hint: "[PR number] [--to staging|ready] [--council] [what to do once it is live]"
 allowed-tools:
   - Bash
   - Read
@@ -20,25 +24,31 @@ allowed-tools:
   - Glob
   - AskUserQuestion
   - Skill
+  - Monitor
 ---
 
 # /workflow-babysit - Babysit a change to production
 
-Run the whole release path for the current branch without stopping for approval at each hop. Invoking this skill, by slash command or by asking to babysit a change to production, is the approval to commit, open PRs, reply on review threads, merge and promote to production.
+Run the whole release path for the current branch without stopping for approval at each hop. Invoking this skill, by slash command or by asking to babysit a change to production, is the approval to commit, open PRs, reply on review threads, merge and promote to production. It's also the approval for the test methods that [Proof](#proof) needs (see [Testing permission](#testing-permission)). With `--to ready` it approves everything except merging.
 
-Assume the user has walked away. Ask every question in step 0, before any waiting starts. After that, only stop for the cases under "When to stop".
+Start a run only on a clear request to ship the current change. "Don't touch the schema, full stop" isn't one. If the request is unclear, don't assume this much autonomy: ask, or do only what was asked.
+
+Assume the user has walked away. Your updates go unread until long after the run ends. Ask every question in step 0, before any waiting starts. After that, only stop for the cases under "When to stop".
 
 User provided: $ARGUMENTS
 
-The arguments may name a PR number to babysit instead of the current branch's PR, may say where the run ends, and may say what to do once the change is live.
+The arguments may name a PR number to babysit instead of the current branch's PR, may say where the run ends, may ask for a council review with `--council`, and may say what to do once the change is live. If the user's request also describes work that isn't done yet, such as "fix the login redirect and full send", that work is part of the run (step 1).
 
 ## Where the run ends
 
 By default the run ends on production: merged into the default branch and deployed. `--to staging` ends it on staging instead. The PR merges into staging, the staging deploy is watched (step 4), and the release into the default branch is left for later. This suits repos where staging builds go to testers first, such as an internal TestFlight group, and production waits for their sign-off. To promote later, the user runs the skill again from the staging branch, which starts at the release step.
 
-- `--to` takes `staging` or the staging branch's name (`develop` when that's the repo's staging branch). `production`, `prod` and the default branch's name mean the full run. For any other value, stop in step 0 and say which values the repo accepts.
-- Plain wording works the same way: "babysit this to staging", "only to staging" or "stop at staging" mean `--to staging`.
-- A resumed run (step 0) only promotes staging, so with `--to staging` it has nothing to do. Say so and stop.
+`--to ready` ends the run before any merge. The PR goes through the review gate (step 2), and the run stops when it passes the [merge gate](#merge-gate), leaving the PR open for the user to merge. Nothing merges: steps 3, 4 and 6 are skipped, and a resumed run stops step 5 before its merge. See [Stopping at ready](#stopping-at-ready).
+
+- `--to` takes `ready`, `staging` or the staging branch's name (`develop` when that's the repo's staging branch). `production`, `prod` and the default branch's name mean the full run. For any other value, stop in step 0 and say which values the repo accepts.
+- Plain wording works the same way: "babysit this to staging", "only to staging" or "stop at staging" mean `--to staging`. "Full stop", "get it ready to merge" and "don't merge" mean `--to ready`. "Babysit this to prod" means the full run.
+- "Full send" and "merge it" mean the PR merges into its own base and that deploy is watched, with no promotion afterwards. For a PR into staging, or a new PR in a repo with a staging flow, that's `--to staging`. For a PR into the default branch, it's the full run. Promote staging to production only when the user says production or prod.
+- A resumed run (step 0) only promotes staging, so with `--to staging` it has nothing to do. Say so and stop. With `--to ready`, it reviews the release PR and stops before merging it.
 
 ## Repo settings
 
@@ -48,6 +58,15 @@ Read the project's CLAUDE.md and the user's `~/.claude/CLAUDE.md` first. When th
 - **What to do when Claude Code review is off**: use the local review, proceed without it, or stop. Answers the step 0 question ahead of time.
 - **Deploy**: the host, which services to watch, health-check URLs for production and staging, and anything that must happen before or after a deploy (for example, starting a staging database before merging into staging, or tearing staging down afterwards).
 - **Merge method** for feature PRs.
+- **Council**: whether every run gets a council review before the PR opens, and which members sit on it.
+
+## Testing permission
+
+Invoking the skill is the permission for the test methods that [Proof](#proof) needs. If a project file or another instruction says to ask before a test method, or to leave testing to the user, this run replaces that rule for its own tests. That covers computer use, browser automation, simulators and devices, running the app or a dev server, screenshots and visual checks. Use the method that gives direct proof, and list it in the report.
+
+Rules about *how* to test still apply: the right command, fixture or check, which simulator to reuse, and cleaning up afterwards. If the preferred method can't prove the change, use a method that normally needs approval, under this permission.
+
+It covers only the tests this change needs. It doesn't cover production changes, deleting data or anything else under "When to stop", and it doesn't get past a permission prompt from the harness or the system.
 
 ## 0. Set up (once per run, all questions here)
 
@@ -61,7 +80,7 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
 3. **Branch flow**: the repo has a staging flow if a `staging` (or `develop`) branch exists on origin and recent PRs into the default branch come from it (`gh pr list --state merged --base <default> --limit 5 --json headRefName`). An existing PR's own base decides what happens to it: a PR into staging goes through steps 4 and 5, and a PR straight into the default branch skips them. A new PR targets staging when the repo has a staging flow, and the default branch otherwise. With `--to staging`, a staging branch on origin is enough to count as a staging flow, even with no release PRs yet. If there's no staging branch, or an existing PR targets the default branch, stop before asking anything: the run would never stop at staging.
 4. **Merge method**: for feature PRs, CLAUDE.md first, then what recent merged PRs used, then whichever single method the repo allows. Release PRs from staging use a merge commit so staging and the default branch don't diverge. If the repo doesn't allow merge commits, use the method past release PRs used.
 5. **Uncommitted changes**: list them. They'll be committed into the PR in step 1. If some look unrelated to the change (scratch files, logs, local config, work in progress elsewhere), ask which to leave out.
-6. **Unreleased staging work** (staging flow only, and skipped with `--to staging`, which promotes nothing): list the commits staging would promote, with their GitHub logins:
+6. **Unreleased staging work** (staging flow only, and skipped with `--to staging` and `--to ready`, which promote nothing): list the commits staging would promote, with their GitHub logins:
 
    ```bash
    gh api "repos/{owner}/{repo}/compare/<default>...staging" \
@@ -76,40 +95,50 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
    - **Stop**: set up the action with Claude Code's built-in `/install-github-app` and run this skill again. To fix an existing workflow, run `/install-github-app` again and pick "Update workflow file with latest version".
 
    One answer covers the whole run, release PR included. Codex and Bugbot can only be detected once a PR is open (step 2), and their being off is never a reason to stop.
-9. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. With `--to staging`, only staging's target matters. If there is none, the run ends after the last merge and says so.
+9. **Council** (only with `--council`, or when CLAUDE.md asks for it): work out the members and check that each one is reachable, as the workflow-council skill describes: the T3 Code model list, or each provider's CLI installed and signed in. If one isn't, ask whether to run without it or skip the council.
+10. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. With `--to staging`, only staging's target matters, and `--to ready` skips this. If there is none, the run ends after the last merge and says so.
 
-## 1. Get a PR open
+## 1. Finish, prove and open the PR
 
 If the arguments name a PR, `gh pr checkout <N>`. Otherwise look for one: `gh pr view --json number,url,state,baseRefName,headRefOid`.
+
+Before anything is committed or pushed:
+
+1. **Finish the change.** If the request describes work that isn't done yet, do it now with the smallest change that meets the goal. Fix the case that happened, not every case that could.
+2. **Council review**, only with `--council` or when CLAUDE.md asks for it: run the workflow-council skill from this plugin (`ai-workflow:workflow-council`) with the members from step 0 and the argument `--unattended`. Let it finish before the PR opens, and keep its "Council review" section for the PR body. If it reports that a member changed files, stop.
+3. **Prove it.** Get [proof](#proof) for every change in the diff, including the council's fixes. If you can't, stop (see "When to stop").
 
 If the branch has no open PR:
 
 1. If you're on the default branch or the staging branch, create a branch from HEAD named the way the repo's recent PR branches are (`feat/...`, `fix/...`, a username prefix), describing the change. Never push to the default branch directly.
 2. Commit the uncommitted changes from step 0, minus anything the user left out. Stage specific files (never `.env` files, credentials or keys) and write the message in the style of `git log --oneline -10`. Follow CLAUDE.md and your client's instructions on attribution.
 3. If there is nothing to commit and the branch has no commits ahead of its base, stop: there's nothing to ship.
-4. Push with `git push -u origin HEAD` and open the PR against the base from step 0: a title under 70 characters, and a body with a short summary and a test plan made only of what you know was run (commands you ran or testing the user described). Use `.github/pull_request_template.md` if the repo has one.
+4. Push with `git push -u origin HEAD` and open the PR against the base from step 0. Open a real PR, not a draft, so the review bots run.
+   - **Title**: under 70 characters, in the style of the repo's recent PR titles. Say what the change does for the user, not how: "Cut websocket message size by about 70% with compression", not "Negotiate permessage-deflate on the websocket".
+   - **Body**: open with the problem in a sentence or two of plain words, taken from the user's request. Then say briefly how the change fixes it. Don't list every file or function you touched. End with a test plan made only of your proof (commands you ran, and what you saw) and testing the user described, then the "Council review" section if the council ran. Use `.github/pull_request_template.md` if the repo has one.
+   - Check the title and body for secrets and private details before you submit.
+   - If `gh pr create` fails because the GraphQL rate limit is used up, open the PR through REST: `gh api repos/{owner}/{repo}/pulls -f title=<title> -f head=<branch> -f base=<base> -F body=@<body file>`.
 5. If your client has a tool for linking pull requests to the session, link the PR. Linking and notifications are optional, so skip them if they would need a permission prompt nobody is there to answer.
 
-If the PR already exists and there are uncommitted changes on its branch, commit and push them into the PR the same way and mention it in the report.
+If the PR already exists and there are uncommitted changes on its branch, commit and push them into the PR the same way and mention it in the report. If the PR is a draft, mark it ready for review with `gh pr ready <N>`, so the review bots run, and mention that too.
 
 ## 2. Review gate
 
 Run this on every PR the skill merges: the feature PR, any fix PRs into staging, and the release PR.
 
-1. **Wait** for each reviewer that is on to finish on the head commit, and for CI. [reviewers.md](reviewers.md) says how to tell when each reviewer is done and how long to wait. Poll every 30 seconds in a background Bash loop with a deadline, never faster:
+With `--to ready`, turn off automatic merging on the PR before the first wait (see [Stopping at ready](#stopping-at-ready)).
 
-   ```bash
-   deadline=$((SECONDS + 1800))
-   until <done-check> || [ "$SECONDS" -ge "$deadline" ]; do sleep 30; done
-   ```
+1. **Wait** for each reviewer that is on to finish on the head commit, and for CI. [reviewers.md](reviewers.md) says how to tell when each reviewer is done and how long to wait. See [Waiting](#waiting) for how to wait. Handle the checks and comments that are already there before you start waiting.
 
-   For CI, poll `gh pr checks <N> --json name,bucket,workflow,link`. Leave out the reviewers' own check runs (the Claude Code review job, `Cursor Bugbot` and `Cursor Bugbot Autofix`), which reviewers.md handles. Checks can take a minute or two to register after a push, so don't count "no checks" or "nothing pending" as done until 2 minutes after the push, and every required check (`gh pr checks <N> --required --json name,bucket`) has appeared. CI is done when no check is `pending`. If the deadline passes first, stop.
+   For CI, read `gh pr checks <N> --json name,bucket,workflow,link`. Leave out the reviewers' own check runs (the Claude Code review job, `Cursor Bugbot` and `Cursor Bugbot Autofix`), which reviewers.md handles. Checks can take a minute or two to register after a push, so don't count "no checks" or "nothing pending" as done until 2 minutes after the push, and every required check (`gh pr checks <N> --required --json name,bucket`) has appeared. CI is done when no check is `pending`. If CI hasn't finished 30 minutes after the push, stop.
 2. **CI failures**: if a check fails because of the PR, fix it and push. If it fails for an unrelated reason (a flaky test, a runner outage), rerun it once with `gh run rerun <run-id> --failed`. If it fails again, stop.
 3. **Humans first**: if a person (not a bot) has requested changes or left an unanswered question on the PR, stop. Don't merge over a teammate, and never resolve a person's thread.
-4. **Triage** every bot finding, from Claude Code, Codex, Bugbot or any other review bot, using the triage bar in [reviewers.md](reviewers.md) unless CLAUDE.md has its own. Reply in each finding's thread and resolve it.
-5. **Re-review**: if code changed, push and get one re-review scoped to the new commits from each reviewer that is on. Claude Code re-runs by itself on every push; if its workflow doesn't trigger on pushes, the local review covers the new commits instead ([reviewers.md](reviewers.md)). Codex needs one `@codex review` comment per round. Bugbot re-runs on pushes by itself, or gets one `bugbot run` comment when it doesn't. If Bugbot Autofix pushes its own fixes to the branch, pull them before fixing anything yourself (reviewers.md). The 3-round limit counts rounds of fixes, whichever reviewer raised them. Docs-only follow-up commits need no re-review. Stop after 3 rounds. If only non-blocking findings remain, merge and post a "Known limitations" comment on the PR. A finding is blocking when the triage bar puts it under "Fix now". If a blocking finding is still open, stop.
+4. **Triage** every bot finding, from Claude Code, Codex, Bugbot or any other review bot, using the triage bar in [reviewers.md](reviewers.md) unless CLAUDE.md has its own. Act only on checks and comments newer than the latest push, and check each finding against the source before you change code. Get [proof](#proof) for each fix before you push it. Reply in each finding's thread in the format of the workflow-pr-comments skill from this plugin, and resolve it.
+5. **Re-review**: if code changed, push and get one re-review scoped to the new commits from each reviewer that is on. Claude Code re-runs by itself on every push; if its workflow doesn't trigger on pushes, the local review covers the new commits instead ([reviewers.md](reviewers.md)). Codex needs one `@codex review` comment per round. Bugbot re-runs on pushes by itself, or gets one `bugbot run` comment when it doesn't. If Bugbot Autofix pushes its own fixes to the branch, pull them before fixing anything yourself (reviewers.md). The 3-round limit counts rounds of fixes, whichever reviewer raised them. Docs-only follow-up commits need no re-review. Stop after 3 rounds. If only non-blocking findings remain, post a "Known limitations" comment on the PR and go on to the merge gate. A finding is blocking when the triage bar puts it under "Fix now". If a blocking finding is still open, stop.
 
 ## 3. Merge into the PR's base
+
+Check the [merge gate](#merge-gate) on the latest head first. With `--to ready`, the run ends here: see [Stopping at ready](#stopping-at-ready).
 
 1. If merging into this branch deploys, follow any pre-deploy rules from CLAUDE.md first, and snapshot the current deployments ([deploy-targets.md](deploy-targets.md)).
 2. Merge with `gh pr merge <N> --<method> --delete-branch --match-head-commit <head SHA when the gate passed>`. Leave out `--delete-branch` when the head is staging. The SHA check stops anything pushed after the gate from slipping in.
@@ -126,7 +155,7 @@ If the run ends at staging (`--to staging`, or the user chose in step 0 to stop 
 ## 5. Promote to production (PRs into staging, and resumed runs)
 
 1. Reuse an open PR from staging into the default branch if one exists (`gh pr list --base <default> --head staging --state open`). Otherwise open one titled `Release: <one line>`, with a body listing what it promotes (`git log --oneline origin/<default>..origin/staging`). Link it as in step 1.
-2. Run the review gate (step 2) on it with the same reviewers. A finding that needs code goes through a new branch off `origin/staging` and a PR into staging, which gets its own review gate and merge, and updates the release PR.
+2. Run the review gate (step 2) on it with the same reviewers. A finding that needs code goes through a new branch off `origin/staging` and a PR into staging, which gets its own review gate and merge, and updates the release PR. With `--to ready`, merging that fix PR is still a merge: open it, take it through the review gate, and stop with both PRs ready.
 3. Merge it as in step 3 with the release merge method from step 0, without deleting staging. Record the merge commit SHA.
 4. Check that staging still exists (`git ls-remote --heads origin staging`). If GitHub deleted it, recreate it at the head SHA recorded before the merge (`git push origin <sha>:refs/heads/staging`) and say so in the report.
 
@@ -144,35 +173,126 @@ Tell the user:
 - which reviewers ran on each PR, which were off, and what the local review found if it ran;
 - findings fixed, deferred (with issue links) or answered "by design", and any Known limitations;
 - which services deployed, their status, and the health-check result;
-- for a run that ended at staging: what staging now holds that production doesn't (`git log --oneline origin/<default>..origin/staging`), any staging cleanup from CLAUDE.md still pending, and how to promote it: check out staging, `git pull`, and run `/workflow-babysit`.
+- for a run that ended at staging: what staging now holds that production doesn't (`git log --oneline origin/<default>..origin/staging`), any staging cleanup from CLAUDE.md still pending, and how to promote it: check out staging, `git pull`, and run `/workflow-babysit`;
+- for a run that ended at ready: the final head SHA, the verdict from [Stopping at ready](#stopping-at-ready), any auto-merge or merge queue change you made, and that the PR is still open and unmerged;
+- the proof for the change and the test methods you used;
+- each decision you made for the user with a default, so they can revisit it.
 
 Then do whatever the arguments asked for once the change is live, which for a run that ended at staging means live on staging. If your client has a push-notification tool, send a one-line notification when the run finishes or stops.
+
+## Waiting
+
+Use one watcher per PR. Every watcher on a GitHub account shares one rate limit. Don't write a polling loop of your own for a PR, except in the two cases below: no watcher is available, or a done-signal wakes nothing.
+
+- **In T3 Code** (the `watch_pull_request` tool exists): call `watch_pull_request` with the PR's URL, then end your turn. T3 Code wakes you when a check fails, the required checks pass, someone comments or reviews, or the branch conflicts. The watch stays on across wakes, so don't call it again after a wake. A wake is news, not a merge decision: check the reviewers and the merge gate yourself. Only the thread that owns the PR watches it, so a delegated child task never watches one. Call `unwatch_pull_request` before you stop, hand off or ask the user anything. A merge or a close ends the watch by itself.
+- **Elsewhere, with `python3` and the Monitor tool**: run [scripts/pr-wait](scripts/pr-wait) under the Monitor tool, so each event line wakes you:
+
+  ```bash
+  python3 "${CLAUDE_SKILL_DIR}/scripts/pr-wait" <N> --until green --interval 30
+  ```
+
+  Set `timeout_ms` to 1800000, the Monitor tool's maximum. When it expires, check the deadlines in step 2 and reviewers.md first, and start it again only if none has passed. It prints one line per real event: a failed check, a new comment, review or thread, a review bot finishing on the head, base commits that touch the PR's files, and the PR turning BEHIND or DIRTY. It exits 0 when CI is green on the head or the PR merges. It exits 1 when it needs you: a required check failed, a conflict, the PR closed, or GitHub stayed unreachable. It exits 2 on bad input, or when another pr-wait already watches the PR. Start it again after each push, after you handle an exit, and after a resume. It keeps its state in `~/.local/state/pr-wait/`, so events that arrive between runs aren't lost. Once CI is green, wait for the remaining reviewers with `--until any-change --interval 30`, and start it again after each event.
+- **Elsewhere, without them**: poll every 30 seconds in a background Bash loop with a deadline, never faster:
+
+  ```bash
+  deadline=$((SECONDS + 1800))
+  until <done-check> || [ "$SECONDS" -ge "$deadline" ]; do sleep 30; done
+  ```
+
+Some done-signals wake nothing, such as a Codex pass that is only a 👍 reaction. When a reviewer is still pending and no other event is due, poll its done-signal from reviewers.md in one background loop like the one above, with that reviewer's deadline. This is the one loop allowed next to a watcher. In T3 Code, pass the loop's task ID to `t3_background_wait`.
+
+In T3 Code, check the deadlines from step 2 and reviewers.md on every wake. If no wake comes, the run waits, and T3 Code keeps showing the watched PR in the thread.
+
+When an event needs no action, end your turn without a message. Never post or say "still waiting".
+
+Deploys (steps 4 and 6) have no watcher, so they use the background loop in [deploy-targets.md](deploy-targets.md). In T3 Code, pass its task ID to `t3_background_wait`.
+
+**GitHub rate limits**: `gh pr view`, `gh pr checks` and `gh pr create` use GraphQL. When GraphQL is used up (`gh api rate_limit --jq .resources.graphql`), the REST limit is separate and usually has room. Read the PR with `gh api repos/{owner}/{repo}/pulls/<N>` and its checks with `gh api repos/{owner}/{repo}/commits/<sha>/check-runs`. In T3 Code, a watch that stops with "could not read it" usually means the limit is used up. Wait for the limit's `reset` time with one background command, then watch again. Never retry in a tight loop.
+
+## Proof
+
+Proof is evidence you saw yourself in this run, such as command output, a reproduction or a screenshot. Use the most direct proof the change allows:
+
+- Reproduce the original failure, apply the fix, then watch the same reproduction pass.
+- Run the checks that the repo's CI runs: typecheck, lint and tests.
+- When the behavior has no test and the repo has a test setup, add one focused test that fails without the fix.
+- For UI and runtime behavior, run the app and look at the change. Green mocked tests don't prove that the user experience works. Attach screenshots to the PR when they help and you have a way to upload them.
+
+The PR's test plan lists this proof. If you can't find a way to prove a change, you don't have full confidence in it, so stop and ask.
+
+## Merge gate
+
+The PR is ready to merge when all of these are true on its latest head:
+
+- Your proof covers every change in the diff, including fixes made during review.
+- The required checks are green.
+- Every reviewer that is on has finished, and each finding is fixed, deferred with an issue, or answered with a written reason.
+- No person still requests changes or has an unanswered question.
+- The branch is up to date. Run `git fetch`, then `gh pr view <N> --json mergeStateStatus,mergeable`. It must not be `BEHIND` or `DIRTY`, and no base commits that landed after the last green run may touch the PR's files. If it's behind, run `gh pr update-branch <N>`, which merges the base in without a force push. Then `git pull --ff-only` and wait for CI on the new head. Reviewers that re-run on every push (Claude Code, Bugbot) review it as usual. Don't request a Codex re-review for it, and don't count it as a round of fixes.
+- GitHub reports the PR as mergeable. If the only thing missing is an approval that branch protection requires from a person, the gate can't pass without that person.
+
+## Stopping at ready
+
+With `--to ready`, the run may commit, push, fix review findings and update the branch from its base. It never merges, turns on auto-merge, adds the PR to a merge queue, pushes to the default branch, gets around branch protection, or asks another agent or tool to do any of these.
+
+Before the first wait, and again before each push, make sure nothing will merge the PR by itself:
+
+```bash
+# Auto-merge: null when it's off
+gh pr view <N> --json autoMergeRequest --jq .autoMergeRequest
+gh pr merge <N> --disable-auto
+
+# Merge queue: remove the PR only when isInMergeQueue is true
+gh api graphql -f query='query($o:String!,$r:String!,$n:Int!){repository(owner:$o,name:$r){pullRequest(number:$n){id isInMergeQueue}}}' -F o=<owner> -F r=<repo> -F n=<N>
+gh api graphql -f query='mutation($id:ID!){dequeuePullRequest(input:{id:$id}){clientMutationId}}' -F id=<PR node id>
+```
+
+Report each change you made. If you can't stop an automatic merge, stop the run and say so.
+
+When the review gate passes, fetch the base and read the live PR once more: its head, base, checks, reviews and mergeability. Confirm that it is open, not a draft, and not set to merge by itself. If someone else merged it meanwhile, report that instead. Then end the run with one of these verdicts:
+
+- **Ready to merge**: the merge gate passes. The PR stays open and unmerged.
+- **Waiting for required approval**: only a person's approval is missing. Confirm that this is the real blocker.
+- **Blocked**: say what prevents it, what you tried and what's needed, and ask as under "When to stop".
 
 ## When to stop
 
 Stop, say exactly where the run stopped and what it needs, and send a notification if you can, when:
 
 - the user chose to stop in step 0;
+- you can't prove the change;
 - a person requested changes or asked a question on the PR;
 - a blocking finding is still open after 3 review rounds, or can't be fixed;
 - CI fails for a reason you can't fix, fails twice for an unrelated reason, or doesn't finish in time;
 - GitHub refuses the merge, or the merge queue drops the PR twice;
-- a rebase onto commits a bot pushed hits a conflict you can't resolve;
+- a rebase onto commits a bot pushed, or a merge from the base, hits a conflict you can't resolve;
+- another PR makes this one obsolete. Ask before closing it;
+- the next step needs something this run doesn't approve: deleting data, changing production directly, changing things outside the repo, closing a PR or force pushing;
 - a staging or production deploy or health check fails.
 
-When stopping, also list any cleanup that CLAUDE.md asks for after a deploy and that hasn't run yet (for example, staging services still up), so the user can decide. Don't run it on a failed run, since the user may want to look at the failure first. To resume, the user runs the skill again: it picks up the open PR, or the release step when it's run from staging. A run that stopped on its way to staging needs `--to staging` again to end there.
+A question in a normal message goes unseen, and the thread looks finished. When a stop needs a decision from the user, ask with the AskUserQuestion tool, so the thread shows that it's waiting. Put everything the user needs into the question: the PR link, what blocks the run, and the options with your recommendation first. In T3 Code, call `unwatch_pull_request` first. If no question tool is available, or it returns no answer, leave the PR open and unmerged, and start your final message with the question.
+
+When stopping, also list any cleanup that CLAUDE.md asks for after a deploy and that hasn't run yet (for example, staging services still up), so the user can decide. Don't run it on a failed run, since the user may want to look at the failure first. To resume, the user runs the skill again: it picks up the open PR, or the release step when it's run from staging. A run that stopped on its way to staging needs `--to staging` again to end there, and a run started with `--to ready` needs `--to ready` again.
 
 ## Rules
 
 - Never force push, never merge with `--admin`, and never delete the staging or default branch.
 - Never push to the default branch directly. Everything goes through a PR.
 - Run `git pull --rebase` before every push, since a bot such as Bugbot Autofix may have pushed to the branch. It only replays your unpushed commits on top. If the rebase hits a conflict you can't resolve cleanly, `git rebase --abort` and stop.
+- When the PR conflicts with its base (DIRTY), merge the base into the branch (`git fetch origin` and `git merge origin/<base>`), resolve the conflicts by the PR's intent, get proof again, and push normally. Never rebase a pushed branch onto its base, because that needs a force push. If you can't resolve the conflicts, `git merge --abort` and stop.
 - The only bot commands the skill posts are `@codex review` and `bugbot run`. Never mention `@cursor`, and never ask a bot to make a fix.
+- Every other comment the skill posts follows the workflow-pr-comments skill from this plugin. Bot commands stay bare.
 - Never commit secrets.
 - The skill doesn't deploy, restart, scale or change environment variables on any host. Merging is what triggers the deploy. The only exception is a step CLAUDE.md asks for, such as starting staging services before a staging deploy.
-- Poll no faster than every 30 seconds, and give every wait a deadline.
+- Use one watcher per PR (see [Waiting](#waiting)). Poll no faster than every 30 seconds, and give every wait a deadline.
 
 ## Additional resources
 
 - [reviewers.md](reviewers.md): detecting Claude Code, Codex and Cursor Bugbot, knowing when each is done, Bugbot Autofix, threads, triage and the local review fallback.
 - [deploy-targets.md](deploy-targets.md): finding the deploy target, snapshots, watching GitHub deployments, GitHub Actions and Railway, and health checks.
+- [scripts/pr-wait](scripts/pr-wait): the PR watcher for Claude Code outside T3 Code. Run it with `--help` for its options.
+- The workflow-pr-comments skill formats comments, and the workflow-council skill runs the `--council` review. Both ship with this plugin.
+
+---
+
+Parts of this skill, `reviewers.md` and `scripts/pr-wait` are adapted from `full-send`, `full-stop`, `babysit-pr` and `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne (MIT). See THIRD-PARTY-NOTICES.md in this plugin.

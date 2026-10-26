@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
-    "version": "3.1.0",
+    "version": "3.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -57,7 +57,7 @@
       "name": "ai-git",
       "source": "./plugins/ai-git",
       "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
-      "version": "2.0.0",
+      "version": "2.1.0",
       "keywords": [
         "ai",
         "git",
@@ -138,8 +138,8 @@
     {
       "name": "ai-workflow",
       "source": "./plugins/ai-workflow",
-      "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
-      "version": "3.0.1",
+      "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs, refreshes stale ones, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
+      "version": "3.1.0",
       "keywords": [
         "ai",
         "workflow",
@@ -159,7 +159,13 @@
         "commit",
         "claude-md",
         "rules",
-        "behavior-rules"
+        "behavior-rules",
+        "council",
+        "second-opinion",
+        "takeover",
+        "rebase",
+        "t3-code",
+        "tstack"
       ],
       "author": {
         "name": "Charles Jones",

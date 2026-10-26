@@ -18,6 +18,8 @@ Rules are intentionally short (1-3 sentences each), because every rule is loaded
 
 Retired rules are listed in `SKILL.md`, not here, so they can't be installed.
 
+The `short-pr-bodies` rule's advice to open with the problem, then the fix, is adapted from `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne (MIT). See THIRD-PARTY-NOTICES.md in this plugin.
+
 ---
 
 ## Section: PR and Commit Hygiene
@@ -40,7 +42,7 @@ Retired rules are listed in `SKILL.md`, not here, so they can't be installed.
 ### rule: short-pr-bodies
 **Title:** Keep PR bodies short
 **Body:**
-- Keep PR bodies short. A 1-3 bullet summary of the actual diff is usually enough. No filler sections, no headers for the sake of structure.
+- Keep PR bodies short. Open with the problem in a sentence or two of plain words, then say briefly how the change fixes it. Don't lead with a list of every file or function touched. No filler sections, no headers for the sake of structure.
 
 ### rule: scoped-commit-messages
 **Title:** Scope commit messages to the diff

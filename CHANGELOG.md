@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0] - 2026-10-26
+
+This release adapts skills from Theo Browne's [tstack](https://github.com/t3dotgg/tstack) (MIT) into ai-workflow and ai-git. Thank you, Theo. Each plugin ships a `THIRD-PARTY-NOTICES.md` with tstack's license and a list of the adapted files, and each adapted skill ends with a credit line.
+
+### Added
+
+#### AI-Workflow Plugin (v3.0.1 → v3.1.0)
+
+- **`/workflow-council`** — from tstack's `council` and `sol-loop`. Reviews a change in a loop with models from several providers, until they approve or the round budget runs out. "council" gets three members, the latest flagship from Anthropic, OpenAI and xAI, unless the arguments or CLAUDE.md name others. tstack's Gemini member is left out of the default. "sol loop" or "second opinion" gets one. It never puts another model in place of a member it can't reach. In T3 Code it starts one `delegate_task` per member. In plain Claude Code it uses a subagent for Claude and each provider's own CLI for the rest, read-only: `codex exec --sandbox read-only` for OpenAI, `grok --permission-mode plan` for xAI, and `agent -p --mode ask` for any model Cursor offers. It writes each brief to a file and never pastes it into a double-quoted argument. It fingerprints the working tree before and after each round, so it stops if a member changed a file. `--unattended` asks nothing: it leaves out members it can't reach, and declines findings still disputed at the end. Every member gets the same brief and replies with a verdict, a score out of 10 and findings ranked blocker, should or nit. The budget is 3 rounds, or up to 5 for security, auth, data-loss and concurrency changes while a blocker or should finding stays open. A ledger tracks every finding. The skill declines nits and out-of-scope findings as follow-ups, and cuts the diff back if the review grew it. The scores per round go into a "Council review" table in the PR description.
+- **`/workflow-takeover`** — from tstack's `takeover`. Finishes a PR, branch or agent thread that someone else started, and keeps the original contributors' credit. It treats claims in the handoff, such as "tests pass", as unchecked until it runs them itself. By default it continues on a new branch from the original commits, so their authors stay. It refreshes the work with `/workflow-refresh`, finishes the same goal without adding features, and verifies it independently. It adds `Co-authored-by:` trailers with verified identities for squash merges, then runs `/workflow-babysit --to ready` unless asked to merge. It reads T3 Code threads with `t3_thread_read`.
+- **`/workflow-refresh`** — from tstack's `modernize`, renamed so it isn't mistaken for ai-modernize's `/modernize-audit`. Brings an old PR up to date and recommends REFRESH, REWORK or CLOSE with evidence, after reading what changed on the base and searching for PRs that compete with it. A refresh rebases, compares the commits before and after with `git range-diff`, runs the checks for the touched area, and pushes with a lease tied to the recorded head. It pushes only when asked to refresh or rebase. A question about whether the PR still makes sense gets an answer and no push, and it asks before rewriting a branch that belongs to someone else. It handles PRs from forks. `--branch <name>` rebases another branch instead of the PR's own, which `/workflow-takeover` uses for replacement PRs.
+- **`workflow-pr-comments`** — from tstack's `leaving-pr-comments`. Claude uses it by itself whenever it posts a GitHub comment for the user. Each comment starts with a note callout that names the model and the user, then a short reply that leads with the conclusion. Commands to bots, such as `@codex review` and `bugbot run`, stay bare so the bots still read them.
+- **`/workflow-babysit --to ready`** — from tstack's `full-stop`. "Full stop" works too. The run goes through the review gate and stops when the PR passes the merge gate, and never merges. It turns off auto-merge and takes the PR out of a merge queue before the first wait and before each push. It ends with one verdict: ready to merge, waiting for a required approval, or blocked.
+- **`/workflow-babysit --council`** — runs `/workflow-council --unattended` on the change before the PR opens, after checking at the start of the run, before any waiting, that every member is reachable. The council's fixes get proof like any other change, and its scores go into the PR description. CLAUDE.md can ask for it on every run.
+- **`pr-wait`** — tstack's PR watcher, bundled as `skills/workflow-babysit/scripts/pr-wait`. It prints one line per event, so Claude Code's Monitor tool wakes Claude only when something happens. It keeps state between runs, takes a lock so two watchers can't watch one PR, and retries GitHub errors. Changed from tstack: it also knows the Claude Code review action, Codex and Cursor Bugbot, reports when each finishes on the head, and keeps their check runs out of `--until green`. It treats a login as a review bot only when GitHub marks the author as a bot, so a person whose login contains "claude" isn't skipped. A skipped check run doesn't count as a review. When only review bots report checks, CI counts as green two minutes after the head appears. On a conflict it says to bring the base in, instead of "rebase it".
+
+### Changed
+
+#### AI-Workflow Plugin (v3.0.1 → v3.1.0)
+
+- **`/workflow-babysit` proves the change** — from tstack's `full-send`. Before the PR opens, and before each fix is pushed, the skill gets proof it saw itself: a reproduction that now passes, the checks CI runs, one focused test when the behavior has none, or the running app for UI changes. The PR's test plan lists that proof. Invoking the skill is the permission for the test methods proof needs, even where a project file says to ask first, but rules about *how* to test still apply. A change it can't prove stops the run. If the request describes unfinished work ("fix X and full send"), the run finishes it first with the smallest change. "Full send" and "merge it" merge the PR into its own base and watch that deploy, with no promotion to production, which matches tstack's `full-send`. The skill starts only on a clear request to ship, not when those words appear in passing.
+- **`/workflow-babysit` waits with one watcher per PR** — from tstack's `babysit-pr`. In T3 Code it uses `watch_pull_request`, and calls `unwatch_pull_request` before it stops or asks a question. Elsewhere it runs `pr-wait` under the Monitor tool. The 30-second polling loop is now the fallback when `python3` or the Monitor tool is missing, and still covers reviewer signals that wake no watcher, such as a Codex 👍 reaction. Deploys keep their polling loop, and in T3 Code it's passed to `t3_background_wait`. On a used-up GraphQL rate limit, the skill reads the PR through REST.
+- **`/workflow-babysit` merge gate** — from tstack's `full-send`. A merge needs proof for the whole diff, green required checks, every finding answered, no person requesting changes, and a branch that's up to date. A branch that's behind is updated with `gh pr update-branch`, which merges the base in without a force push. A branch that conflicts with its base gets the base merged in locally, the conflicts resolved, and a normal push.
+- **`/workflow-babysit` asks with the question tool** — from tstack's `full-send`. When the run stops for a decision, it asks through AskUserQuestion with the PR link, the blocker and the options, so the thread shows it's waiting. It also stops when another PR makes this one obsolete, or when the next step would delete data, change production directly or close a PR.
+- **`/workflow-babysit` PR titles and descriptions** — from tstack's `file-pr`. Titles say what the change does for the user. Descriptions start with the problem in plain words, then the fix, rather than a list of edits. The skill checks them for secrets, opens the PR ready for review, not as a draft, marks an existing draft ready for review, and opens the PR through REST when GraphQL is rate-limited.
+- **`/workflow-babysit` reviewers** — from tstack's `babysit-pr`. It waits for Greptile and Macroscope when a repo uses them, and reads Macroscope's `.macroscope/check-run-agents/*.md` rules before replying to it. CodeRabbit stays advisory. Thread replies use the `workflow-pr-comments` format, and the default triage keeps the PR the size the goal needs, preferring fixes that delete or narrow code.
+- **`/workflow-rules` `short-pr-bodies`** — now says to open with the problem in plain words, then the fix, instead of a bullet summary of the diff. An installed copy keeps its old text until you remove and add the rule again with `/workflow-rules`.
+
+#### AI-Git Plugin (v2.0.0 → v2.1.0)
+
+- **`/git-commit-push-pr` PR titles and descriptions** — from tstack's `file-pr`. The title follows the repo's recent PR titles and says what the change does for the user. The summary starts with the problem, then the fix, instead of bullets listing every change. The skill checks the title and body for secrets, opens the PR ready for review, not as a draft, and opens the PR through GitHub's REST API when the GraphQL rate limit is used up.
+
+#### Repository
+
+- **`.gitignore`** — ignores `__pycache__/` repo-wide, so running a bundled script such as `pr-wait` leaves nothing to commit.
+- Marketplace metadata version bumped `3.1.0` → `3.2.0`.
+
 ## [3.1.0] - 2026-10-14
 
 ### Added
@@ -1497,7 +1534,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...HEAD
+[3.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...v3.0.1
 [3.0.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v2.12.0...v3.0.0

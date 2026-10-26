@@ -1,6 +1,6 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
@@ -26,7 +26,7 @@ Each skill is a command you run by name, such as `/git-init` in Claude Code and 
 | [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround | `/slop-audit`, `/slop-rewrite`, `/slop-comments` | Claude Code, Codex, Cursor |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | Claude Code |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | Claude Code, Codex, Cursor |
-| [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, and CLAUDE.md rules that keep PR descriptions and commit messages short and accurate | `/workflow-babysit`, `/workflow-rules` | Claude Code |
+| [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, or stops when the PR is ready to merge. Plus review loops with models from several providers, takeovers of other people's PRs, refreshes of stale PRs, and CLAUDE.md rules that keep PR descriptions and commit messages short and accurate | `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, `/workflow-rules` | Claude Code |
 
 The Claude Code-only plugins depend on Claude Code subagents, settings files, rules, the status line or CLAUDE.md.
 
@@ -172,6 +172,10 @@ Plugins and skills that Claude Code now covers natively, or that moved into anot
 | ai-learn (`/learn`, `/learn-review`) | 🗑️ Removed (July 2026) | Native **Learning** output style (`/config` → "Output style" → "Learning") | Built-in collaborative mentor mode with `TODO(human)` markers; an **Explanatory** style also ships natively |
 | ai-workflow `/workflow-plan-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | JavaScript runtime orchestrating subagent fan-out with per-agent token budgets; replaces manual 30–50k-token phase sizing |
 | ai-workflow `/workflow-implement-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | Runtime-managed orchestration replaces manual `Task()` fan-out and phase-coordination bookkeeping |
+
+## Credits
+
+Several ai-workflow skills, and the PR guidance in ai-git's `/git-commit-push-pr`, are adapted from [tstack](https://github.com/t3dotgg/tstack), Theo Browne's agent skills for Claude Code and Codex, some of which use [T3 Code](https://github.com/pingdotgg/t3code) features. tstack is MIT licensed. Each plugin that uses it ships a `THIRD-PARTY-NOTICES.md` with the license and a list of the adapted files: [ai-workflow](plugins/ai-workflow/THIRD-PARTY-NOTICES.md) and [ai-git](plugins/ai-git/THIRD-PARTY-NOTICES.md).
 
 ## Contributing
 
