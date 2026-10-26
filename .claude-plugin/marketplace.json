@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
-    "version": "3.2.0",
+    "version": "3.3.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -139,7 +139,7 @@
       "name": "ai-workflow",
       "source": "./plugins/ai-workflow",
       "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs, refreshes stale ones, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
-      "version": "3.1.0",
+      "version": "3.2.0",
       "keywords": [
         "ai",
         "workflow",
