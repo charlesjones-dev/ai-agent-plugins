@@ -40,7 +40,8 @@ Commit, push and open a pull request in one interactive flow. Two flags change w
 - Writes a concise message that says what changed and why, with conventional commit prefixes (`feat:`, `fix:`, `docs:`) if your repo uses them. It adds no AI attribution to the commit
 - Pushes, setting upstream with `-u` if needed. It never force pushes
 - Asks for the PR target, offering staging first when it exists on origin, then the default branch
-- Opens the PR with summary bullets, a test plan that lists only what was actually run, and a last line naming the agent that ran the skill (Claude Code, Codex or Cursor). If the branch already has an open PR, the push updates it and you get its URL
+- Opens the PR with a title that says what the change does for the user, a summary that starts with the problem and then the fix, a test plan that lists only what was run, and a last line naming the agent that ran the skill (Claude Code, Codex or Cursor)
+- Checks the title and body for secrets, and opens the PR through GitHub's REST API when the GraphQL rate limit is used up. If the branch already has an open PR, the push updates it and you get its URL
 
 `/git-commit-push` is now `/git-commit-push-pr --no-pr`.
 
@@ -189,10 +190,16 @@ There's nothing to configure.
 
 - **Name:** AI-Git Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 2.0.0
+- **Version:** 2.1.0
 - **Skills:** `/git-init`, `/git-commit-push-pr`, `/git-preflight`
 - **License:** MIT
 - **Author:** Charles Jones
+
+---
+
+## Credits
+
+The guidance `/git-commit-push-pr` follows for PR titles and descriptions is adapted from `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne, under the MIT license. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) has the license.
 
 ---
 

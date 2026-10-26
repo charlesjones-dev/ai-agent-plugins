@@ -20,3 +20,6 @@ Thumbs.db
 
 # Generated security-audit Python files
 /plugins/ai-security/skills/security-audit/**/__pycache__/
+
+# Python bytecode from running bundled scripts, such as workflow-babysit's pr-wait
+__pycache__/

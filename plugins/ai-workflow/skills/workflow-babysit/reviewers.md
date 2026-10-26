@@ -1,6 +1,6 @@
 # Reviewers
 
-Every PR gets each of Claude Code, Codex and Cursor Bugbot that is on. Work out which are on before waiting on anything. Other review bots that show up on a PR (`coderabbitai[bot]`, `copilot-pull-request-reviewer[bot]` and so on) are triaged like the rest, but never waited on.
+Every PR gets each of Claude Code, Codex and Cursor Bugbot that is on. Work out which are on before waiting on anything. Greptile and Macroscope are waited on too when a repo uses them (see [Greptile and Macroscope](#greptile-and-macroscope)). Other review bots that show up on a PR (`coderabbitai[bot]`, `copilot-pull-request-reviewer[bot]` and so on) are triaged like the rest, but never waited on. CodeRabbit is advisory: never hold a merge for it.
 
 In the commands below, `{owner}/{repo}` comes from `gh repo view --json nameWithOwner`.
 
@@ -138,21 +138,38 @@ With Bugbot Autofix on, a Cursor cloud agent fixes findings by itself. Its progr
 - **Commit to existing branch**: it pushes commits to the PR branch. Before fixing Bugbot findings, wait for the `Cursor Bugbot Autofix` check on the head commit to complete. Then `git pull --ff-only` and read its commits, and only fix what it didn't. Its commits are part of the PR: the other reviewers review them, and you triage them like your own changes. If one is wrong, undo it with a normal commit. Before every push, `git pull --rebase` in case it pushed meanwhile, and never force push.
 - **Create new branch**: it pushes the fix to a separate branch. Don't merge that branch or its PR. Fix the finding in this PR, and mention the Autofix branch in the report.
 
+## Greptile and Macroscope
+
+Each one is on when it reviewed one of the repo's last few PRs, with a summary comment, a review or its own check run. If it doesn't show up within 5 minutes of the PR opening, treat it as off for the rest of the run.
+
+Each is done on the head commit when its own check runs finish, or when it reviews the head commit or names the head's short SHA in its summary. `scripts/pr-wait` reports this as `<bot> finished on <sha>`, and reports `summary changed` when the bot edits its summary afterwards. Give each one 20 minutes from the PR opening or the push.
+
+If the repo has `.macroscope/check-run-agents/*.md`, read those rules before you reply to a Macroscope finding, because its findings cite them.
+
 ## Local review fallback
 
 Use this when the user chose it in step 0, or when Claude Code turns out to be off on a PR mid-run.
 
-After CI passes, invoke Claude Code's built-in `code-review` skill on the PR at `high` effort, for example with the arguments `high <N>`. Triage what it reports with the same bar as bot findings and fix what needs fixing. Then post one PR comment listing each finding and what happened to it, so the PR records the review. After each round of fixes, run it again on the new commits only, within the same 3-round limit. If the `code-review` skill isn't available, review `gh pr diff <N>` yourself with the same bar.
+After CI passes, invoke Claude Code's built-in `code-review` skill on the PR at `high` effort, for example with the arguments `high <N>`. Triage what it reports with the same bar as bot findings and fix what needs fixing. Then post one PR comment listing each finding and what happened to it, so the PR records the review. Format it with the workflow-pr-comments skill. After each round of fixes, run it again on the new commits only, within the same 3-round limit. If the `code-review` skill isn't available, review `gh pr diff <N>` yourself with the same bar.
 
 ## Threads
 
 List the findings with `gh api --paginate "repos/{owner}/{repo}/pulls/<N>/comments"`. Without `--paginate` you only get the first 30. Top-level findings have `in_reply_to_id == null`. Use `original_commit_id`, not `commit_id`, to tell which commit a finding was made against, because `commit_id` moves forward with each push.
 
-Reply in the thread:
+Reply in the thread, in the format of the workflow-pr-comments skill from this plugin. Write the reply to a file first, so the shell doesn't change its quotes or blank lines:
 
 ```bash
-gh api "repos/{owner}/{repo}/pulls/<N>/comments/<comment-id>/replies" -f body="Fixed in <sha>: <what changed>"
+reply=$(mktemp)
+cat > "$reply" <<'EOF'
+> [!NOTE]
+> 🤖 **<model> responding on behalf of <user>**
+
+Fixed in <sha>: <what changed>
+EOF
+gh api "repos/{owner}/{repo}/pulls/<N>/comments/<comment-id>/replies" -F body=@"$reply"
 ```
+
+Commands to bots, such as `@codex review ...` and `bugbot run`, are the exception: post them bare, with no callout.
 
 Resolving needs GraphQL, because the REST API can't resolve a thread:
 
@@ -180,3 +197,5 @@ Use this unless CLAUDE.md has its own triage rules.
 - **Otherwise**, open a follow-up issue (`gh issue create`) and reply with its link, or reply "by design" with the reason.
 - If a finding is wrong, say why instead of changing the code to make it go away.
 - Every finding gets a reply, and every thread gets resolved.
+
+Keep the PR the size the goal needs. Review loops grow a PR one cheap-looking fix at a time. Unneeded tests, guards for cases that don't matter, extra compatibility and small performance costs are follow-ups, not fixes now. When a fix is needed, prefer the one that deletes or narrows code.

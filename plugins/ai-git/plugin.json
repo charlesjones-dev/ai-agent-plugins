@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-git",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
   "author": {
     "name": "Charles Jones",

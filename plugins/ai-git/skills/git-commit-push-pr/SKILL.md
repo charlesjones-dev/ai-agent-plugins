@@ -112,18 +112,19 @@ The user can always type another branch name.
 
 ## Step 7: Open the PR
 
-1. `git fetch origin <target>`, then `git log origin/<target>..HEAD --oneline` and `git diff origin/<target>...HEAD` to see everything the PR includes.
-2. Create it with `gh pr create`:
-   - `--base <target>`
-   - A title under 70 characters.
-   - A body with 1-3 summary bullets and a test plan. The test plan lists only what was actually run: the preflight checks with `--preflight`, commands run in this session, or testing the user described. If nothing was run, write "Not tested" and one sentence on what needs checking.
+1. `git fetch origin <target>`, then `git log origin/<target>..HEAD --oneline` and `git diff origin/<target>...HEAD` to see everything the PR includes. Check that it matches the goal of the change, and nothing else.
+2. Write the title and body:
+   - **Title**: under 70 characters, in the style of the repo's recent PR titles (`gh pr list --state merged --limit 5 --json title`), since PR titles often become commit messages. Say what the change does for the user, not how it works: "Cut websocket message size by about 70% with compression", not "Negotiate permessage-deflate on the websocket".
+   - **Summary**: open with the problem in a sentence or two of plain words, as the user described it. Then say briefly how the change fixes it. Don't lead with a list of every file, function or entry point the change touches. Add up to 3 bullets only for changes a reviewer could miss.
+   - **Test plan**: list only what was actually run: the preflight checks with `--preflight`, commands run in this session, or testing the user described. If nothing was run, write "Not tested" and one sentence on what needs checking.
    - End the body with an attribution line for the agent running this skill: `🤖 Generated with [Claude Code](https://claude.com/claude-code)` in Claude Code, `🤖 Generated with [Codex](https://openai.com/codex)` in Codex, or `🤖 Generated with [Cursor](https://cursor.com)` in Cursor.
-   - Pass the body through a HEREDOC:
+   - Check the title and body, including anything quoted, for secrets and private details.
+3. Create it with `gh pr create` as a real PR, not a draft, so review bots run. Pass the body through a HEREDOC:
 
    ```bash
    gh pr create --base <target> --title "the pr title" --body "$(cat <<'EOF'
    ## Summary
-   <1-3 bullet points>
+   <the problem, then the fix, in a few sentences>
 
    ## Test plan
    <what was actually run>
@@ -133,7 +134,8 @@ The user can always type another branch name.
    )"
    ```
 
-3. Give the user the PR URL.
+   If it fails because the GitHub GraphQL rate limit is used up, open the PR through the REST API, which has its own limit. Write the body to a file, then run `gh api repos/{owner}/{repo}/pulls -f title="<title>" -f head=<branch> -f base=<target> -F body=@<file>`.
+4. Give the user the PR URL.
 
 ## Rules
 
@@ -144,3 +146,7 @@ The user can always type another branch name.
 - Never commit files that look like secrets.
 - No AI attribution in commit messages. The PR body ends with the line naming the agent that ran the skill.
 - If there is nothing to commit, say so and stop.
+
+---
+
+Step 7's guidance on PR titles and descriptions is adapted from `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne (MIT). See THIRD-PARTY-NOTICES.md in this plugin.

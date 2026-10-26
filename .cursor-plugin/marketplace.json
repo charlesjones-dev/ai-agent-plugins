@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Plugins for code audits, release checks, git workflows and writing cleanup in Claude Code, Codex and Cursor.",
-    "version": "3.1.0"
+    "version": "3.2.0"
   },
   "plugins": [
     {
@@ -18,7 +18,7 @@
       "name": "ai-git",
       "source": "plugins/ai-git",
       "description": "Generates .gitignore files, runs typecheck, lint, format, security and test checks before you commit, and commits, pushes and opens a PR with a message in your repo's style",
-      "version": "2.0.0"
+      "version": "2.1.0"
     },
     {
       "name": "ai-performance",
