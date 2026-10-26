@@ -58,7 +58,7 @@ Read the project's CLAUDE.md and the user's `~/.claude/CLAUDE.md` first. When th
 - **What to do when Claude Code review is off**: use the local review, proceed without it, or stop. Answers the step 0 question ahead of time.
 - **Deploy**: the host, which services to watch, health-check URLs for production and staging, and anything that must happen before or after a deploy (for example, starting a staging database before merging into staging, or tearing staging down afterwards).
 - **Merge method** for feature PRs.
-- **Council**: whether every run gets a council review before the PR opens, and which members sit on it.
+- **Council**: whether every run gets a council review before the PR opens. The members come from the saved council file, which `/workflow-council --setup` writes.
 
 ## Testing permission
 
@@ -95,7 +95,7 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
    - **Stop**: set up the action with Claude Code's built-in `/install-github-app` and run this skill again. To fix an existing workflow, run `/install-github-app` again and pick "Update workflow file with latest version".
 
    One answer covers the whole run, release PR included. Codex and Bugbot can only be detected once a PR is open (step 2), and their being off is never a reason to stop.
-9. **Council** (only with `--council`, or when CLAUDE.md asks for it): work out the members and check that each one is reachable, as the workflow-council skill describes: the T3 Code model list, or each provider's CLI installed and signed in. If one isn't, ask whether to run without it or skip the council.
+9. **Council** (only with `--council`, or when CLAUDE.md asks for it): work out the members as the workflow-council skill's Members section describes. If no council is saved, ask its first-run setup question now, with the other step 0 questions, and save the answer. Then check that each member is reachable: the T3 Code model list, or each provider's CLI installed and signed in. If one isn't, ask whether to run without it or skip the council.
 10. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. With `--to staging`, only staging's target matters, and `--to ready` skips this. If there is none, the run ends after the last merge and says so.
 
 ## 1. Finish, prove and open the PR

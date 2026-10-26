@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-10-26
+
+### Added
+
+#### AI-Workflow Plugin (v3.1.0 → v3.2.0)
+
+- **`/workflow-council` first-run setup** — the first time the council runs with no members named and none saved, it asks which models sit on it. The question lists only the models this machine can reach: T3 Code's providers, or in plain Claude Code a Claude subagent and the Codex, Grok and Cursor CLIs it finds. It recommends the newest Claude, GPT and Grok models. The answer goes to `~/.claude/workflow-council.json`, which the skill reads only when the council runs, so it adds nothing to other conversations. `--setup` asks again at any time, and `--setup repo` saves a council for one repository in `.claude/workflow-council.json`. Each member is a model family, such as "GPT Sol", that follows new releases, or an exact model ID that pins one model, with an optional effort and provider. The command's own arguments come first, then the repository's council, then the user's, then council members named in CLAUDE.md, which older setups use.
+- **`/workflow-babysit --council`** asks the first-run council question with its other start-of-run questions when no council is saved. An unattended council run never asks. It uses the built-in default and says in its report how to save a council.
+- Marketplace metadata version bumped `3.2.0` → `3.2.1`.
+
 ## [3.2.0] - 2026-10-26
 
 This release adapts skills from Theo Browne's [tstack](https://github.com/t3dotgg/tstack) (MIT) into ai-workflow and ai-git. Thank you, Theo. Each plugin ships a `THIRD-PARTY-NOTICES.md` with tstack's license and a list of the adapted files, and each adapted skill ends with a credit line.
@@ -1534,7 +1544,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...HEAD
+[3.2.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...v3.1.0
 [3.0.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.0...v3.0.1
