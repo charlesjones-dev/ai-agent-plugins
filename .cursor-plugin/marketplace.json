@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Plugins for code audits, release checks, git workflows and writing cleanup in Claude Code, Codex and Cursor.",
-    "version": "3.2.1"
+    "version": "3.2.2"
   },
   "plugins": [
     {

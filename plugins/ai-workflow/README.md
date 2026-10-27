@@ -100,6 +100,7 @@ Reviews a change in a loop with models from several providers, until they approv
 /workflow-council --rounds 5          # A longer budget
 /workflow-council --setup             # Choose your council again
 /workflow-council --setup repo        # Save a council for this repo only
+/workflow-council --base HEAD         # Review only the uncommitted changes
 ```
 
 **Requirements:** in T3 Code, nothing more. In plain Claude Code, the CLI for each provider on the council, installed and signed in. Each round costs a call to every member.
@@ -226,7 +227,7 @@ ai-git is a separate plugin. To keep using the moved skills, install it once wit
 
 - **Name:** AI-Workflow Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 3.2.0
+- **Version:** 3.2.1
 - **Skills:** `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, `/workflow-rules`, and `workflow-pr-comments`, which Claude runs by itself
 - **License:** MIT
 - **Author:** Charles Jones
