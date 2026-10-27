@@ -105,7 +105,7 @@ If the arguments name a PR, `gh pr checkout <N>`. Otherwise look for one: `gh pr
 Before anything is committed or pushed:
 
 1. **Finish the change.** If the request describes work that isn't done yet, do it now with the smallest change that meets the goal. Fix the case that happened, not every case that could.
-2. **Council review**, only with `--council` or when CLAUDE.md asks for it: run the workflow-council skill from this plugin (`ai-workflow:workflow-council`) with the members from step 0 and the argument `--unattended`. Let it finish before the PR opens, and keep its "Council review" section for the PR body. If it reports that a member changed files, stop.
+2. **Council review**, only with `--council` or when CLAUDE.md asks for it: run the workflow-council skill from this plugin (`ai-workflow:workflow-council`) with the members from step 0, the argument `--unattended`, and `--base` set to the merge base of `HEAD` and `origin/<the base from step 0>`, so commits already on that base stay out of the review. Let it finish before the PR opens, and keep its "Council review" section for the PR body. If it reports that a member changed files, stop.
 3. **Prove it.** Get [proof](#proof) for every change in the diff, including the council's fixes. If you can't, stop (see "When to stop").
 
 If the branch has no open PR:

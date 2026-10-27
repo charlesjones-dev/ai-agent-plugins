@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.2] - 2026-10-26
+
+### Added
+
+#### AI-Workflow Plugin (v3.2.0 → v3.2.1)
+
+- **`/workflow-council --base <ref>`** — sets the base the council compares against. `--base HEAD` reviews only the uncommitted changes, which suits work on a branch that stays ahead of the default branch, such as `staging`. Before, the council compared against the default branch, so it also reviewed earlier commits on that branch. Without `--base`, on such a branch the council now asks which base to use and recommends `HEAD`. Unattended runs use `HEAD` when there are uncommitted changes.
+
+### Fixed
+
+#### AI-Workflow Plugin (v3.2.0 → v3.2.1)
+
+- **`/workflow-babysit --council`** passes the merge base with the PR's own base branch, so a feature branch cut from `staging` no longer sends staging's unreleased commits to the council.
+
+- Marketplace metadata version bumped `3.2.1` → `3.2.2`.
+
 ## [3.2.1] - 2026-10-26
 
 ### Added
@@ -1544,7 +1560,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...HEAD
+[3.2.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.0.1...v3.1.0

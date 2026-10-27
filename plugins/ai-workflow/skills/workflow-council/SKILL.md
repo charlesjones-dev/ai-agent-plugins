@@ -1,7 +1,7 @@
 ---
 name: workflow-council
 description: "Reviews a change in a loop with models from several providers, by default the latest from Anthropic, OpenAI and xAI. Each round they review read-only and give a verdict and a score. It fixes what they're right about and pushes back with evidence on the rest, until they approve or the round budget runs out. With one member it's a second-opinion loop. The first run asks which models sit on the council and saves the answer. Use when the user says 'council', 'sol loop' or 'second opinion', or asks for a review from another provider's model."
-argument-hint: "[members, such as gpt,grok] [--setup [repo]] [--rounds N] [--unattended] [PR number] [what to review]"
+argument-hint: "[members, such as gpt,grok] [--base <ref>] [--setup [repo]] [--rounds N] [--unattended] [PR number] [what to review]"
 ---
 
 # /workflow-council - Cross-model review loop
@@ -77,8 +77,10 @@ Run `git status --short`. Don't stash, discard or include unrelated changes. If 
 
 Find the base after `git fetch origin`:
 
+- **`--base <ref>`**: use that ref as the base, and skip the rules below. `--base HEAD` reviews only the uncommitted changes. A request in plain words, such as "only the uncommitted changes", means the same.
 - **A PR**: `gh pr view <N> --json baseRefName,headRefOid`. Check out its branch only if the working tree is clean. Confirm that `HEAD` is the PR's head, or ahead of it only by this change. The base is `git merge-base HEAD origin/<baseRefName>`.
 - **Local work**: `git merge-base HEAD origin/<default branch>`. With no remote, use a base the user names, or `HEAD` for uncommitted changes only.
+- **A long-lived branch**: if the current branch is one that stays ahead of the default branch, such as `staging` or `develop`, the merge base would pull in earlier work the user didn't ask about. Ask which base to use, and recommend `HEAD` when there are uncommitted changes. With `--unattended`, use `HEAD` when there are uncommitted changes.
 
 The change is the base compared with the working tree in those paths, plus untracked files. Use the same diff command in every round. Write the intent and what's out of scope in one or two sentences.
 
