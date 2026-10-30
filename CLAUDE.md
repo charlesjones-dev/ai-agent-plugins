@@ -29,6 +29,8 @@ Each plugin has a Claude Code manifest at `plugins/{plugin-name}/.claude-plugin/
 
 `python3 scripts/check-manifests.py` checks that all of these agree. Run it after any manifest, catalog or skill frontmatter change.
 
+`python3 scripts/test-statusline.py` runs ai-statusline's Bash and PowerShell templates (the fenced blocks in `statusline-wizard/SKILL.md`) against sample payloads. Run it after changing either template. It skips the PowerShell cases when `pwsh` isn't installed.
+
 ### Plugin Organization
 
 Plugins are organized under the `plugins/` directory:

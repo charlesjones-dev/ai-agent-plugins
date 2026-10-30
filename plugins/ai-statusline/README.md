@@ -12,6 +12,12 @@
 Opus 5 (1M context) · high · 420k/1000k ▓▓▓▓░░░░░░ 42% · 5h:12% 7d:4% · my-project · main · 5m 23s · 2:45pm · v2.1.80
 ```
 
+On an account without a 5-hour limit, such as a verified Ultra plan, the rate-limit segment shows the weekly window alone:
+
+```
+Opus 5 (1M context) · high · 420k/1000k ▓▓▓▓░░░░░░ 42% · 7d:4% · my-project · main · 5m 23s · 2:45pm · v2.1.312
+```
+
 On an Enterprise or API seat with a monthly spend cap (no 5h/7d rate limits), with the optional spend budget enabled:
 
 ```
@@ -69,7 +75,7 @@ The wizard asks about four categories of display options:
    - Session cost (disabled by default)
 
 4. **Usage Limits** (how close you are to your plan's limits)
-   - Rate limit usage - 5h and 7d windows (Pro/Max plans)
+   - Rate limit usage - 5h and 7d windows (Pro, Max and Ultra plans; each window shows only when your plan has it)
    - Monthly spend budget - month-to-date spend across sessions on this machine (disabled by default; prompts for your monthly cap in USD and when it resets)
 
 ### `/statusline-edit`
@@ -134,7 +140,7 @@ Edit your existing status line configuration.
 | Current time | On | Display current time |
 | Claude Code version | On | Display Claude Code version number |
 | Session cost | Off | Display session cost in USD |
-| Rate limit usage | On | Display 5-hour and 7-day rate limit percentages (hidden on accounts without rolling windows) |
+| Rate limit usage | On | Display 5-hour and 7-day rate limit percentages. Each window is hidden when your account doesn't have it |
 | Monthly spend budget | Off | Display month-to-date spend across all sessions on this machine, e.g. `mo:$47.20/$2000 2.4%` |
 | Monthly spend cap | 0 (none) | USD cap used for the spend budget percentage and colors; `0` shows the bare total |
 | Spend cap reset | 1st, 00:00 UTC | Day of month (1-28) and time (UTC) the cap resets; the wizard converts what the console shows into UTC |
@@ -163,7 +169,15 @@ Shows your 5-hour and 7-day rate limit usage with color coding:
 5h:92% 7d:85%   (Red - 80%+)
 ```
 
-**Not on every plan:** Claude Code only sends `rate_limits` for plans with rolling usage windows (Pro/Max). Enterprise seats and API-billed accounts on a monthly spend cap receive no rate-limit data at all, so this segment stays hidden even when enabled. Use the Monthly Spend Budget segment below instead.
+**Not on every plan:** Claude Code only sends `rate_limits` for plans with rolling usage windows (Pro, Max and Ultra). Enterprise seats and API-billed accounts on a monthly spend cap receive no rate-limit data at all, so this segment stays hidden even when enabled. Use the Monthly Spend Budget segment below instead.
+
+**Accounts without a 5-hour limit:** Anthropic renamed its plans: Max 5x is now Max, and Max 20x is now Ultra. Verified Ultra accounts no longer have a 5-hour limit. Newer Ultra accounts keep one until they're verified. Weekly limits don't change. Without a 5-hour limit, Claude Code sends no `five_hour` window, so the segment shows the weekly window alone:
+
+```
+7d:4%
+```
+
+The script checks each window on its own. It leaves out a window whose `used_percentage` or `resets_at` is missing, null or not a number, so you don't see `5h:0%`, `N/A` or an extra separator. When neither window is usable, the whole segment disappears.
 
 ### Monthly Spend Budget
 
@@ -345,6 +359,10 @@ Install jq using your package manager (see Requirements section above).
 
 Your account has no rolling rate-limit windows, so Claude Code doesn't send `rate_limits` in the status line payload. This is expected for Enterprise seats and API-billed accounts on a monthly spend cap. Enable the Monthly Spend Budget segment (`SHOW_SPEND_BUDGET=true`) for a comparable month-to-date view.
 
+### Only the 7d window appears
+
+Your account has no 5-hour limit, as on a verified Ultra plan, so Claude Code sends only the weekly window. This is expected. Run `/usage` in Claude Code to see which limits your plan has. If your script was generated before version 1.5.2, re-run `/statusline-wizard` to get the newer rate-limit code.
+
 ### Spend budget only shows the current session
 
 The script couldn't write to `~/.claude/statusline-spend/` (read-only home directory or `HOME` not set), so it fell back to the current session's cost. Make that directory writable to restore cross-session totals.
@@ -354,7 +372,7 @@ The script couldn't write to `~/.claude/statusline-spend/` (read-only home direc
 ## Plugin Details
 
 - **Name:** AI-Statusline
-- **Version:** 1.5.1
+- **Version:** 1.5.2
 - **Type:** UI Customization
 - **Features:**
   - Skills: `/statusline-wizard`, `/statusline-edit`

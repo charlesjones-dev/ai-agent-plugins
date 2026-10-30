@@ -45,7 +45,7 @@ On Windows, leave out the Sandbox indicator option. The sandbox doesn't run on n
 - Session cost - NOT selected by default
 
 **Question 4 - Usage Limits** (multiSelect: true):
-- Rate limit usage (5h/7d) - default selected. Description: "Only shown on plans with rolling rate-limit windows (Pro/Max). Enterprise and API seats billed against a monthly spend cap have no rate limits, so the segment stays hidden — pick Monthly spend budget instead."
+- Rate limit usage (5h/7d) - default selected. Description: "Only shown on plans with rolling rate-limit windows (Pro, Max and Ultra). Each window shows only when your plan has it, so an account without a 5-hour limit shows 7d alone. Enterprise and API seats billed against a monthly spend cap have no rate limits, so the segment stays hidden. Pick Monthly spend budget instead."
 - Monthly spend budget (mo:$47.20/$2000 2.4%) - NOT selected by default. Description: "Month-to-date spend across all Claude Code sessions on this machine, as estimated locally by Claude Code. Counts only sessions rendered after setup."
 
 AskUserQuestion allows at most 4 options per question, so rate limits and spend budget live in their own question rather than in Session Display.
@@ -140,7 +140,7 @@ Use the AskUserQuestion tool to gather user preferences. Group questions logical
 - Show Claude Code version (default: yes)
 
 **Question 4: Usage Limits**
-- Show rate limit usage - 5h and 7d windows (default: yes; hidden automatically on accounts without rolling windows)
+- Show rate limit usage - 5h and 7d windows (default: yes; each window is hidden automatically when the account doesn't have it, such as the 5h window on an Ultra account without a 5-hour limit)
 - Show monthly spend budget - month-to-date spend across all sessions on this machine (default: no)
 
 **Questions 5-6: Monthly spend cap and reset** (only when monthly spend budget was selected)
@@ -210,7 +210,7 @@ SHOW_COST=false           # Show session cost (useful for API/Pro users)
 SHOW_DURATION=true        # Show session duration
 SHOW_TIME=true            # Show current time
 SHOW_VERSION=true         # Show Claude Code version
-SHOW_RATE_LIMITS=true     # Show rate limit usage (5h/7d windows; absent on Enterprise/API spend-cap seats)
+SHOW_RATE_LIMITS=true     # Show rate limit usage (5h/7d windows; a window the account doesn't have is hidden)
 SHOW_SPEND_BUDGET=false   # Show month-to-date spend across all sessions on this machine (e.g., "mo:$47.20/$2000 2.4%")
 SPEND_LIMIT_USD=0         # Monthly spend cap in USD for the spend segment (0 = no cap, show bare total)
 SPEND_RESET_DAY=1         # Day of the month (1-28) the spend cap resets, in UTC
@@ -471,9 +471,20 @@ else
 fi
 
 # Rate limits (5h/7d windows)
+# Prints a window's used percentage, capped at 100, or nothing when the window is
+# missing, null or malformed. A window counts only with a numeric used_percentage and
+# a positive resets_at, so an account without a 5-hour limit shows 7d alone, not 5h:0%.
+rate_limit_pct() {
+  echo "$input" | jq -r --arg w "$1" '
+    .rate_limits | objects | .[$w] | objects
+    | select((.used_percentage | type) == "number" and .used_percentage >= 0
+        and (.resets_at | type) == "number" and .resets_at > 0)
+    | [.used_percentage, 100] | min | (. * 100 | round) / 100' 2>/dev/null
+}
+
 if [ "$SHOW_RATE_LIMITS" = true ]; then
-  rl_5h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty | (. * 100 | round) / 100')
-  rl_7d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty | (. * 100 | round) / 100')
+  rl_5h=$(rate_limit_pct five_hour)
+  rl_7d=$(rate_limit_pct seven_day)
 
   rl_segment=""
 
@@ -626,7 +637,7 @@ $SHOW_COST = $false           # Show session cost (useful for API/Pro users)
 $SHOW_DURATION = $true        # Show session duration
 $SHOW_TIME = $true            # Show current time
 $SHOW_VERSION = $true         # Show Claude Code version
-$SHOW_RATE_LIMITS = $true     # Show rate limit usage (5h/7d windows; absent on Enterprise/API spend-cap seats)
+$SHOW_RATE_LIMITS = $true     # Show rate limit usage (5h/7d windows; a window the account doesn't have is hidden)
 $SHOW_SPEND_BUDGET = $false   # Show month-to-date spend across all sessions on this machine (e.g., "mo:$47.20/$2000 2.4%")
 $SPEND_LIMIT_USD = 0          # Monthly spend cap in USD for the spend segment (0 = no cap, show bare total)
 $SPEND_RESET_DAY = 1          # Day of the month (1-28) the spend cap resets, in UTC
@@ -812,21 +823,36 @@ if ($null -ne $usage -and $size -gt 0) {
 }
 
 # Rate limits (5h/7d windows)
+# Returns a window's used percentage, capped at 100, or $null when the window is
+# missing, null or malformed. A window counts only with a numeric used_percentage and
+# a positive resets_at, so an account without a 5-hour limit shows 7d alone, not 5h:0%.
+function Get-RateLimitPercent {
+    param ($Window)
+    if ($Window -isnot [System.Management.Automation.PSCustomObject]) { return $null }
+    $used = $Window.used_percentage
+    $resets_at = $Window.resets_at
+    foreach ($value in $used, $resets_at) {
+        if (-not ($value -is [int] -or $value -is [long] -or $value -is [double] -or $value -is [decimal])) { return $null }
+    }
+    if ([double]::IsNaN([double]$used) -or $used -lt 0 -or $resets_at -le 0) { return $null }
+    return [math]::Round([math]::Min([double]$used, 100), 2)
+}
+
 if ($SHOW_RATE_LIMITS) {
     $rl = $data.rate_limits
-    if ($null -ne $rl) {
+    if ($rl -is [System.Management.Automation.PSCustomObject]) {
         $rl_parts = @()
 
-        if ($null -ne $rl.five_hour) {
-            $rl_5h = [math]::Round($rl.five_hour.used_percentage, 2)
+        $rl_5h = Get-RateLimitPercent $rl.five_hour
+        if ($null -ne $rl_5h) {
             if ($rl_5h -lt 50) { $rl_5h_color = $green }
             elseif ($rl_5h -lt 80) { $rl_5h_color = $yellow }
             else { $rl_5h_color = $red }
             $rl_parts += "${rl_5h_color}5h:${rl_5h}%$reset"
         }
 
-        if ($null -ne $rl.seven_day) {
-            $rl_7d = [math]::Round($rl.seven_day.used_percentage, 2)
+        $rl_7d = Get-RateLimitPercent $rl.seven_day
+        if ($null -ne $rl_7d) {
             if ($rl_7d -lt 50) { $rl_7d_color = $green }
             elseif ($rl_7d -lt 80) { $rl_7d_color = $yellow }
             else { $rl_7d_color = $red }
@@ -963,7 +989,7 @@ Write-Host -NoNewline ($segments -join $sep)
 | SHOW_DURATION | true | Display session duration |
 | SHOW_TIME | true | Display current time |
 | SHOW_VERSION | true | Display Claude Code version |
-| SHOW_RATE_LIMITS | true | Display rate limit usage (5h/7d windows); hidden when the payload has no `rate_limits` |
+| SHOW_RATE_LIMITS | true | Display rate limit usage (5h/7d windows). Each window is hidden when the payload has no usable one, so an account without a 5-hour limit shows `7d` alone. The whole segment is hidden when the payload has no `rate_limits` |
 | SHOW_SPEND_BUDGET | false | Display month-to-date spend across all sessions on this machine (e.g., "mo:$47.20/$2000 2.4%") |
 | SPEND_LIMIT_USD | 0 | Monthly spend cap in USD for the spend segment; `0` = no cap, show the bare total |
 | SPEND_RESET_DAY | 1 | Day of the month (1-28) the spend cap resets, in UTC; invalid values fall back to 1 |
@@ -989,7 +1015,8 @@ The spend segment exists for accounts that have no rolling rate limits (Enterpri
 - The effort segment reads `.effort.level` from the status line payload and is hidden entirely when the current model doesn't support the effort parameter (the field is absent)
 - Effort colors match the `/effort` picker: yellow (low), green (medium), light purple (high), dark purple (xhigh), per-character rainbow (max), and a purple-explosion `✦ultracode✦` treatment
 - Ultracode reports as plain `xhigh` in the payload, so the scripts detect it by grepping the session transcript (`.transcript_path`) for the most recent `/effort` command output ("Set effort level to …"); if a session starts in ultracode without `/effort` ever being run, it displays as `xhigh`
-- The rate-limit segment reads `.rate_limits.five_hour` / `.rate_limits.seven_day`, which the host only sends for plans with rolling usage windows (Pro/Max). Enterprise seats and API-billed accounts on a monthly spend cap receive no `rate_limits` key at all, so with `SHOW_RATE_LIMITS=true` the segment is hidden rather than showing zeros. Those users should enable `SHOW_SPEND_BUDGET` (and set `SPEND_LIMIT_USD` to their cap) to get a comparable month-to-date view
+- The rate-limit segment reads `.rate_limits.five_hour` / `.rate_limits.seven_day`, which the host only sends for plans with rolling usage windows (Pro, Max and Ultra). Enterprise seats and API-billed accounts on a monthly spend cap receive no `rate_limits` key at all, so with `SHOW_RATE_LIMITS=true` the segment is hidden rather than showing zeros. Those users should enable `SHOW_SPEND_BUDGET` (and set `SPEND_LIMIT_USD` to their cap) to get a comparable month-to-date view
+- Each rate-limit window renders on its own, and only when it has a numeric `used_percentage` and a positive `resets_at` (Unix epoch seconds). Verified Ultra accounts have no 5-hour limit, so the host sends no `five_hour` window and the segment shows `7d:` alone. Newer Ultra accounts keep a 5-hour limit until they're verified. A window that is missing, null, empty or malformed is left out, never shown as `0%` or `N/A`, and leaves no extra separator or space. Values above 100 are capped at 100
 - The context percentage prefers the host-provided `.context_window.used_percentage` (newer Claude Code versions) and falls back to computing it from `current_usage` for older versions
 - The status line payload has no sandbox field, so the sandbox segment resolves `sandbox.enabled` from the settings layers in Claude Code's order, where the first layer that sets it wins: managed settings (`managed-settings.json` and `managed-settings.d/` in `/Library/Application Support/ClaudeCode/` or `/etc/claude-code/`), `--settings` on the `claude` command line (inline JSON or a file path, read from the process found through `$CLAUDE_PID` or by walking up the process tree), `.claude/settings.local.json` (at the repository root, or the main checkout's root in a worktree, then the starting directory), `.claude/settings.json` in `workspace.project_dir`, and `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`). A `/sandbox` change shows up on the next render
 - The sandbox segment shows the configured state. It can't read MDM profiles or server-managed settings, and on Linux and WSL2 it stays hidden when `bwrap` or `socat` is missing, because the sandbox can't start without them. Other startup failures, such as an AppArmor rule that blocks bubblewrap, aren't detected, so for an audit, confirm with a probe such as `touch ~/sandbox-probe`, which should fail
