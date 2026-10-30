@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.3] - 2026-10-30
+
+### Added
+
+- **`scripts/test-statusline.py`**: runs ai-statusline's Bash and PowerShell templates, taken straight from `statusline-wizard/SKILL.md`, against sample status line payloads. It covers both rate-limit windows, no 5-hour window, a null window, the weekly window only, no windows, and malformed windows. A case fails on the wrong line, a non-zero exit, any stderr output or an empty color code. The PowerShell cases run only when `pwsh` or `powershell` is on the PATH.
+
+### Changed
+
+#### AI-Statusline Plugin (v1.5.1 → v1.5.2)
+
+- **Plan names**: the wizards and the README say "Pro, Max and Ultra" where they said "Pro/Max", because Max 5x is now Max and Max 20x is now Ultra. The README explains the 5-hour change, with an example status line and a troubleshooting entry for a status line that shows only `7d`.
+
+### Fixed
+
+#### AI-Statusline Plugin (v1.5.1 → v1.5.2)
+
+- **Accounts without a 5-hour limit**: verified Ultra accounts no longer have a 5-hour limit, so Claude Code sends only the weekly window. Both script templates now check each rate-limit window on its own and show it only when it has a numeric `used_percentage` and a positive `resets_at`. A missing, null, empty or malformed window is left out, so these accounts see `7d:4%` alone, with no `5h:0%`, no `N/A` and no extra separator. When neither window is usable, the segment disappears, as it did before.
+- **Malformed rate-limit data**: both templates showed values such as `5h:-5%` and `5h:250%`, and showed `5h:0%` for a window with no reset time. The PowerShell template also showed `5h:0%` for an empty window or a null `used_percentage`, and printed `MethodException` errors for a text or boolean value. The Bash template printed jq errors to stderr when a window or its `used_percentage` was a string, an array or a boolean. Both templates now leave such a window out, and cap a value above 100 at 100.
+- Existing status lines keep their old code until you re-run `/statusline-wizard`. `/statusline-edit` now says so when it finds a script generated before 1.5.2.
+
+- Marketplace metadata version bumped `3.2.2` → `3.2.3`.
+
 ## [3.2.2] - 2026-10-26
 
 ### Added
@@ -1560,7 +1582,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...HEAD
+[3.2.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...v3.2.1
 [3.2.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.1.0...v3.2.0

@@ -1,6 +1,6 @@
 {
   "name": "ai-statusline",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Builds on Claude Code's native /statusline with a context progress bar, 5h/7d rate limits, a month-to-date spend budget for Enterprise/API seats without rate limits, the reasoning-effort level, a sandbox indicator, cost and duration, and a wizard to change any of it",
   "author": {
     "name": "Charles Jones",

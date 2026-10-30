@@ -50,6 +50,8 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
    The last command checks that the catalogs, both manifest formats and the Codex policy files agree.
 
+   If you change ai-statusline's script templates, also run `python3 scripts/test-statusline.py`. It needs `jq`, and it runs the PowerShell template only when `pwsh` is installed.
+
    Then, from a project to try it on, start Claude Code with the plugin loaded from your clone and run the skill you changed as `/{plugin-name}:{skill-name}`:
 
    ```
