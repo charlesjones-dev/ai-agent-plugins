@@ -1,6 +1,6 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.2.3-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
@@ -22,7 +22,7 @@ Each skill is a command you run by name, such as `/git-init` in Claude Code and 
 | [ai-modernize](plugins/ai-modernize/) | Technical debt audits for code written with older AI models | `/modernize-audit` | Claude Code, Codex, Cursor |
 | [ai-performance](plugins/ai-performance/) | Performance bottleneck audits with an impact score for each finding | `/performance-audit` | Claude Code, Codex, Cursor |
 | [ai-security](plugins/ai-security/) | Security audits with Markdown/JSON reports that track findings across runs, a planner for sandboxed audits on a stronger model, a live-site dependency scan, and settings and supply-chain hardening. Complements native `/security-review` | `/security-init`, `/security-audit`, `/security-cvp-audit`, `/security-scan-dependencies`, `/security-supply-chain` | Claude Code |
-| [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). Also applies framework-specific fixes, writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt` | Claude Code, Codex, Cursor |
+| [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). Also crawls the live site to check what search engines get, applies framework-specific fixes, and writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt` | Claude Code, Codex, Cursor |
 | [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround | `/slop-audit`, `/slop-rewrite`, `/slop-comments` | Claude Code, Codex, Cursor |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | Claude Code |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | Claude Code, Codex, Cursor |

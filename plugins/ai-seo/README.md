@@ -1,6 +1,6 @@
 # AI-SEO Plugin
 
-**Audits a site's code for search rankings, direct answers and citations in AI answers, and fixes what it finds, in Claude Code, Codex and Cursor.** It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
+**Audits a site's code for search rankings, direct answers and citations in AI answers, crawls the live site to check what search engines get, and fixes what it finds, in Claude Code, Codex and Cursor.** It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
 
 ---
 
@@ -27,6 +27,8 @@ What the engines themselves say:
 - **Microsoft** (Bing and Copilot) is more specific: direct questions with clear answers, one- to two-sentence responses, self-contained sentences, lists and tables, important answers that aren't hidden in tabs or expandable menus, and schema markup.
 
 No AI provider publishes how it picks answers or citations, so the AEO and GEO lenses treat their checks as things that raise the odds, prefer changes that also help readers, and mark heuristics with 🧪.
+
+`/seo-crawl` covers what the code can't show. A site can be live and still not be findable: the served HTML can be an empty shell, unknown URLs can return 200, robots.txt can mean something other than what its author meant, and headers or redirects in the repo may never reach production. The crawl fetches the deployed site the way search engines do, traces each problem to the file or host setting behind it, and says whether fixing it is worth the effort.
 
 ---
 
@@ -55,13 +57,14 @@ New audits go to `docs/seo-audit/`. Reports already in `docs/aeo-audit/` and `do
 | Command | Purpose |
 |---------|---------|
 | `/seo-audit [seo\|aeo\|geo\|all]` | Audit the site through one or more lenses and write a timestamped report with a score per lens. Optional live URL check and web search for brand mentions. |
+| `/seo-crawl [URL]` | Crawl the live site as Googlebot and a browser, read-only, and report what search engines get, where each fix goes, and whether the fixes are worth it. Works with or without the site's repo. |
 | `/seo-fix` | Apply fixes from the newest audit, whatever lenses it covers, with a diff for each change. Supports `--dry-run`. |
 | `/seo-schema` | Generate and validate JSON-LD structured data, including Organization and Person with `sameAs` and FAQPage or QAPage. |
 | `/seo-faq` | Build, update or validate visible FAQ sections and, if you want it, their FAQPage or QAPage markup. Supports `--dry-run`. |
 | `/seo-questions` | Map the questions the site should answer to the page that answers each one, and find gaps and competing pages. |
 | `/seo-llms-txt` | Generate, update or validate `llms.txt` and `llms-full.txt`. Supports `--dry-run`. |
 
-All six run only when you call them. Each asks for what its arguments leave out, and runs with documented defaults when no one is there to answer.
+All seven run only when you call them. Each asks for what its arguments leave out, and runs with documented defaults when no one is there to answer.
 
 ### `/seo-audit`
 
@@ -158,6 +161,27 @@ Full report: docs/seo-audit/seo-audit-all-2026-10-11-143022.md
 Index:       docs/seo-audit/README.md
 Latest:      docs/seo-audit/latest.md
 ```
+
+### `/seo-crawl`
+
+```
+/seo-crawl                                  # finds the production URL in the repo, or asks
+/seo-crawl https://example.com
+/seo-crawl https://example.com pages=80 staging=https://staging.example.com save=yes
+```
+
+`/seo-audit` reads the code. `/seo-crawl` asks the deployed site, with curl only, what a crawler gets. It works on any kind of site: static, single-page app, server-rendered, or a hosted platform such as WordPress or Shopify. With the repo in the working directory it ties each finding to a file and line. Without one it names the host or platform setting instead.
+
+1. **Maps the site.** It works out the framework, the rendering mode for each group of routes, the hosting chain (origin, proxy, CDN), the pages meant to rank and the routes behind login. It also checks which of the repo's header and redirect files the running host reads. `_headers`, `_redirects`, `vercel.json` and `serve.json` each work only on their own host.
+2. **Runs three passes,** as parallel subagents when the agent supports them, or one after another:
+   - **Crawl and index:** the same HTML for the Googlebot smartphone, Googlebot desktop and browser user agents, the title and content present without JavaScript, status codes, redirects and URL variants, soft 404s, login and token routes, canonical and robots signals, hreflang, and staging and API hosts.
+   - **Robots, sitemaps and structured data:** robots.txt parsed under RFC 9309, including a named group such as `User-agent: Googlebot` that silently drops every `*` rule, every sitemap URL fetched and checked against its canonical, and JSON-LD that parses and matches the visible page.
+   - **Page quality and delivery:** titles, descriptions, headings, images, social cards, icons, the compressed and decoded size of render-blocking files, caching, fonts, PageSpeed Insights data, mobile input sizes, security headers on static and server-rendered pages, and links.
+3. **Re-checks** every high and medium finding itself before it reports, and rules out the usual false alarms: a challenge only for the spoofed user agent, an IP allowlist that lets your own requests into staging, and a repo that differs from what's deployed.
+4. **Reports** the Googlebot check, a findings table with the evidence (the command and its output) and where each fix goes, what already looks good, a `yes`, `partly` or `no` verdict, and follow-ups such as Search Console checks.
+5. **Offers the fixes.** Nothing changes until you pick them. Repo changes come with diffs and the project's own build, lint and tests. Host and CDN changes come as exact steps, made through the provider's API only when you ask and supply access.
+
+The crawl sends only GET and HEAD requests, one at a time at about one per second, with no logins, scanners or guessed paths, and stays under about 600 requests. Run it only against sites you own or are authorized to test. It bundles `crawl_facts.py`, a standard-library Python parser for the saved robots.txt, HTML, sitemap and image files. With `save=yes` the report goes to `docs/seo-audit/`, and the next saved crawl lists what was fixed, what is still open and what is new.
 
 ### `/seo-fix`
 
@@ -382,6 +406,8 @@ docs/seo-audit/
 ├── seo-audit-aeo-2026-10-04-091544.md
 ├── question-map-latest.md                     # Copy of the newest question map
 ├── question-map-2026-10-04-150110.md          # Timestamped question maps
+├── crawl-latest.md                            # Copy of the newest saved /seo-crawl report
+├── crawl-2026-10-12-091500.md                 # Timestamped crawls, saved with save=yes
 ├── faq-validation-2026-10-04-152245.md        # Optional /seo-faq validation results
 └── llms-txt-validation-2026-10-04-153010.md   # Optional /seo-llms-txt validation results
 ```
@@ -395,7 +421,7 @@ The index has one row per audit:
 
 **Trend indicators** compare each lens with the previous audit that covered it: 📈 improved (score up ≥3), 📉 regressed (score down ≥3), ➡️ unchanged (±2). 🔄 marks a GEO score that can't be compared because the previous GEO audit came from ai-geo before 1.2.0, which used different categories. An index from ai-seo 1.x is converted to this format on the next audit.
 
-Timestamped files are never overwritten. `latest.md` and `question-map-latest.md` are file copies, not symlinks, so they work on every platform.
+Timestamped files are never overwritten. `latest.md`, `question-map-latest.md` and `crawl-latest.md` are file copies, not symlinks, so they work on every platform. Saved crawls get their own **Crawls** table in the index, with the URL, page count, findings by severity and the verdict.
 
 ---
 
@@ -433,7 +459,8 @@ Restart Claude Code after installing. In Codex or Cursor, add Context7 through t
 
 ## Limits
 
-- The audit is static analysis of HTML, JSX, Vue, Svelte and Astro files and their config. Apart from the optional live check, it sends no HTTP requests, so it can't measure real LCP, CLS or INP (use PageSpeed Insights or Chrome DevTools) or check external links for 404s.
+- `/seo-audit` is static analysis of HTML, JSX, Vue, Svelte and Astro files and their config. Apart from the optional live check, it sends no HTTP requests, so it can't measure real LCP, CLS or INP or check external links for 404s. `/seo-crawl` covers the live site.
+- `/seo-crawl` sees what the server sends to a spoofed crawler user agent, not what real Googlebot got, because CDNs verify crawlers by IP address. It doesn't run JavaScript, and its Core Web Vitals numbers come only from the PageSpeed Insights API, whose free quota is small. Search Console and Bing Webmaster Tools remain the only proof of what's indexed.
 - Accessibility coverage is limited to the SEO overlap. For WCAG 2.1/2.2 compliance, use `/accessibility-audit` from ai-accessibility.
 - It can't see which queries show a featured snippet today or who holds it. Engines choose answers themselves and change how they do it often, and third-party tracking shows featured snippets on fewer results as AI Overviews spread.
 - Voice assistants now run on large models with their own sources, which can't be tested from code.
@@ -470,8 +497,9 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 # 1. Map the questions your pages should answer (optional, improves the AEO lens)
 /seo-questions
 
-# 2. Baseline audit of all three lenses
+# 2. Baseline audit of all three lenses, plus a crawl of the live site
 /seo-audit all
+/seo-crawl https://example.com save=yes
 
 # 3. Review docs/seo-audit/latest.md, then preview and apply fixes
 /seo-fix --dry-run
@@ -482,8 +510,9 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 /seo-faq
 /seo-llms-txt
 
-# 5. Re-audit to confirm; the trend arrows should point up
+# 5. After the deploy, re-audit and re-crawl to confirm; the trend arrows should point up
 /seo-audit all
+/seo-crawl https://example.com save=yes
 ```
 
 ---
@@ -505,8 +534,8 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 
 - **Name:** AI-SEO Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Skills:** `/seo-audit`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`
-- **Version:** 2.0.0
+- **Skills:** `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`
+- **Version:** 2.1.0
 - **License:** MIT
 - **Author:** Charles Jones
 

@@ -1,6 +1,6 @@
 # Output Folder and Index
 
-`/seo-audit` and `/seo-questions` both write to `<docs-dir>/seo-audit/` and keep one index file, `README.md`, in it. `<docs-dir>` is an existing `docs/`, `documentation/` or `.docs/` folder (checked in that order), or `docs/` when none exists.
+`/seo-audit`, `/seo-questions` and `/seo-crawl` (with `save=yes`) write to `<docs-dir>/seo-audit/` and keep one index file, `README.md`, in it. `<docs-dir>` is an existing `docs/`, `documentation/` or `.docs/` folder (checked in that order), or `docs/` when none exists.
 
 ## Folder Layout
 
@@ -11,13 +11,15 @@
 ├── seo-audit-<lenses>-YYYY-MM-DD-HHMMSS.md     # Audits from /seo-audit
 ├── question-map-latest.md                      # Copy of the newest question map
 ├── question-map-YYYY-MM-DD-HHMMSS.md           # Question maps from /seo-questions
+├── crawl-latest.md                             # Copy of the newest saved crawl
+├── crawl-YYYY-MM-DD-HHMMSS.md                  # Live-site crawls from /seo-crawl save=yes
 ├── faq-validation-YYYY-MM-DD-HHMMSS.md         # Optional /seo-faq validation results
 └── llms-txt-validation-YYYY-MM-DD-HHMMSS.md    # Optional /seo-llms-txt validation results
 ```
 
 `<lenses>` in an audit's file name is `all` for all three lenses, or the audited lenses in the order seo, aeo, geo joined by hyphens (`seo`, `aeo-geo`). Audits named `seo-audit-YYYY-MM-DD-HHMMSS.md`, with no lens, came from ai-seo 1.x and cover the SEO lens.
 
-Timestamped files are never overwritten. `latest.md` and `question-map-latest.md` are file copies, not symlinks, so they work on every platform.
+Timestamped files are never overwritten. `latest.md`, `question-map-latest.md` and `crawl-latest.md` are file copies, not symlinks, so they work on every platform.
 
 Before ai-seo 2.0.0, the ai-aeo and ai-geo plugins wrote to `<docs-dir>/aeo-audit/` and `<docs-dir>/geo-audit/`. Leave those folders and their files where they are. The skills still read them: `/seo-fix` and `/seo-audit`'s trend comparison look there for earlier AEO and GEO audits, and `/seo-audit`, `/seo-faq` and `/seo-questions` look for an earlier `question-map-latest.md` in `aeo-audit/`.
 
@@ -46,6 +48,14 @@ Trend compares each score with the previous audit that covered the same lens: �
 
 **Latest map:** [question-map-latest.md](./question-map-latest.md)
 
+## Crawls
+
+| Date | URL | Pages | High | Medium | Low | Verdict | Report |
+|------|-----|-------|------|--------|-----|---------|--------|
+| <YYYY-MM-DD HH:MM:SS> | <canonical URL> | <n> | <n> | <n> | <n> | <yes / partly / no> | [<filename>](./<filename>) |
+
+**Latest crawl:** [crawl-latest.md](./crawl-latest.md)
+
 ## Earlier Audits
 
 AEO and GEO audits from before ai-seo 2.0.0, when they came from the ai-aeo and ai-geo plugins, stay in [../aeo-audit/](../aeo-audit/README.md) and [../geo-audit/](../geo-audit/README.md).
@@ -53,9 +63,10 @@ AEO and GEO audits from before ai-seo 2.0.0, when they came from the ai-aeo and 
 
 ## Update Rules
 
-- `/seo-audit` adds one row to **Audits** per audit. `/seo-questions` adds one row to **Question Maps** per map. Each leaves the other table as it is.
+- `/seo-audit` adds one row to **Audits** per audit. `/seo-questions` adds one row to **Question Maps** per map. `/seo-crawl` adds one row to **Crawls** per saved crawl. Each leaves the other tables as they are.
 - Preserve existing rows and sort each table newest first.
 - **Critical** is the audit's Critical count across all the lenses it covers. **Gaps** is a map's ❌ Missing count.
 - If `README.md` doesn't exist, create it from the template. A table with no rows yet gets one row reading `None yet`, and its "Latest" line reads "run `/seo-audit`" or "run `/seo-questions`" instead of linking a file that doesn't exist.
 - If `README.md` is in the ai-seo 1.x format (one table with the columns `Date | Score | Grade | Critical | Trend | Report`), convert it: each old row becomes an **Audits** row with Lenses `SEO`, its score, grade and trend in the SEO column, and — under AEO and GEO. Keep the links.
+- Include **Crawls** only when the folder holds a crawl report. `/seo-audit` and `/seo-questions` keep it as it is.
 - Include **Earlier Audits** only when `<docs-dir>/aeo-audit/` or `<docs-dir>/geo-audit/` exists, and link only the folders that exist.

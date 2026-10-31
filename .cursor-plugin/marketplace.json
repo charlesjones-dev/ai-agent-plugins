@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Plugins for code audits, release checks, git workflows and writing cleanup in Claude Code, Codex and Cursor.",
-    "version": "3.2.3"
+    "version": "3.3.0"
   },
   "plugins": [
     {
@@ -41,8 +41,8 @@
     {
       "name": "ai-seo",
       "source": "plugins/ai-seo",
-      "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO). Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
-      "version": "2.0.0"
+      "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO), and crawls the live site to check what search engines get. Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
+      "version": "2.1.0"
     },
     {
       "name": "ai-swift",

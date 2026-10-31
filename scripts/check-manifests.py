@@ -49,7 +49,8 @@ SHARED_COPIES = [
      "plugins/ai-seo/skills/seo-fix/references/json-ld.md",
      "plugins/ai-seo/skills/seo-faq/references/json-ld.md"),
     ("plugins/ai-seo/skills/seo-audit/references/index-template.md",
-     "plugins/ai-seo/skills/seo-questions/references/index-template.md"),
+     "plugins/ai-seo/skills/seo-questions/references/index-template.md",
+     "plugins/ai-seo/skills/seo-crawl/references/index-template.md"),
     tuple(f"plugins/ai-knowledge/skills/{s}/kb-format.md"
           for s in ("kb-init", "kb-migrate", "kb-add", "kb-learn", "kb-discover", "kb-query", "kb-prune")),
 ]

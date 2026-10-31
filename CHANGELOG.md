@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-31
+
+### Added
+
+#### AI-SEO Plugin (v2.0.0 → v2.1.0)
+
+- **`/seo-crawl`** — crawls a live site the way search engines do and reports what they get. It works on any kind of site, with or without its repo. It maps the framework, the rendering mode for each group of routes, the hosting chain, and which of the repo's header and redirect files the running host reads. Then it splits the checks into three passes, as parallel subagents where the agent supports them:
+  - **Crawl and index:** the same HTML for the Googlebot smartphone, Googlebot desktop and browser user agents, the title and content present without JavaScript, status codes, redirects and URL variants, soft 404s, login and token routes, canonical and robots signals, hreflang, and staging and API hosts.
+  - **Robots, sitemaps and structured data:** robots.txt rules under RFC 9309, every sitemap URL checked against its canonical, and JSON-LD that parses and matches the visible page.
+  - **Page quality and delivery:** metadata, images, social cards, the compressed and decoded size of render-blocking files, caching, PageSpeed Insights data, mobile input sizes, security headers on static and server-rendered pages, and links.
+
+  The skill re-checks every high and medium finding before it reports, and rules out a challenge that only the spoofed user agent gets, an IP allowlist that lets your own requests into staging, and a repo that differs from what's deployed. The report has the Googlebot check, a findings table with the evidence and where each fix goes (a repo file, or a host, CDN or platform setting), what already looks good, a `yes`, `partly` or `no` verdict, and follow-ups. Nothing changes until you pick the fixes. It sends only GET and HEAD requests with curl, about one per second, with no logins, scanners or guessed paths. `save=yes` keeps the report in `docs/seo-audit/`, and the next saved crawl lists what was fixed, what is still open and what is new. The checks come from two read-only audits of production sites. They found, among other things, a static server that ignored the repo's `_headers` and `_redirects`, a `User-agent: Googlebot` group that cancelled every `Disallow` in the `*` group, and prerendered pages that skipped the security headers set in server middleware.
+- **`crawl_facts.py`** — ships with `/seo-crawl`. A standard-library Python parser for the saved files: page facts as JSON, robots.txt verdicts per crawler and path with the rule that decides each one, sitemap facts, and image sizes. It never fetches anything.
+- **`scripts/test-seo-crawl.py`** — runs `crawl_facts.py` against sample robots.txt, HTML, sitemap and image files.
+
+### Changed
+
+#### AI-SEO Plugin (v2.0.0 → v2.1.0)
+
+- **Report index**: `docs/seo-audit/README.md` gets a **Crawls** table once a crawl is saved. `/seo-audit` and `/seo-questions` leave that table as it is.
+- **`/seo-audit`** points to `/seo-crawl` for a live check of the SEO basics, which its SEO lens doesn't fetch.
+
+- Marketplace metadata version bumped `3.2.3` → `3.3.0`.
+
 ## [3.2.3] - 2026-10-30
 
 ### Added
@@ -1582,7 +1606,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...HEAD
+[3.3.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...v3.3.0
 [3.2.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...v3.2.2
 [3.2.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.0...v3.2.1

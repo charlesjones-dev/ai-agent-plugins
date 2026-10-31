@@ -52,6 +52,8 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
    If you change ai-statusline's script templates, also run `python3 scripts/test-statusline.py`. It needs `jq`, and it runs the PowerShell template only when `pwsh` is installed.
 
+   If you change ai-seo's `crawl_facts.py`, also run `python3 scripts/test-seo-crawl.py`.
+
    Then, from a project to try it on, start Claude Code with the plugin loaded from your clone and run the skill you changed as `/{plugin-name}:{skill-name}`:
 
    ```

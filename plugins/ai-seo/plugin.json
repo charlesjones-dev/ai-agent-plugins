@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-seo",
-  "version": "2.0.0",
-  "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO). Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
+  "version": "2.1.0",
+  "description": "Audits a site's code for search rankings (SEO), direct answers in featured snippets and voice assistants (AEO), and citations in AI answers from ChatGPT, Perplexity, Copilot and Google AI Overviews (GEO), and crawls the live site to check what search engines get. Catches SEO patterns LLMs still generate, applies framework-specific fixes, generates and validates JSON-LD, builds FAQ sections and question maps, and writes llms.txt",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -22,6 +22,10 @@
     "json-ld",
     "schema-org",
     "core-web-vitals",
+    "crawlability",
+    "indexing",
+    "robots-txt",
+    "sitemap",
     "featured-snippets",
     "voice-search",
     "faq",

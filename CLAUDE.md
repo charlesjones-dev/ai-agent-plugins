@@ -31,6 +31,8 @@ Each plugin has a Claude Code manifest at `plugins/{plugin-name}/.claude-plugin/
 
 `python3 scripts/test-statusline.py` runs ai-statusline's Bash and PowerShell templates (the fenced blocks in `statusline-wizard/SKILL.md`) against sample payloads. Run it after changing either template. It skips the PowerShell cases when `pwsh` isn't installed.
 
+`python3 scripts/test-seo-crawl.py` runs ai-seo's `seo-crawl/scripts/crawl_facts.py` against sample robots.txt, HTML, sitemap and image files. Run it after changing that script.
+
 ### Plugin Organization
 
 Plugins are organized under the `plugins/` directory:
