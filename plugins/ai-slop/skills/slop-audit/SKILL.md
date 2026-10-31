@@ -61,7 +61,7 @@ If you can't confirm a number from the repo or the live site, turn it into a que
 
 ## 6. Visual pass
 
-Read the page compositions. If the live site or a dev server is easy to reach and the session has a browser tool (Playwright MCP or similar), look at it too. Flag the template stacks and decorative patterns listed in signals.md. Judge each page as a whole: every block can be fine on its own while the stack still reads as a template.
+Read the page compositions. If the live site or a dev server is easy to reach and the session has a browser tool (Playwright MCP or similar), look at it too. Flag the template stacks and decorative patterns listed in signals.md. Judge each page as a whole: every block can be fine on its own while the stack still reads as a template. When a screen needs more than a few fixes to its look, recommend `/slop-design` for it, which reviews one web, iOS or Android screen in depth.
 
 ## 7. Score each area
 
@@ -104,7 +104,7 @@ Use this format:
   - **Fix:** <concrete action or replacement line>
 
 ## Visual
-<template stacks and decorative patterns, each with a **Fix:**>
+<template stacks and decorative patterns, each with a **Fix:**. Name each screen to run `/slop-design` on, if any.>
 
 ## Errors (not slop)
 - **<Label>** (`file:line`): <what the copy says, what's true, and how you checked>. **Fix:** <action>
