@@ -1,7 +1,7 @@
 {
   "name": "ai-slop",
-  "version": "1.2.0",
-  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround",
+  "version": "1.3.0",
+  "description": "Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads, reviews a web, iOS or Android screen for AI-generated design and fixes it in ordered passes once you approve a direction, rewrites a file or pasted text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version, keeping the first until you choose",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -18,6 +18,11 @@
     "metadata",
     "design",
     "ui",
+    "design-review",
+    "ios",
+    "android",
+    "swiftui",
+    "jetpack-compose",
     "legal",
     "privacy-policy",
     "fact-checking",
@@ -27,6 +32,7 @@
     "editing",
     "code-comments",
     "refactoring",
+    "simplification",
     "skills"
   ]
 }

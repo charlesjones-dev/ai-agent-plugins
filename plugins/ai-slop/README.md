@@ -1,6 +1,6 @@
 # AI-Slop Plugin
 
-**AI slop audits and rewrites for Claude Code, Codex and Cursor.** Find what a codebase shows its users that reads as machine-made and what in it is wrong, rewrite one piece of text so it reads as a person wrote it, or prune the code comments and workarounds that agents copy.
+**AI slop audits and rewrites for Claude Code, Codex and Cursor.** Find what a codebase shows its users that reads as machine-made and what in it is wrong, redesign a web, iOS or Android screen that looks AI-generated, rewrite one piece of text so it reads as a person wrote it, prune the code comments and workarounds that agents copy, or rebuild a feature an agent just wrote as the simpler version it can write now that it knows the problem.
 
 ---
 
@@ -18,6 +18,10 @@ The audit changes nothing until you answer its questions.
 `/slop-rewrite` works on one piece of text instead: a file, or text you paste after the command. It uses the same signal list.
 
 `/slop-comments` works on code comments. Agents copy what's already in a codebase, so a comment that narrates the code or excuses a workaround spreads. It deletes the comments that add nothing and traces each workaround to its cause.
+
+`/slop-rebuild` works on a feature an agent just built. The first working version often keeps abstractions, helpers and layers the agent added while it was still learning the problem. The skill writes the feature again on a separate branch, keeps the first version, and recommends whichever one the tests and the diff support.
+
+`/slop-design` works on the look of one screen: a web page, an iOS view or an Android screen. It lists the signs of AI-generated design, proposes a direction from the product, and fixes the screen in ordered passes once you agree.
 
 ## Available Skills
 
@@ -95,9 +99,66 @@ The agent also runs the skill when you ask it to prune or clean up code comments
 /slop-comments "src/**/*.ts" --fix
 ```
 
+### `/slop-rebuild`
+
+Rebuilds a feature an agent just implemented, the way the prompt "Knowing everything you know now, scrap this and implement the elegant solution" asks for, but without losing the first version. By default it covers every file the current branch changed since the default branch, plus uncommitted changes. Pass a path or glob to narrow it, or `--base <ref>` to set where the feature started. `--base HEAD` covers only the uncommitted changes.
+
+**How it works:**
+
+1. Saves the original to a `slop-rebuild/<slug>-original` branch. Uncommitted and untracked changes go in through a temporary index, so your working tree, index and branch stay as they are
+2. Creates a worktree on a `slop-rebuild/<slug>-rebuild` branch and runs the project's typecheck, lint and tests there as the baseline. It writes tests for any behavior of the feature that no test covers, checks that they pass on the original, and commits them first
+3. Lists what the first pass learned: the real constraints, existing helpers to reuse, abstractions and layers that weren't needed, debugging scaffolding, duplicated logic, what the original got right, and dead ends
+4. Removes the feature's code in the worktree but keeps its tests, watches the tests fail, then writes the feature again from that list until every check that passed on the original passes
+5. Compares the two versions: code and test lines, new files, exported names, types and dependencies, the call path from the entry point, a complexity score when the project has a tool for one, and the check results. It recommends the rebuild, the original, or a few named parts of the rebuild. When the two are close, it recommends the original
+6. Changes your checkout only after you choose. A committed original is fast-forwarded to the rebuild. An uncommitted one gets the rebuild as uncommitted changes. It keeps both branches and tells you how to delete them
+
+It keeps the feature's behavior and public API unless you ask for a change, touches only the files the feature changed, and never pushes. It runs no destructive git command in your checkout unless you ask for that command. It stops on small or mechanical changes, a feature that doesn't work yet, behavior no test can check, and code that's already merged. Claude Code's built-in `/simplify` cleans up a change in place. `/slop-rebuild` writes the feature again from scratch and compares both versions before you pick one.
+
+The agent also runs the skill when you ask it to scrap an implementation and redo it the simple or elegant way. Run it in the conversation where the agent built the feature, so it can use what it learned.
+
+**Usage:**
+
+```
+/slop-rebuild
+/slop-rebuild src/export/
+/slop-rebuild --base HEAD
+/slop-rebuild --base 4f2a91c
+```
+
+### `/slop-design`
+
+Reviews one screen for the signs of AI-generated design and fixes it the way a designer works through a redline: purple-to-blue gradients, glows, emoji used as icons, shouty copy, uneven spacing, generic cards, and template themes nobody changed. It works on web apps and sites (Nuxt, Vue, Tailwind, TypeScript, React, plain HTML and CSS), iOS apps (SwiftUI and UIKit) and Android apps (Jetpack Compose and XML views).
+
+**How it works:**
+
+1. Reads the project's rules, brand and design tokens, and notes which other screens a shared token reaches
+2. Detects the platform and loads only that platform's notes, plus a shared checklist of signs and a token guide
+3. Looks at the screen through the code and any screenshots you attach. A screenshot step is optional: Playwright or a browser tool for the web, and a simulator or emulator that is already running for native apps. It installs nothing and starts no simulator or emulator without asking
+4. Lists every sign with its `file:line` or screenshot region, grouped by the pass that fixes it, and runs a name-swap test: put a competitor's name on the screen and see whether anything looks wrong
+5. Rates the screen heavy, light or clean. A clean screen gets at most three small refinements with exact values, and nothing else changes
+6. Proposes a direction taken from the product: its character, the one or two spots on the screen where color and detail belong, and one signature detail. Then it waits for you to steer
+7. Fixes the screen in nine passes: spacing, color, icons, copy, type, layout, details, visuals and motion
+8. Runs the project's checks, compares before and after screenshots when it has them, and reports each change with its old and new values
+
+On iOS it follows Apple's Human Interface Guidelines: semantic colors with light and dark appearances, Dynamic Type text styles, SF Symbols, safe areas, 44 pt touch targets, system materials instead of fake glows, native navigation and sheets, and Reduce Motion. On Android it follows Material 3: color scheme roles and dynamic color, the type scale, the 8 dp grid, 48 dp touch targets, shape tokens, window size classes for phones, foldables and tablets, edge-to-edge insets, and "Remove animations". Each platform has its own signs, such as the template purple theme left in an Android project or a hamburger menu forced into an iOS app.
+
+It keeps the product's features, content, navigation and accessibility identifiers, and never makes accessibility worse. It generates no images: a hero that needs one gets a sized slot and a one-line description. `--fix` applies the direction without stopping for approval, for unattended runs. `/slop-audit` covers copy and layout across a whole site. `/slop-design` goes deep on one screen. The checklist and guides are in [`references/`](skills/slop-design/references/).
+
+The agent also runs the skill when you ask it to unslop, polish or redesign a screen that looks AI-generated.
+
+**Usage:**
+
+```
+/slop-design
+/slop-design the dashboard page
+/slop-design platform=ios Sources/Features/Home/HomeView.swift
+/slop-design app/src/main/java/com/example/feature/settings/SettingsScreen.kt --fix
+```
+
 ### Related plugins
 
 - `/modernize-audit` ([ai-modernize](../ai-modernize/)) covers the rest of the code: anti-patterns and technical debt left by older AI-generated code.
+- `/accessibility-audit` ([ai-accessibility](../ai-accessibility/)) runs a full WCAG audit. `/slop-design` checks only the contrast, labels, touch targets and text scaling of the screen it changes.
 
 ---
 
@@ -127,10 +188,16 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 
 - **Name:** AI-Slop Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`
-- **Version:** 1.2.0
+- **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design`
+- **Version:** 1.3.0
 - **License:** MIT
 - **Author:** Charles Jones
+
+---
+
+## Credits
+
+`/slop-design` is inspired by [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky (@heydamir), a CC BY 4.0 skill that redesigns AI-looking web UI. `/slop-design` follows its approach (an audit, then a direction, then ordered passes) and adds iOS and Android guidance. Its text, checklists and token guides are written from scratch and copy no files from unslop.
 
 ---
 

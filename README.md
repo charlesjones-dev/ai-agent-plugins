@@ -1,6 +1,6 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
@@ -23,7 +23,7 @@ Each skill is a command you run by name, such as `/git-init` in Claude Code and 
 | [ai-performance](plugins/ai-performance/) | Performance bottleneck audits with an impact score for each finding | `/performance-audit` | Claude Code, Codex, Cursor |
 | [ai-security](plugins/ai-security/) | Security audits with Markdown/JSON reports that track findings across runs, a planner for sandboxed audits on a stronger model, a live-site dependency scan, and settings and supply-chain hardening. Complements native `/security-review` | `/security-init`, `/security-audit`, `/security-cvp-audit`, `/security-scan-dependencies`, `/security-supply-chain` | Claude Code |
 | [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). Also crawls the live site to check what search engines get, applies framework-specific fixes, and writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt` | Claude Code, Codex, Cursor |
-| [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, rewrites a file or pasted text to remove AI writing patterns, and prunes code comments that narrate the code or excuse a workaround | `/slop-audit`, `/slop-rewrite`, `/slop-comments` | Claude Code, Codex, Cursor |
+| [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, reviews a web, iOS or Android screen for AI-generated design and fixes it in ordered passes once you approve a direction, rewrites a file or pasted text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version, keeping the first until you choose | `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design` | Claude Code, Codex, Cursor |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | Claude Code |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | Claude Code, Codex, Cursor |
 | [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, or stops when the PR is ready to merge. Plus review loops with models from several providers, takeovers of other people's PRs, refreshes of stale PRs, and CLAUDE.md rules that keep PR descriptions and commit messages short and accurate | `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, `/workflow-rules` | Claude Code |
@@ -67,7 +67,7 @@ codex plugin add <plugin-name>@ai-agent-plugins
 codex plugin add ai-git@ai-agent-plugins
 ```
 
-Codex lists only the plugins marked Codex in the table and prefixes each skill with its plugin name, such as `ai-git:git-init`. Start a new session after installing, then type `$` to pick a skill or open `/skills`. Codex runs a skill only when you pick it, with three exceptions: it can start the slop audit when you ask whether a site or README reads as AI-written, the comment review when you ask it to prune or clean up code comments, and the git preflight checks when you ask it to check your code before a commit. Plugins don't load in the Codex IDE extension, so use the Codex CLI or the ChatGPT desktop app.
+Codex lists only the plugins marked Codex in the table and prefixes each skill with its plugin name, such as `ai-git:git-init`. Start a new session after installing, then type `$` to pick a skill or open `/skills`. Codex runs a skill only when you pick it, with five exceptions: it can start the slop audit when you ask whether a site or README reads as AI-written, the design review when you ask it to unslop or polish a screen that looks AI-generated, the comment review when you ask it to prune or clean up code comments, the rebuild when you ask it to scrap an implementation and redo it the simple way, and the git preflight checks when you ask it to check your code before a commit. Plugins don't load in the Codex IDE extension, so use the Codex CLI or the ChatGPT desktop app.
 
 ### Cursor
 
@@ -176,6 +176,8 @@ Plugins and skills that Claude Code now covers natively, or that moved into anot
 ## Credits
 
 Several ai-workflow skills, and the PR guidance in ai-git's `/git-commit-push-pr`, are adapted from [tstack](https://github.com/t3dotgg/tstack), Theo Browne's agent skills for Claude Code and Codex, some of which use [T3 Code](https://github.com/pingdotgg/t3code) features. tstack is MIT licensed. Each plugin that uses it ships a `THIRD-PARTY-NOTICES.md` with the license and a list of the adapted files: [ai-workflow](plugins/ai-workflow/THIRD-PARTY-NOTICES.md) and [ai-git](plugins/ai-git/THIRD-PARTY-NOTICES.md).
+
+ai-slop's `/slop-design` is inspired by [unslop](https://github.com/heydamir/unslop), Damir Sokolovsky's (@heydamir) CC BY 4.0 skill for redesigning AI-looking web UI. It follows unslop's approach (an audit, then a direction, then ordered passes) and adds iOS and Android guidance. Its text and reference files are original, so it ships no copy of unslop's files.
 
 ## Contributing
 
