@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-31
+
+### Added
+
+#### AI-Slop Plugin (v1.2.0 → v1.3.0)
+
+- **`/slop-rebuild`** — rebuilds a feature an agent just implemented as the simpler version it can write now that it knows the problem, and keeps the first version until you choose. It covers the files the branch changed since the default branch, plus uncommitted changes. A path or glob narrows that, and `--base <ref>` sets where the feature started. It first saves the original to a `slop-rebuild/<slug>-original` branch. Uncommitted and untracked changes go in through a temporary index, so the working tree, index and branch stay as they were. In a `slop-rebuild/<slug>-rebuild` worktree, it runs the project's typecheck, lint and tests as the baseline. It also writes tests for any of the feature's behavior that no test covers and commits them first. It lists what the first pass learned: real constraints, helpers to reuse, abstractions and layers that weren't needed, debugging scaffolding, duplicated logic, what the original got right, and dead ends. Then it removes the feature's code but keeps its tests, watches them fail, and writes the feature again until every check that passed before passes. The report compares code and test lines, new files, exported names, types, dependencies, the call path, a complexity score from the project's own tool if it has one, and the check results. It recommends the rebuild, the original or named parts of the rebuild, and it picks the original when the two are close. Your checkout changes only after you choose: a committed original is fast-forwarded, and an uncommitted one gets the rebuild as uncommitted changes. Both branches stay until you delete them. It keeps behavior and the public API unless you ask for a change, touches only the feature's files, never pushes, and runs no destructive git command in your checkout unless you ask for that command. It stops on small or mechanical changes, a feature that doesn't work yet, behavior no test can check, and merged code. The agent can run it when you ask to scrap an implementation and redo it the simple or elegant way.
+- Marketplace metadata version bumped `3.3.0` → `3.4.0`.
+
 ## [3.3.0] - 2026-10-31
 
 ### Added
@@ -1606,7 +1615,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...HEAD
+[3.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...v3.3.0
 [3.2.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...v3.2.3
 [3.2.2]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.1...v3.2.2
