@@ -33,6 +33,8 @@ Each plugin has a Claude Code manifest at `plugins/{plugin-name}/.claude-plugin/
 
 `python3 scripts/test-seo-crawl.py` runs ai-seo's `seo-crawl/scripts/crawl_facts.py` against sample robots.txt, HTML, sitemap and image files. Run it after changing that script.
 
+`python3 scripts/test-performance-ci.py` runs ai-performance's `performance-ci/scripts/ci_timings.py` against a fake `gh` and sample GitHub Actions runs, jobs and logs. Run it after changing that script.
+
 ### Plugin Organization
 
 Plugins are organized under the `plugins/` directory:

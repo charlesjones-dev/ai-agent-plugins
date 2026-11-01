@@ -63,6 +63,7 @@ The command takes one optional argument: a directory path that limits the audit'
 - Include expected performance improvement estimates for each recommendation
 - Detect the project's technology stack and tailor findings accordingly
 - Don't change source code. The report is the only file the audit writes.
+- CI pipeline time is out of scope. If the user asks about slow CI, tell them to type `/performance-ci`, which measures it from the repository's GitHub Actions runs.
 
 ---
 

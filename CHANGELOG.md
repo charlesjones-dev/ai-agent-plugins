@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.4.1] - 2026-10-31
+
+### Added
+
+#### AI-Performance Plugin (v2.0.0 → v2.1.0)
+
+- **`/performance-ci`** — measures where a repository's GitHub Actions time goes and how to cut it. A bundled standard-library script, `ci_timings.py`, pulls the last 150 completed runs (pull requests, pushes and the merge queue by default) with `gh`, using GET requests only, plus two logs for each of the ten slowest jobs. It splits every job into three parts: queue (waiting for a machine, measured from when GitHub created the job, which happens after the jobs it needs finish), setup (checkout, toolchain, cache restore and save, installs, cleanup and the gaps between steps) and work. It reports the time to a CI result per commit and the job that most often finishes last, the five slowest jobs with a table of their steps, machine wait by runner label, the delay before a run's first job, commits that ran a workflow for both the push and the pull request, runner minutes rounded up per job, uneven matrix shards, and the cache and test-runner lines in the sampled logs. The skill then ties each slow step to its file and line and runs nine checks: queueing on the default runners, slow lint, slow typechecking, unsharded tests or small machines, test files that reload the app, slow setup, jobs that don't run in parallel, full test runs on every PR, and no local checks before push. Each free fix comes with the seconds it costs now, the change, the seconds it saves and how that was worked out, and says whether it shortens the wait for a CI result or only saves runner minutes. Changes that cost money or run fewer or different checks go under "For You to Decide". It is read-only until you pick fixes, then applies free fixes one at a time and doesn't commit or push unless you ask. `runs=`, `workflow=`, `branch=`, `events=all`, `repo=` and `save=` set the sample and the output. Other CI systems get a config-only review if you ask for one. `scripts/test-performance-ci.py` tests the script against a fake `gh`. Inspired by [a post by Vox](https://x.com/Voxyz_ai/status/2116636332344889391) (Voxyz_ai on X). The text and the script are original.
+
+### Changed
+
+#### AI-Performance Plugin (v2.0.0 → v2.1.0)
+
+- **`/performance-audit`** tells you to run `/performance-ci` when you ask about slow CI.
+
+- Marketplace metadata version bumped `3.4.0` → `3.4.1`.
+
 ## [3.4.0] - 2026-10-31
 
 ### Added
@@ -1623,7 +1639,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...HEAD
+[3.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...v3.3.0
 [3.2.3]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.2...v3.2.3

@@ -1,6 +1,6 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.4.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.4.1-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
@@ -20,7 +20,7 @@ Each skill is a command you run by name, such as `/git-init` in Claude Code and 
 | [ai-git](plugins/ai-git/) | .gitignore generation, preflight checks (typecheck, lint, format, security and tests), and commit, push and PR creation | `/git-init`, `/git-preflight`, `/git-commit-push-pr` | Claude Code, Codex, Cursor |
 | [ai-knowledge](plugins/ai-knowledge/) | A team knowledge base kept in git as Claude Code rules, so each article loads when Claude works on matching files, every session, or on demand | `/kb-init`, `/kb-migrate`, `/kb-add`, `/kb-learn`, `/kb-discover`, `/kb-query`, `/kb-prune` | Claude Code |
 | [ai-modernize](plugins/ai-modernize/) | Technical debt audits for code written with older AI models | `/modernize-audit` | Claude Code, Codex, Cursor |
-| [ai-performance](plugins/ai-performance/) | Performance bottleneck audits with an impact score for each finding | `/performance-audit` | Claude Code, Codex, Cursor |
+| [ai-performance](plugins/ai-performance/) | Performance bottleneck audits with an impact score for each finding, and a GitHub Actions audit that measures where CI time goes (machine wait, setup and work) and gives the file, line and seconds saved for each fix | `/performance-audit`, `/performance-ci` | Claude Code, Codex, Cursor |
 | [ai-security](plugins/ai-security/) | Security audits with Markdown/JSON reports that track findings across runs, a planner for sandboxed audits on a stronger model, a live-site dependency scan, and settings and supply-chain hardening. Complements native `/security-review` | `/security-init`, `/security-audit`, `/security-cvp-audit`, `/security-scan-dependencies`, `/security-supply-chain` | Claude Code |
 | [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). Also crawls the live site to check what search engines get, applies framework-specific fixes, and writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt` | Claude Code, Codex, Cursor |
 | [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, reviews a web, iOS or Android screen for AI-generated design and fixes it in ordered passes once you approve a direction, rewrites a file or pasted text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version, keeping the first until you choose | `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design` | Claude Code, Codex, Cursor |
@@ -32,7 +32,7 @@ The Claude Code-only plugins depend on Claude Code subagents, settings files, ru
 
 The audit skills take their settings as arguments, so a scheduled or unattended run doesn't stop to ask. For example, `/accessibility-audit 2.2 AA src/`, `/modernize-audit src --defaults`, `/seo-audit geo` or `/swift-preflight --check-only`. In Claude Code, `/security-audit` can also split its review between parallel `security-auditor` subagents.
 
-> **Note on audit plugins:** The audit plugins read your code and report what they find, and a few can also check a live URL. Use them to catch problems during development, then confirm with runtime testing and manual review.
+> **Note on audit plugins:** The audit plugins read your code and report what they find. A few can also check a live URL, and `/performance-ci` measures recent CI runs. Use them to catch problems during development, then confirm with runtime testing and manual review.
 
 ## Install
 
@@ -176,6 +176,8 @@ Plugins and skills that Claude Code now covers natively, or that moved into anot
 ## Credits
 
 Several ai-workflow skills, and the PR guidance in ai-git's `/git-commit-push-pr`, are adapted from [tstack](https://github.com/t3dotgg/tstack), Theo Browne's agent skills for Claude Code and Codex, some of which use [T3 Code](https://github.com/pingdotgg/t3code) features. tstack is MIT licensed. Each plugin that uses it ships a `THIRD-PARTY-NOTICES.md` with the license and a list of the adapted files: [ai-workflow](plugins/ai-workflow/THIRD-PARTY-NOTICES.md) and [ai-git](plugins/ai-git/THIRD-PARTY-NOTICES.md).
+
+ai-performance's `/performance-ci` is inspired by [a post by Vox](https://x.com/Voxyz_ai/status/2116636332344889391) (Voxyz_ai on X) with a prompt for a CI audit. It follows the post's approach: split each job's time into queue, setup and work, check nine causes, and report before changing anything. Its text and measurement script are original.
 
 ai-slop's `/slop-design` is inspired by [unslop](https://github.com/heydamir/unslop), Damir Sokolovsky's (@heydamir) CC BY 4.0 skill for redesigning AI-looking web UI. It follows unslop's approach (an audit, then a direction, then ordered passes) and adds iOS and Android guidance. Its text and reference files are original, so it ships no copy of unslop's files.
 

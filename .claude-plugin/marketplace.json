@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
-    "version": "3.4.0",
+    "version": "3.4.1",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -85,8 +85,8 @@
     {
       "name": "ai-performance",
       "source": "./plugins/ai-performance",
-      "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding",
-      "version": "2.0.0",
+      "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding, and measures where a repository's GitHub Actions time goes, with the file, line and seconds saved for each fix",
+      "version": "2.1.0",
       "keywords": [
         "ai",
         "performance",
@@ -94,6 +94,8 @@
         "analysis",
         "bottleneck",
         "scalability",
+        "ci",
+        "github-actions",
         "skills"
       ],
       "author": {

@@ -54,6 +54,8 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
    If you change ai-seo's `crawl_facts.py`, also run `python3 scripts/test-seo-crawl.py`.
 
+   If you change ai-performance's `ci_timings.py`, also run `python3 scripts/test-performance-ci.py`.
+
    Then, from a project to try it on, start Claude Code with the plugin loaded from your clone and run the skill you changed as `/{plugin-name}:{skill-name}`:
 
    ```
