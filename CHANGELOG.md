@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.5.0] - 2026-11-02
+
+### Added
+
+#### AI-SEO Plugin (v2.1.0 → v2.2.0)
+
+- **`/seo-index`** — submits new or changed pages to search engines after they go live. It takes URLs, or picks the sitemap URLs changed since a date with `since=`. First it checks each URL with curl, skipping redirects, errors, `noindex` pages and pages whose canonical points elsewhere, and submitting the redirect target or canonical instead when it's on the same site. Then it uses each engine's best route for site owners:
+  - **Bing and the other IndexNow engines:** IndexNow when the site serves a key file (the skill offers to add one to the public folder), otherwise the Bing Webmaster API with `BING_WEBMASTER_API_KEY` after reading the daily quota, otherwise the URL Submission page in the browser.
+  - **Google:** resubmits the sitemap through the Search Console API with `SEARCH_CONSOLE_ACCESS_TOKEN`, or on the Sitemaps page. Then, in the user's signed-in browser (Claude in Chrome in Claude Code), it inspects each URL, skips pages Google crawled since they last changed, and presses Request Indexing one URL at a time, new pages first, waiting for each live test. It stops at the first quota message.
+  - **Brave:** the submit page at `search.brave.com/submit-url`, one URL at a time.
+
+  The report lists what each engine accepted, rejected or held back, and the steps only the user can do. URLs held back by a quota get a retry 24 hours after the quota message, because Google doesn't say whether its window is a calendar day or a rolling 24 hours. In T3 Code the skill offers a scheduled task. Each run starts its own thread, submits only the URLs left, updates its prompt with what's still waiting, and deletes itself when nothing is, or after three runs in a row get nothing through. Elsewhere it gives the retry time and command. It never works around a quota, CAPTCHA or sign-in, never uses Google's Indexing API for ordinary pages or the retired sitemap ping URLs, and reads API keys only from environment variables. `browser=no` skips the browser steps, and `dry-run` checks the URLs and shows the plan. Unlike the other ai-seo skills, the agent can also start it when you ask to get pages indexed, so that a scheduled retry can run it.
+
+### Changed
+
+#### AI-SEO Plugin (v2.1.0 → v2.2.0)
+
+- **`/seo-crawl`** suggests `/seo-index` for the changed pages once its fixes are live.
+- The plugin description and README cover `/seo-index`.
+
+- Marketplace metadata version bumped `3.4.1` → `3.5.0`.
+
 ## [3.4.1] - 2026-10-31
 
 ### Added
@@ -1639,7 +1661,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...HEAD
+[3.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...v3.5.0
 [3.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...v3.4.0
 [3.3.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.2.3...v3.3.0

@@ -1,6 +1,6 @@
 # AI-SEO Plugin
 
-**Audits a site's code for search rankings, direct answers and citations in AI answers, crawls the live site to check what search engines get, and fixes what it finds, in Claude Code, Codex and Cursor.** It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
+**Audits a site's code for search rankings, direct answers and citations in AI answers, crawls the live site to check what search engines get, fixes what it finds, and submits new pages for indexing, in Claude Code, Codex and Cursor.** It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
 
 ---
 
@@ -29,6 +29,8 @@ What the engines themselves say:
 No AI provider publishes how it picks answers or citations, so the AEO and GEO lenses treat their checks as things that raise the odds, prefer changes that also help readers, and mark heuristics with 🧪.
 
 `/seo-crawl` covers what the code can't show. A site can be live and still not be findable: the served HTML can be an empty shell, unknown URLs can return 200, robots.txt can mean something other than what its author meant, and headers or redirects in the repo may never reach production. The crawl fetches the deployed site the way search engines do, traces each problem to the file or host setting behind it, and says whether fixing it is worth the effort.
+
+`/seo-index` covers the step after a page goes live. It checks each URL, then tells Bing and the other IndexNow engines, Google and Brave about it through the routes each one offers site owners. Google's Request Indexing button has a small daily quota, so the skill presses it one URL at a time in your signed-in browser until the quota runs out, and offers a retry for the rest.
 
 ---
 
@@ -63,8 +65,9 @@ New audits go to `docs/seo-audit/`. Reports already in `docs/aeo-audit/` and `do
 | `/seo-faq` | Build, update or validate visible FAQ sections and, if you want it, their FAQPage or QAPage markup. Supports `--dry-run`. |
 | `/seo-questions` | Map the questions the site should answer to the page that answers each one, and find gaps and competing pages. |
 | `/seo-llms-txt` | Generate, update or validate `llms.txt` and `llms-full.txt`. Supports `--dry-run`. |
+| `/seo-index [URLs]` | Submit new or changed pages to Bing and IndexNow, Google and Brave, one URL at a time where an engine has no API, and schedule a retry when Google's daily quota runs out. Supports `dry-run`. |
 
-All seven run only when you call them. Each asks for what its arguments leave out, and runs with documented defaults when no one is there to answer.
+Seven of them run only when you call them. `/seo-index` also runs when you ask the agent to get pages indexed, so that a scheduled retry can start it. Each asks for what its arguments leave out, and runs with documented defaults when no one is there to answer.
 
 ### `/seo-audit`
 
@@ -182,6 +185,32 @@ Latest:      docs/seo-audit/latest.md
 5. **Offers the fixes.** Nothing changes until you pick them. Repo changes come with diffs and the project's own build, lint and tests. Host and CDN changes come as exact steps, made through the provider's API only when you ask and supply access.
 
 The crawl sends only GET and HEAD requests, one at a time at about one per second, with no logins, scanners or guessed paths, and stays under about 600 requests. Run it only against sites you own or are authorized to test. It bundles `crawl_facts.py`, a standard-library Python parser for the saved robots.txt, HTML, sitemap and image files. With `save=yes` the report goes to `docs/seo-audit/`, and the next saved crawl lists what was fixed, what is still open and what is new.
+
+### `/seo-index`
+
+```
+/seo-index https://example.com/blog/new-post
+/seo-index since=7d                                  # every sitemap URL changed in the last 7 days
+/seo-index engines=google,brave https://example.com/a https://example.com/b
+/seo-index since=2026-10-01 dry-run                  # check the URLs and show the plan only
+```
+
+Run it after new or changed pages go live. It tells each search engine about them through the routes the engine offers site owners, best route first:
+
+| Engine | Route | Needs |
+|--------|-------|-------|
+| Bing, Yandex, Seznam, Naver, Yep and the other IndexNow engines | IndexNow | A key file the site serves. The skill offers to add one to your public folder |
+| Bing | The Bing Webmaster API, or the URL Submission page in the browser | `BING_WEBMASTER_API_KEY`, or a browser signed in to Bing Webmaster Tools |
+| Google | The sitemap, through the Search Console API or the Sitemaps page, then Request Indexing for each URL in the browser | `SEARCH_CONSOLE_ACCESS_TOKEN` for the API, and a browser signed in to Search Console as an Owner or Full user |
+| Brave | The submit page at `search.brave.com/submit-url`, in the browser | A browser |
+
+1. **Checks each URL** with curl first. It skips redirects, errors, `noindex` pages and pages whose canonical points elsewhere, and submits the redirect target or canonical instead when it's on the same site.
+2. **Submits through the APIs:** IndexNow, or the Bing Webmaster API, and the sitemap through the Search Console API.
+3. **Uses your signed-in browser** for the steps that have no API. In Claude Code that's Claude in Chrome. It inspects each URL in Search Console, skips pages Google crawled since they last changed, and presses Request Indexing one URL at a time, waiting for each live test. It stops at the first quota message. Then it submits the pages on Brave's submit page, one at a time.
+4. **Reports** what each engine accepted, rejected or held back, and the steps only you can do.
+5. **Offers a retry** for URLs held back by a quota, 24 hours after the quota message. Google doesn't say whether its window is a calendar day or a rolling 24 hours, and waiting a full day covers both. In T3 Code it offers to create a scheduled task. Each retry runs in its own thread, submits only the URLs left, updates itself with what's still waiting, and deletes itself when nothing is. It also deletes itself after three runs in a row get nothing through. Elsewhere it gives you the time and the exact command to run again.
+
+Search Console's Request Indexing button and Brave's submit page aren't automation APIs. On those two pages the skill does what you would do by hand, one URL at a time. It never works around a quota, CAPTCHA or sign-in, and `browser=no` skips both pages. It never uses Google's Indexing API, which Google allows only for job posting and livestream pages, or the retired sitemap ping URLs. API keys come only from environment variables and never appear in output or files.
 
 ### `/seo-fix`
 
@@ -461,6 +490,7 @@ Restart Claude Code after installing. In Codex or Cursor, add Context7 through t
 
 - `/seo-audit` is static analysis of HTML, JSX, Vue, Svelte and Astro files and their config. Apart from the optional live check, it sends no HTTP requests, so it can't measure real LCP, CLS or INP or check external links for 404s. `/seo-crawl` covers the live site.
 - `/seo-crawl` sees what the server sends to a spoofed crawler user agent, not what real Googlebot got, because CDNs verify crawlers by IP address. It doesn't run JavaScript, and its Core Web Vitals numbers come only from the PageSpeed Insights API, whose free quota is small. Search Console and Bing Webmaster Tools remain the only proof of what's indexed.
+- `/seo-index` sends requests, and each engine still decides when and whether to crawl and index a page. Google doesn't publish its Request Indexing quota, and the browser steps depend on Search Console's and Brave's page layouts, which change without notice.
 - Accessibility coverage is limited to the SEO overlap. For WCAG 2.1/2.2 compliance, use `/accessibility-audit` from ai-accessibility.
 - It can't see which queries show a featured snippet today or who holds it. Engines choose answers themselves and change how they do it often, and third-party tracking shows featured snippets on fewer results as AI Overviews spread.
 - Voice assistants now run on large models with their own sources, which can't be tested from code.
@@ -513,6 +543,9 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 # 5. After the deploy, re-audit and re-crawl to confirm; the trend arrows should point up
 /seo-audit all
 /seo-crawl https://example.com save=yes
+
+# 6. Tell the search engines about the pages that changed
+/seo-index since=7d
 ```
 
 ---
@@ -526,6 +559,9 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 - [Core Web Vitals](https://web.dev/articles/vitals) (LCP, CLS, INP)
 - [GEO: Generative Engine Optimization (Aggarwal et al., KDD 2024)](https://arxiv.org/abs/2311.09735)
 - [llms.txt proposal](https://llmstxt.org/)
+- [Ask Google to recrawl your URLs](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl)
+- [IndexNow documentation](https://www.indexnow.org/documentation)
+- [Bing Webmaster API access](https://learn.microsoft.com/en-us/bingwebmaster/getting-access)
 - [Context7 MCP](https://github.com/upstash/context7)
 
 ---
@@ -534,8 +570,8 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 
 - **Name:** AI-SEO Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Skills:** `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`
-- **Version:** 2.1.0
+- **Skills:** `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`, `/seo-index`
+- **Version:** 2.2.0
 - **License:** MIT
 - **Author:** Charles Jones
 

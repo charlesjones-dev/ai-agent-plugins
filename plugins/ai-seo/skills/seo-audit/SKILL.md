@@ -220,7 +220,7 @@ Print only the lines for the lenses that were audited.
 **Project:** <PROJECT_NAME>
 **Framework:** <FRAMEWORK>
 **Audit Date:** <ISO 8601 timestamp>
-**Auditor:** ai-seo plugin 2.1.0
+**Auditor:** ai-seo plugin 2.2.0
 **Lenses:** <SEO, AEO, GEO>
 **Knowledge Source:** <Context7 MCP | LLM Training Data (fallback)>
 **Scope:** <Entire solution | path>

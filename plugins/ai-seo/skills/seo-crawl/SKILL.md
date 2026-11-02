@@ -147,7 +147,7 @@ Apply what the user picks:
 4. **Wrong project docs.** Correct docs that state wrong facts about the hosting or SEO setup.
 5. **Safety.** Never block Googlebot or Bingbot, and never serve crawlers different content from people. Never add `noindex` to a page meant to rank. Use 301 or 308 only for permanent moves, and keep the query string. Add HSTS `preload` only when the user asks for it.
 
-When the fixes are in, tell the user to deploy them and then type `/seo-crawl` again to confirm. Suggest URL Inspection in Search Console for the changed pages, to speed up the recrawl.
+When the fixes are in, tell the user to deploy them and then type `/seo-crawl` again to confirm. Once they're live, suggest `/seo-index` for the changed pages, to ask Google, Bing and Brave to recrawl them.
 
 ## Report Template
 
@@ -158,7 +158,7 @@ Every section is required. Write "None found" or "Not run" rather than dropping 
 
 **URL:** <canonical production URL>
 **Date:** <ISO 8601 timestamp>
-**Auditor:** ai-seo plugin 2.1.0, /seo-crawl
+**Auditor:** ai-seo plugin 2.2.0, /seo-crawl
 **Repo:** <path, branch and commit | none, URL only>
 **Settings:** <each setting and where it came from: argument, answer or (default)>
 
