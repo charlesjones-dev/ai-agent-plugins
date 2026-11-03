@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-11-03
+
+### Added
+
+#### AI-Rules Plugin (new, v1.0.0)
+
+- **`/rules-setup`** — a wizard that adds, upgrades, changes and removes versioned sections of standing instructions in the user or project CLAUDE.md, from a library that ships with the skill. Version 1.0.0 has eight sections: Reply format, Plain wording, Messages to other people, PR and commit hygiene, Estimates, Personal data and web content, Claude in Chrome, and iOS simulators. Sections have optional modules, such as Reply format's collapsed panels, T3 scheduled tasks, snoozing and examples, and settings, such as T3 Code (yes or no), the time zone and the generic identifier to give websites. T3 Code is detected from the session's tools, and the time zone from the system. With T3 Code off, Reply format uses normal `##` titles and leaves out the T3-only rules. Each installed section sits between `<!-- ai-rules:begin ... -->` and `<!-- ai-rules:end ... -->` markers that record its version, modules and settings, and the wizard never changes text outside them. Every released version stays in the library, so on an upgrade the wizard renders the installed version and compares it with the file: an unchanged section is replaced, and an edited one is merged with `git merge-file`, replaced or kept, as the user chooses. A kept section isn't offered again until a later version ships. The wizard also adopts sections that are already in the file without markers, and rules installed by `/workflow-rules`. It shows a diff before every write, backs up the file to `~/.claude/backups/ai-rules/`, scans again afterwards, and writes nothing when everything is current. The bundled standard-library `rules.py` renders sections and scans the file when Python 3.8 or later is installed. Without Python, the agent follows the same rules by hand. It resolves paths and finds Python on Windows, macOS and Linux. `scripts/test-rules-library.py` checks the catalog, renders every template with every combination of modules and settings, tests the scan, and fails if a released template changes. The `short-pr-bodies` rule is adapted from `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne (MIT).
+- **`/rules-cleanup`** — audits the CLAUDE.md files Claude Code loads, and nothing else: the user file, the project's `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md`, CLAUDE.md files in parent folders, `AGENTS.md` when Claude Code loads it in place of CLAUDE.md, nested `CLAUDE.md` files if the user includes them, and the files they import. Claude Code's built-in `/doctor prompt-audit` (v2.1.283 or later) already finds outdated instructions, missing files and contradictions across all instruction files. `/rules-cleanup` covers CLAUDE.md alone and adds the checks that audit doesn't make. It reads the managed policy file to find conflicts and never edits it. It finds seven kinds of problem: rules that restate Claude Code's own instructions (judged against the system prompt the agent is running under, so it keeps working as Claude Code changes), rules a setting, permission rule or hook would enforce, stale paths, scripts, tools, commands and models, conflicting rules, low-value text such as personas, history and file trees, text in the wrong file or loaded every session when it's needed only sometimes, and structure problems. Rules that change a default on purpose are listed as kept. The report gives each file's size and approximate tokens, leaving out HTML comments because Claude Code strips them, flags files over the 200-line target in Claude Code's docs, and lists the largest sections, and each finding with its line, a quote, the fix and the tokens it saves. It applies only the fixes the user picks, shows a diff, backs up each file to `~/.claude/backups/ai-rules/`, leaves sections managed by `/rules-setup` unchanged, and never edits settings or hooks. `--report` stops after the report, and `user` or `project` narrows the scope. The agent can also run it when you ask to clean up or trim your CLAUDE.md.
+
+### Removed
+
+#### AI-Workflow Plugin (v3.2.1 → v4.0.0) — BREAKING
+
+- **`/workflow-rules`** moved to ai-rules as `/rules-setup`. Its five PR and commit rules are the PR and commit hygiene section there, with the same text. Install ai-rules once with `/plugin install ai-rules@ai-agent-plugins`, then run `/rules-setup`: it finds rules installed with `/workflow-rules`, moves them into a managed section with any edits kept, and offers to remove the retired rules. The plugin description, keywords and README no longer mention CLAUDE.md rules, and the tstack notice for the rule moved to ai-rules.
+
+### Changed
+
+- Root README, CLAUDE.md and the `/kb-migrate` command map list ai-rules and the move of `/workflow-rules`. CLAUDE.md explains how to add or change a library section.
+- Marketplace metadata version bumped `3.5.0` → `3.6.0`, and the marketplace lists 14 plugins.
+
 ## [3.5.0] - 2026-11-02
 
 ### Added
@@ -1661,7 +1681,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...HEAD
+[3.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...v3.5.0
 [3.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...v3.4.1
 [3.4.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.3.0...v3.4.0

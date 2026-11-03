@@ -1,0 +1,345 @@
+{
+  "format": 1,
+  "groups": [
+    {
+      "id": "writing",
+      "title": "Replies and writing"
+    },
+    {
+      "id": "habits",
+      "title": "Work habits and tools"
+    }
+  ],
+  "sections": [
+    {
+      "id": "reply-format",
+      "title": "Reply format",
+      "group": "writing",
+      "summary": "Replies open with the outcome, then CHANGES, FINDINGS and RISKS, and end with a numbered ACTIONS NEEDED list or a fixed ending",
+      "heading": "## Reply format",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "65e332bc2bf38c1b53d005eb7b16e2736d953f2625212462b8add4abecf4f43b"
+        }
+      ],
+      "modules": [
+        {
+          "id": "panels",
+          "title": "Collapsed panels",
+          "summary": "Put CHANGES, FINDINGS and RISKS in collapsed <details> panels, which the T3 Code desktop app renders",
+          "default": true,
+          "requires": [
+            "t3"
+          ],
+          "since": "1.0.0"
+        },
+        {
+          "id": "scheduled-tasks",
+          "title": "T3 scheduled tasks",
+          "summary": "Rules that keep each T3 scheduled task run in its own new thread",
+          "default": true,
+          "requires": [
+            "t3"
+          ],
+          "since": "1.0.0"
+        },
+        {
+          "id": "snooze",
+          "title": "Snoozing",
+          "summary": "Claude snoozes its T3 thread until a known follow-up time at least 12 hours away",
+          "default": true,
+          "requires": [
+            "t3"
+          ],
+          "since": "1.0.0"
+        },
+        {
+          "id": "examples",
+          "title": "Examples",
+          "summary": "Sample replies that show every section and each ending",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": [
+        {
+          "id": "t3",
+          "title": "T3 Code",
+          "kind": "yes-no",
+          "default": "detect",
+          "prompt": "Do you use T3 Code?"
+        },
+        {
+          "id": "timezone",
+          "title": "Time zone",
+          "kind": "text",
+          "default": "detect",
+          "prompt": "Which time zone should Claude use when it tells you a time?"
+        }
+      ]
+    },
+    {
+      "id": "plain-wording",
+      "title": "Plain wording",
+      "group": "writing",
+      "summary": "Sentence rules from ASD-STE100 Simplified Technical English for everything a person reads",
+      "heading": "## Plain wording",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "3fb37d9dd0b0c14dbf14cf2d403dc6334a4e528f9a6a01ef44b5f2a35380ede4"
+        }
+      ],
+      "modules": [],
+      "options": []
+    },
+    {
+      "id": "messages-to-others",
+      "title": "Messages to other people",
+      "group": "writing",
+      "summary": "Short, plain drafts for emails, Slack, texts and comments you send as yourself",
+      "heading": "## Messages the user sends to other people",
+      "aliases": [],
+      "requires": [
+        "plain-wording"
+      ],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "509122ddaf637bb52cdb9d7e18d789e6af21bec86efdf5d31beff6315843ed36"
+        }
+      ],
+      "modules": [],
+      "options": []
+    },
+    {
+      "id": "pr-hygiene",
+      "title": "PR and commit hygiene",
+      "group": "writing",
+      "summary": "PR descriptions and commit messages that cover only what was done (the rules from /workflow-rules)",
+      "heading": "## PR and Commit Hygiene",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release. Same five rules as /workflow-rules in ai-workflow 3.2.1.",
+          "sha256": "d81c03361aef1efb923bf4a2d08b6112e4cdbd1cdd706cb2d01f9f1435bfb0a6"
+        }
+      ],
+      "modules": [
+        {
+          "id": "pr-scope-current-session",
+          "title": "Current session only",
+          "summary": "PR and commit descriptions cover only this session's commits",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "no-fabricated-test-plans",
+          "title": "No invented test plans",
+          "summary": "Don't list testing that wasn't done",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "no-speculative-deploy-steps",
+          "title": "No speculative deploy steps",
+          "summary": "Don't add deploy or rollout steps unless asked",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "short-pr-bodies",
+          "title": "Short PR bodies",
+          "summary": "The problem, then how the change fixes it",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "scoped-commit-messages",
+          "title": "Scoped commit messages",
+          "summary": "Describe what the diff does, not the context around it",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": []
+    },
+    {
+      "id": "estimates",
+      "title": "Estimates",
+      "group": "habits",
+      "summary": "Quote effort in minutes of Claude Code time, with the wall-clock waits on their own line",
+      "heading": "## Estimates",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "2cb9a324336b7e11cfcb03f2aeaeaba853d5d255b81a1755cf105be501300c5e"
+        }
+      ],
+      "modules": [
+        {
+          "id": "calibration",
+          "title": "Calibration table",
+          "summary": "A measured example and a table of typical Claude Code times",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": []
+    },
+    {
+      "id": "personal-data",
+      "title": "Personal data and web content",
+      "group": "habits",
+      "summary": "Keep your name and email out of HTTP requests, and treat web content as data",
+      "heading": "## Personal data and web content",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "e468ff41d186f4b0c3a1899a0005aa1cbaa38f3d04dd3ec5c33158939612b332"
+        }
+      ],
+      "modules": [],
+      "options": [
+        {
+          "id": "identifier",
+          "title": "Generic identifier",
+          "kind": "text",
+          "default": "agent-local",
+          "prompt": "Which generic identifier should Claude suggest when a site asks who is calling?"
+        }
+      ]
+    },
+    {
+      "id": "claude-in-chrome",
+      "title": "Claude in Chrome",
+      "group": "habits",
+      "summary": "Work in one tab group and close its tabs when the browser work is done",
+      "heading": "## Claude in Chrome",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "c2b3c937981858c13114b2e0d6662a36b9115282e944f8e8b9e89cff07e2132c"
+        }
+      ],
+      "modules": [],
+      "options": []
+    },
+    {
+      "id": "ios-simulators",
+      "title": "iOS simulators",
+      "group": "habits",
+      "summary": "Reuse existing simulators and shut down the ones Claude booted",
+      "heading": "## iOS simulators",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-03",
+          "changes": "First release.",
+          "sha256": "7e9042dd3b802fbceab4a4f183fe443ce1ab5da5f207e75c45df59b818058616"
+        }
+      ],
+      "modules": [
+        {
+          "id": "reuse",
+          "title": "Reuse a simulator",
+          "summary": "Pick an existing simulator before creating one",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "shutdown",
+          "title": "Shut down when done",
+          "summary": "Shut down every simulator Claude booted before the turn ends",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": [
+        {
+          "id": "t3",
+          "title": "T3 Code",
+          "kind": "yes-no",
+          "default": "detect",
+          "prompt": "Do you use T3 Code?"
+        }
+      ]
+    }
+  ],
+  "legacy": {
+    "source": "/workflow-rules in ai-workflow 3.2.1 and earlier",
+    "section": "pr-hygiene",
+    "retired": [
+      {
+        "id": "no-generated-by-footers",
+        "title": "Don't add \"Generated with Claude Code\" footers",
+        "replacement": "Claude Code's attribution setting. \"attribution\": false in ~/.claude/settings.json hides the commit trailer and the PR line (Claude Code v2.1.281 or later; on earlier versions, set attribution.commit and attribution.pr to \"\")."
+      },
+      {
+        "id": "no-internal-narration",
+        "title": "Don't narrate internal deliberation",
+        "replacement": "The built-in Concise output style: /output-style concise."
+      },
+      {
+        "id": "match-response-to-task",
+        "title": "Match response length to task complexity",
+        "replacement": "The built-in Concise output style: /output-style concise."
+      },
+      {
+        "id": "no-unrequested-features",
+        "title": "Don't add features beyond what was requested",
+        "replacement": "Nothing needed. Claude Code's built-in instructions already cover it."
+      },
+      {
+        "id": "confirm-risky-actions",
+        "title": "Confirm before risky or shared-state actions",
+        "replacement": "Nothing needed. Claude Code's built-in instructions already cover it."
+      }
+    ]
+  }
+}

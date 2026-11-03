@@ -21,7 +21,7 @@ Consult these before changing plugin structure or metadata:
 
 There are three catalogs, one per agent, all named `ai-agent-plugins`:
 
-1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 13 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
+1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 14 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
 2. **`.agents/plugins/marketplace.json`** (Codex): lists only the portable plugins. Each entry needs `source` (`{"source": "local", "path": "./plugins/{name}"}`), `policy.installation`, `policy.authentication` and `category`.
 3. **`.cursor-plugin/marketplace.json`** (Cursor): lists only the portable plugins, with `source: "plugins/{name}"`, `description` and `version`.
 
@@ -32,6 +32,8 @@ Each plugin has a Claude Code manifest at `plugins/{plugin-name}/.claude-plugin/
 `python3 scripts/test-statusline.py` runs ai-statusline's Bash and PowerShell templates (the fenced blocks in `statusline-wizard/SKILL.md`) against sample payloads. Run it after changing either template. It skips the PowerShell cases when `pwsh` isn't installed.
 
 `python3 scripts/test-seo-crawl.py` runs ai-seo's `seo-crawl/scripts/crawl_facts.py` against sample robots.txt, HTML, sitemap and image files. Run it after changing that script.
+
+`python3 scripts/test-rules-library.py` checks ai-rules' section library in `rules-setup/library/`: the catalog, every template rendered with every combination of modules and options, and the `status` scan of `rules-setup/scripts/rules.py`. Run it after changing the library or the script. See "The ai-rules Library" below for how to add or change a section.
 
 `python3 scripts/test-performance-ci.py` runs ai-performance's `performance-ci/scripts/ci_timings.py` against a fake `gh` and sample GitHub Actions runs, jobs and logs. Run it after changing that script.
 
@@ -57,7 +59,7 @@ plugins/
 
 Portable (in all three catalogs): ai-accessibility, ai-compliance, ai-git, ai-modernize, ai-performance, ai-seo, ai-slop, ai-swift.
 
-Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`, and `/workflow-rules` edits CLAUDE.md) and ai-statusline (configures Claude Code's status line).
+Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`), ai-statusline (configures Claude Code's status line) and ai-rules (`/rules-setup` and `/rules-cleanup` edit CLAUDE.md, and `/rules-setup` uses `${CLAUDE_SKILL_DIR}`).
 
 Before adding a plugin to the Codex and Cursor catalogs, check that its skills don't depend on Claude Code subagents, hooks, settings files, `${CLAUDE_PLUGIN_ROOT}`/`${CLAUDE_SKILL_DIR}`, or CLAUDE.md. Agent Plugins v1 covers only skills and MCP servers.
 
@@ -206,6 +208,18 @@ When a plugin adapts someone else's skills, scripts or docs, as ai-workflow and 
 2. End each adapted `SKILL.md` with a credit line that names the source, its author and its license, and points to `THIRD-PARTY-NOTICES.md`.
 3. Keep the copyright header in an adapted script, and add a line on what changed.
 4. Credit the source in the plugin README's Credits section, the root README's Credits section and the CHANGELOG entry.
+
+### The ai-rules Library
+
+`/rules-setup` installs sections from `plugins/ai-rules/skills/rules-setup/library/`. `catalog.json` lists each section, and `<section-id>/<version>.md` holds each released version as a template. Templates use Mustache-style tags: `{{#module}}...{{/module}}` for a module or yes/no option that is on, `{{^name}}...{{/name}}` for one that is off, and `{{option}}` for a value. A line that holds only a section tag disappears.
+
+Users' CLAUDE.md files record the version they installed, and the wizard renders that version to tell whether they edited the text. So a released template never changes. The test script checks each one against the `sha256` in the catalog.
+
+- **Change a section:** copy its newest template to the next version (`1.0.0.md` → `1.1.0.md`) and edit the copy. Add an entry to the section's `versions` with the date, a one-line `changes` note the wizard shows during upgrades, and the `sha256` that `python3 plugins/ai-rules/skills/rules-setup/scripts/rules.py hash <id> <version>` prints. Then set `current`. A wording fix is a patch version, a new rule or module is a minor version, and a removed rule is a major version.
+- **Add a module to a section:** do the same, and add the module to `modules` with `since` set to the new version. The wizard asks users who upgrade whether to turn it on.
+- **Add a section:** create `<id>/1.0.0.md`, starting with the section's `##` heading, and add the section to `catalog.json`. Keep groups to 4 sections or fewer, because each wizard question holds 4 options.
+- Keep the text generic. The library is public, so don't quote the owner's projects, clients or machines.
+- Then bump ai-rules' version (a minor version for a new or changed section), update its README's library table if needed, and run `python3 scripts/test-rules-library.py` and `python3 scripts/check-manifests.py`.
 
 ### Deprecating or Removing Plugins and Skills
 

@@ -5,8 +5,8 @@
     "url": "https://charlesjones.dev"
   },
   "metadata": {
-    "description": "Plugins for git and project workflows, code audits and release checks. All 13 run in Claude Code, and 8 also run in Codex and Cursor.",
-    "version": "3.5.0",
+    "description": "Plugins for git and project workflows, code audits and release checks. All 14 run in Claude Code, and 8 also run in Codex and Cursor.",
+    "version": "3.6.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -140,8 +140,8 @@
     {
       "name": "ai-workflow",
       "source": "./plugins/ai-workflow",
-      "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs, refreshes stale ones, and manages CLAUDE.md rules that keep PR descriptions and commit messages short and accurate",
-      "version": "3.2.1",
+      "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs and refreshes stale ones",
+      "version": "4.0.0",
       "keywords": [
         "ai",
         "workflow",
@@ -159,9 +159,6 @@
         "automation",
         "productivity",
         "commit",
-        "claude-md",
-        "rules",
-        "behavior-rules",
         "council",
         "second-opinion",
         "takeover",
@@ -189,6 +186,36 @@
         "progress-bar",
         "configuration",
         "utilities"
+      ],
+      "author": {
+        "name": "Charles Jones",
+        "url": "https://charlesjones.dev"
+      },
+      "repository": "https://github.com/charlesjones-dev/ai-agent-plugins"
+    },
+    {
+      "name": "ai-rules",
+      "source": "./plugins/ai-rules",
+      "description": "Adds, upgrades and removes versioned sections of standing instructions in CLAUDE.md through a wizard: reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome and iOS simulators. You pick the sections, modules and settings, and upgrades merge new versions into sections you edited. Also audits your CLAUDE.md files, going further than /doctor prompt-audit, for rules that restate Claude Code's own behavior, belong in a setting or hook, sit in the wrong file, or cost context for little gain, and cleans up their structure",
+      "version": "1.0.0",
+      "keywords": [
+        "ai",
+        "claude-md",
+        "rules",
+        "instructions",
+        "reply-format",
+        "plain-language",
+        "simplified-technical-english",
+        "estimates",
+        "pull-request",
+        "commit",
+        "t3-code",
+        "wizard",
+        "context",
+        "audit",
+        "cleanup",
+        "configuration",
+        "tstack"
       ],
       "author": {
         "name": "Charles Jones",

@@ -13,7 +13,6 @@ Source: https://github.com/t3dotgg/tstack at commit `7de017b3fc9d50c03cf3ecb98fb
 | `skills/workflow-takeover/SKILL.md` | `takeover` |
 | `skills/workflow-refresh/SKILL.md` | `modernize` |
 | `skills/workflow-pr-comments/SKILL.md` | `leaving-pr-comments` |
-| `skills/workflow-rules/library.md` (the `short-pr-bodies` rule) | `file-pr` |
 
 ## tstack license
 

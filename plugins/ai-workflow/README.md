@@ -1,6 +1,6 @@
 # AI-Workflow Plugin
 
-**Release and PR workflows for Claude Code.** Take a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stop when the PR is ready to merge. Get a review loop with models from several providers, finish other people's PRs, refresh stale ones, and keep Claude's PR descriptions and commit messages short and accurate with a few CLAUDE.md rules.
+**Release and PR workflows for Claude Code.** Take a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stop when the PR is ready to merge. Get a review loop with models from several providers, finish other people's PRs, and refresh stale ones.
 
 Several skills and parts of `/workflow-babysit` are adapted from Theo Browne's [tstack](https://github.com/t3dotgg/tstack). See [Credits](#credits).
 
@@ -154,61 +154,20 @@ Claude uses this skill by itself whenever it posts a GitHub comment for you. Eac
 Fixed in 3f2a1c9: the retry now stops after the third attempt.
 ```
 
-### `/workflow-rules`
-
-Adds, removes or lists **behavior rules** in CLAUDE.md that keep Claude's PR descriptions and commit messages short and limited to what was done.
-
-**What it does:**
-
-- Reads the rule library shipped with the skill
-- Picks the target file: user `~/.claude/CLAUDE.md` (default, applies everywhere) or project `./CLAUDE.md`, resolving the home directory on Windows and POSIX
-- Offers a multi-select picker with already-installed rules left out
-- Wraps each installed rule in HTML comment markers (`<!-- workflow-rules:id=... -->`) so adds are idempotent and removes are precise, even if you edit the rule's title later
-- Shows a unified diff before any write and asks you to confirm
-
-**Usage:**
-
-```
-/workflow-rules
-```
-
-**Modes (chosen interactively):**
-
-- **Add**: install one or more rules into the chosen CLAUDE.md
-- **Remove**: uninstall installed rules, matched by ID, not title
-- **List**: show what's installed and where
-
-**Rule library (PR and Commit Hygiene):**
-
-| Rule | What it says |
-|------|--------------|
-| `pr-scope-current-session` | Describe only the commits from the current session |
-| `no-fabricated-test-plans` | Don't list testing that wasn't done |
-| `no-speculative-deploy-steps` | Don't add deploy or rollout steps unless asked |
-| `short-pr-bodies` | Keep PR bodies short: the problem, then how the change fixes it |
-| `scoped-commit-messages` | Describe what the diff does, not surrounding context |
-
-**Retired rules (October 2026):** five rules left the library because Claude Code now covers them. If you installed them earlier, the List and Remove modes still find them and say what replaces each one:
-
-| Rule | Replaced by |
-|------|-------------|
-| `no-generated-by-footers` | Claude Code's `attribution` setting. `"attribution": false` in `~/.claude/settings.json` hides the commit trailer and PR line |
-| `no-internal-narration`, `match-response-to-task` | The built-in Concise output style (`/output-style concise`) |
-| `no-unrequested-features`, `confirm-risky-actions` | Nothing. Claude Code's built-in instructions cover them |
-
 ---
 
 ## Removed Skills
 
 | Skill | Status |
 |-------|--------|
+| `/workflow-rules` | Moved to ai-rules as `/rules-setup` (November 2026, v4.0.0). Its five rules are the PR and commit hygiene section there. `/rules-setup` finds rules you installed with `/workflow-rules` and moves them into a managed section, keeping your edits |
 | `/workflow-ship` | Moved to ai-git (October 2026). Run `/git-commit-push-pr --preflight` |
 | `/workflow-preflight` | Moved to ai-git as `/git-preflight` (October 2026) |
 | `/workflow-claude-actions` | Removed (October 2026). Use Claude Code's built-in `/install-github-app`, which installs the Claude GitHub App, saves the auth secret, and opens a PR with `claude.yml` and, optionally, `claude-code-review.yml`. Since Claude Code v2.1.229, the review workflow posts inline comments, or one summary comment when it finds nothing. Without `--model`, the action uses Claude Code's default model, Opus 5.5 on Pro, Max, Team, Enterprise and the API. To update an older workflow, run `/install-github-app` again and pick "Update workflow file with latest version" |
 | `/workflow-principles` | Removed (October 2026). The built-in `/init` writes CLAUDE.md |
 | `/workflow-plan-phases`, `/workflow-implement-phases` | Removed (July 2026). Claude Code's native Dynamic Workflows orchestrate subagent fan-out with per-agent token budgets |
 
-ai-git is a separate plugin. To keep using the moved skills, install it once with `/plugin install ai-git@ai-agent-plugins`. Removed skills are still in git history.
+ai-git and ai-rules are separate plugins. To keep using the moved skills, install them once with `/plugin install ai-git@ai-agent-plugins` and `/plugin install ai-rules@ai-agent-plugins`. Removed skills are still in git history.
 
 ---
 
@@ -227,8 +186,8 @@ ai-git is a separate plugin. To keep using the moved skills, install it once wit
 
 - **Name:** AI-Workflow Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 3.2.1
-- **Skills:** `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, `/workflow-rules`, and `workflow-pr-comments`, which Claude runs by itself
+- **Version:** 4.0.0
+- **Skills:** `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, and `workflow-pr-comments`, which Claude runs by itself
 - **License:** MIT
 - **Author:** Charles Jones
 
