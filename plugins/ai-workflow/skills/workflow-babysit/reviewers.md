@@ -2,6 +2,8 @@
 
 Every PR gets each of Claude Code, Codex and Cursor Bugbot that is on. Work out which are on before waiting on anything. Greptile and Macroscope are waited on too when a repo uses them (see [Greptile and Macroscope](#greptile-and-macroscope)). Other review bots that show up on a PR (`coderabbitai[bot]`, `copilot-pull-request-reviewer[bot]` and so on) are triaged like the rest, but never waited on. CodeRabbit is advisory: never hold a merge for it.
 
+When CLAUDE.md says no AI reviewer bot runs on GitHub ("No review bots" in the skill's Repo settings), treat Codex, Cursor Bugbot, Greptile and Macroscope as off from the start. Skip their "Is it on?" checks and their waits.
+
 In the commands below, `{owner}/{repo}` comes from `gh repo view --json nameWithOwner`.
 
 ## Claude Code (GitHub Action)

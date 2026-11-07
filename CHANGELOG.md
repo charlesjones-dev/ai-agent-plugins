@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-11-07
+
+### Changed
+
+#### AI-Workflow Plugin (v4.0.0 → v4.1.0)
+
+- **`/workflow-council`** — the built-in default no longer names providers. It is up to three members: the newest flagship of each provider the route reaches (T3 Code's `orchestrator_capabilities`, or the CLIs it finds), leaving out the provider of the model running the session. The setup question recommends the same members. The saved-council example uses placeholders instead of model names.
+- **`/workflow-council`** — a new "Ask every run" rule. When the project's or user's CLAUDE.md says to ask which reviewer to use each time, the council asks the setup question every run, saves nothing, and ignores saved council files and the default. An `--unattended` run with no members in its arguments runs no council and says why in the report.
+- **`/workflow-babysit`** — a "No review bots" repo setting. When CLAUDE.md says no AI reviewer bot runs on GitHub, the run treats Codex, Cursor Bugbot, Greptile and Macroscope as off from the start: no detection, no waits and no bot commands.
+- **`/workflow-babysit`** — step 0's reviewer question offers a council review when the council can reach another model, such as through T3 Code. With "ask each time" in CLAUDE.md, step 0 asks for the council members every run and passes them to the council.
+
+#### Marketplace
+
+- Marketplace metadata version bumped `3.6.0` → `3.7.0`.
+
 ## [3.6.0] - 2026-11-03
 
 ### Added
@@ -1681,7 +1696,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...HEAD
+[3.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...v3.5.0
 [3.4.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.0...v3.4.1
