@@ -81,9 +81,10 @@ Reviews a change in a loop with models from several providers, until they approv
 
 **What it does:**
 
-- Asks on its first run which models sit on your council. It lists only the models this machine can reach (T3 Code's providers, or the CLIs it finds), recommends Claude, GPT and Grok, and saves your answer to `~/.claude/workflow-council.json`. A repo can have its own council in `.claude/workflow-council.json`
+- Asks on its first run which models sit on your council. It lists only the models this machine can reach (T3 Code's providers, or the CLIs it finds), recommends the newest model of each provider other than the one running the session, and saves your answer to `~/.claude/workflow-council.json`. A repo can have its own council in `.claude/workflow-council.json`
 - Saves model families such as "GPT Sol", so the council moves to each new release by itself. An exact model ID in the file pins that model
 - Takes the members from the command first, then the repo's saved council, then yours. It never puts another model in place of one it can't reach
+- Asks every run, and saves nothing, when your CLAUDE.md says to ask which reviewer to use each time. An unattended run then skips the council unless the command names the members
 - Reaches each member through T3 Code's `delegate_task` in T3 Code. In plain Claude Code, it uses a subagent for Claude, and each provider's own CLI for the rest: the Codex CLI for OpenAI, the Grok CLI for xAI, and the Cursor CLI for any model Cursor offers. Every member reviews read-only, and the skill stops if one changes a file
 - Sends every member the same brief: the intent, what's out of scope, the checks run, and the diff. Each one replies with a verdict, a score out of 10 and findings ranked blocker, should or nit
 - Checks each finding itself, fixes what's right with the smallest change, pushes back with evidence on the rest, and declines nits as follow-ups. It keeps a ledger of every finding
@@ -186,7 +187,7 @@ ai-git and ai-rules are separate plugins. To keep using the moved skills, instal
 
 - **Name:** AI-Workflow Plugin
 - **Type:** AI Instruction Plugin (Skills)
-- **Version:** 4.0.0
+- **Version:** 4.1.0
 - **Skills:** `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, and `workflow-pr-comments`, which Claude runs by itself
 - **License:** MIT
 - **Author:** Charles Jones

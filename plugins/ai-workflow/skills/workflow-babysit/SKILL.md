@@ -58,7 +58,8 @@ Read the project's CLAUDE.md and the user's `~/.claude/CLAUDE.md` first. When th
 - **What to do when Claude Code review is off**: use the local review, proceed without it, or stop. Answers the step 0 question ahead of time.
 - **Deploy**: the host, which services to watch, health-check URLs for production and staging, and anything that must happen before or after a deploy (for example, starting a staging database before merging into staging, or tearing staging down afterwards).
 - **Merge method** for feature PRs.
-- **Council**: whether every run gets a council review before the PR opens. The members come from the saved council file, which `/workflow-council --setup` writes.
+- **Council**: whether every run gets a council review before the PR opens. The members come from the saved council file, which `/workflow-council --setup` writes, or from a question in step 0 when CLAUDE.md says to ask which reviewer to use each time.
+- **No review bots**: CLAUDE.md saying that no AI reviewer bot runs on GitHub. Then treat Codex, Cursor Bugbot, Greptile and Macroscope as off from the start: don't look for them, don't wait for them, and post no bot commands. The Claude Code review check in step 0 still runs, because it reads the repo's workflow files and costs no wait.
 
 ## Testing permission
 
@@ -89,13 +90,14 @@ Collect everything below, then ask all the questions it raises in one AskUserQue
 
    If any commit belongs to someone other than the current user (`gh api user --jq .login`), or has no login, the release PR would ship it too. Ask whether to promote everything in staging or to stop after merging into staging.
 7. **Branch rules**: for each branch this run merges into, read its rulesets (`gh api "repos/{owner}/{repo}/rules/branches/<branch>"`) and whether it has classic protection (`gh api "repos/{owner}/{repo}/branches/<branch>" --jq .protected`). For a PR that's already open, `gh pr view <N> --json reviewDecision` returning `REVIEW_REQUIRED` means it needs an approval. If a `pull_request` rule or the PR says approvals are required, warn the user that the run will stop at that merge unless someone approves the PR first. If `deleteBranchOnMerge` is on and staging isn't protected, GitHub may delete staging when the release PR merges. Note the staging head SHA before that merge, so step 5 can restore it.
-8. **Reviewers**: work out whether Claude Code review is on, using [reviewers.md](reviewers.md). If it is off, and CLAUDE.md doesn't already say what to do, ask. Say which check failed, and whether Codex or Cursor Bugbot reviewed the repo's last few PRs. Offer:
+8. **Reviewers**: work out whether Claude Code review is on, using [reviewers.md](reviewers.md). If it is off, and CLAUDE.md doesn't already say what to do, ask. Say which check failed, and whether Codex or Cursor Bugbot reviewed the repo's last few PRs (skip that with "No review bots" in [Repo settings](#repo-settings)). Offer:
    - **Use local /code-review (Recommended)**: run Claude Code's built-in `/code-review` on each PR in place of the GitHub Action.
+   - **Council review**: offer this when the workflow-council skill can reach another model, such as through T3 Code's `delegate_task`. It works like `--council`: the council reviews each change before its PR opens (step 1), with the members from item 9. The release PR carries only changes already reviewed, so CI alone gates it.
    - **Proceed without it**: Codex and Bugbot, if they're on, are the only reviewers. If both are off too, nothing reviews the PRs.
    - **Stop**: set up the action with Claude Code's built-in `/install-github-app` and run this skill again. To fix an existing workflow, run `/install-github-app` again and pick "Update workflow file with latest version".
 
    One answer covers the whole run, release PR included. Codex and Bugbot can only be detected once a PR is open (step 2), and their being off is never a reason to stop.
-9. **Council** (only with `--council`, or when CLAUDE.md asks for it): work out the members as the workflow-council skill's Members section describes. If no council is saved, ask its first-run setup question now, with the other step 0 questions, and save the answer. Then check that each member is reachable: the T3 Code model list, or each provider's CLI installed and signed in. If one isn't, ask whether to run without it or skip the council.
+9. **Council** (only with `--council`, or when CLAUDE.md asks for it): work out the members as the workflow-council skill's Members section describes. If no council is saved, ask its first-run setup question now, with the other step 0 questions, and save the answer. When CLAUDE.md says to ask which reviewer to use each time, always ask that question now, and save nothing (the council's "Ask every run" section). Pass the answer to the council as its member arguments. Then check that each member is reachable: the T3 Code model list, or each provider's CLI installed and signed in. If one isn't, ask whether to run without it or skip the council.
 10. **Deploy target**: find it now with [deploy-targets.md](deploy-targets.md), so a missing target is known before anything merges. With `--to staging`, only staging's target matters, and `--to ready` skips this. If there is none, the run ends after the last merge and says so.
 
 ## 1. Finish, prove and open the PR
@@ -280,7 +282,7 @@ When stopping, also list any cleanup that CLAUDE.md asks for after a deploy and 
 - Never push to the default branch directly. Everything goes through a PR.
 - Run `git pull --rebase` before every push, since a bot such as Bugbot Autofix may have pushed to the branch. It only replays your unpushed commits on top. If the rebase hits a conflict you can't resolve cleanly, `git rebase --abort` and stop.
 - When the PR conflicts with its base (DIRTY), merge the base into the branch (`git fetch origin` and `git merge origin/<base>`), resolve the conflicts by the PR's intent, get proof again, and push normally. Never rebase a pushed branch onto its base, because that needs a force push. If you can't resolve the conflicts, `git merge --abort` and stop.
-- The only bot commands the skill posts are `@codex review` and `bugbot run`. Never mention `@cursor`, and never ask a bot to make a fix.
+- The only bot commands the skill posts are `@codex review` and `bugbot run`, and none with "No review bots" in [Repo settings](#repo-settings). Never mention `@cursor`, and never ask a bot to make a fix.
 - Every other comment the skill posts follows the workflow-pr-comments skill from this plugin. Bot commands stay bare.
 - Never commit secrets.
 - The skill doesn't deploy, restart, scale or change environment variables on any host. Merging is what triggers the deploy. The only exception is a step CLAUDE.md asks for, such as starting staging services before a staging deploy.

@@ -1,6 +1,6 @@
 ---
 name: workflow-council
-description: "Reviews a change in a loop with models from several providers, by default the latest from Anthropic, OpenAI and xAI. Each round they review read-only and give a verdict and a score. It fixes what they're right about and pushes back with evidence on the rest, until they approve or the round budget runs out. With one member it's a second-opinion loop. The first run asks which models sit on the council and saves the answer. Use when the user says 'council', 'sol loop' or 'second opinion', or asks for a review from another provider's model."
+description: "Reviews a change in a loop with models from several providers, by default the newest flagship of each provider the client reaches, other than the session's own. Each round they review read-only and give a verdict and a score. It fixes what they're right about and pushes back with evidence on the rest, until they approve or the round budget runs out. With one member it's a second-opinion loop. The first run asks which models sit on the council and saves the answer, or it asks every run when CLAUDE.md says so. Use when the user says 'council', 'sol loop' or 'second opinion', or asks for a review from another provider's model."
 argument-hint: "[members, such as gpt,grok] [--base <ref>] [--setup [repo]] [--rounds N] [--unattended] [PR number] [what to review]"
 ---
 
@@ -10,13 +10,21 @@ Get review from strong models of several providers, and loop until they agree th
 
 User provided: $ARGUMENTS
 
-`--unattended` means nobody is watching, as when the workflow-babysit skill runs the council. Then never ask the user anything. With no saved council, use the built-in default. A member that can't be reached is left out and named in the report, and a finding still disputed at the end is declined, with both sides written into the results.
+`--unattended` means nobody is watching, as when the workflow-babysit skill runs the council. Then never ask the user anything. With no saved council, use the built-in default, unless [Ask every run](#ask-every-run) applies. A member that can't be reached is left out and named in the report, and a finding still disputed at the end is declined, with both sides written into the results.
 
 `--setup` runs the [first-run setup](#first-run-setup) even when a council is saved, saves the answer, and stops. `--setup repo` saves it for the current repository instead of for the user.
 
 ## Members
 
-Take the members from the first of these that applies:
+### Ask every run
+
+When the project's or user's CLAUDE.md says to ask which reviewer or models to use each time, the user's choice can't be saved or guessed:
+
+- Take the members from the arguments, or ask the [setup question](#first-run-setup) (steps 1 and 2 only). Ask it every run, and save nothing.
+- Don't read or write a saved council file, and don't use the built-in default.
+- With `--unattended`, nobody can answer. If the arguments name no members, run no council, and say in the report that CLAUDE.md asks for a choice each run and nobody was there to make it.
+
+Otherwise take the members from the first of these that applies:
 
 1. The arguments, such as `gpt`, `gpt,grok` or `claude,gpt,grok`. "sol loop", or a request for a second opinion from one model, means that one member. "sol loop" means OpenAI's newest GPT Sol model.
 2. The repository's saved council: `.claude/workflow-council.json` in the repository root.
@@ -24,7 +32,7 @@ Take the members from the first of these that applies:
 4. Council members named in the project's or user's CLAUDE.md or AGENTS.md. Older setups use this.
 5. Nothing saved: run the [first-run setup](#first-run-setup). With `--unattended`, don't ask. Use the built-in default instead, and say in the report that no council is saved and that `/workflow-council --setup` saves one.
 
-The built-in default is three members: the newest flagship model from Anthropic, OpenAI and xAI.
+The built-in default is up to three members: the newest flagship model of each provider the route reaches, leaving out the provider of the model running this session, so every member is a second opinion. If more than three providers remain, take the first three the route lists. If no other provider is reachable, use the newest flagship of the session's own provider.
 
 Resolve each member when you run, from the route's model list. Never hardcode a model ID from memory. Use high reasoning effort unless the saved council sets another.
 
@@ -35,9 +43,9 @@ Both files have the same format:
 ```json
 {
   "members": [
-    { "model": "Claude Opus", "effort": "high" },
-    { "model": "GPT Sol", "effort": "high" },
-    { "model": "Grok", "effort": "xhigh", "provider": "grok" }
+    { "model": "<model family>", "effort": "high" },
+    { "model": "<exact model ID>", "effort": "high" },
+    { "model": "<model family>", "effort": "xhigh", "provider": "<provider>" }
   ]
 }
 ```
@@ -58,7 +66,7 @@ If a file isn't valid JSON, or has no `members` list, say so. Then treat that fi
    - Up to four options, one per reachable provider. Label each with the model family and its provider, such as "GPT Sol (OpenAI)". In the description, give the exact model the route offers now and the route, such as "gpt-6.1-sol through T3 Code".
    - Mark the built-in default members "(Recommended)", and list them first. If more than four providers are reachable, name the others in the question, so the user can type one under "Other".
    - Without the AskUserQuestion tool, ask in plain text with a numbered list, and wait for the answer.
-3. **Save the answer.** Write `~/.claude/workflow-council.json`, or `.claude/workflow-council.json` in the repository root with `--setup repo`. Save family names, unless the user typed an exact model ID. Save `provider` only when more than one provider offers that model.
+3. **Save the answer**, unless [Ask every run](#ask-every-run) applies. Then skip this step and step 4. Write `~/.claude/workflow-council.json`, or `.claude/workflow-council.json` in the repository root with `--setup repo`. Save family names, unless the user typed an exact model ID. Save `provider` only when more than one provider offers that model.
 4. **Tell the user in one line** where the council is saved, and that `/workflow-council --setup` or editing the file changes it. Then go on with the review, unless the run was `--setup`.
 
 If a member can't be reached, say which one and why, and ask whether to go on with the others (with `--unattended`, go on without it). Never put another model in its place on your own.
