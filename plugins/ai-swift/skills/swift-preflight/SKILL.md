@@ -1,6 +1,6 @@
 ---
 name: swift-preflight
-description: "Audit a Swift / iOS / macOS repo for Xcode Cloud and TestFlight release blockers before upload - pbxproj drift, static build numbers, missing ci_scripts, macOS App Store entitlements/Info.plist, headless-CI keychain tests, ad-hoc signing entitlement rejections, and flaky-UITest release gating. Reports PASS/WARN/FAIL with file:line and fixes."
+description: "Audit a Swift, iOS or macOS repo for Xcode Cloud and TestFlight release blockers before upload, from pbxproj drift and static build numbers to signing entitlements and flaky UI tests that gate a release. Reports PASS/WARN/FAIL with file:line and fixes."
 argument-hint: "[path] [--fix | --check-only | --verbose]"
 allowed-tools: [Bash, Read, Glob, Grep, AskUserQuestion]
 disable-model-invocation: true

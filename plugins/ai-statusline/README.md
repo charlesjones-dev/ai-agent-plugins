@@ -1,12 +1,19 @@
-# AI-Statusline Plugin
+# AI-Statusline plugin
 
-**Status line customization for Claude Code.** Interactive setup and edit wizards for configuring a custom status line with progress bars and customizable display options.
+Adds a context bar, rate limits, a spend budget, the effort level and a sandbox indicator to Claude Code's status line, with a wizard to change them.
 
-> **How this relates to the native `/statusline` command:** Claude Code ships a built-in `/statusline` command that covers baseline setup (describe what you want, or auto-configure from your shell prompt). This plugin goes further with richer, opinionated widgets: a Unicode progress bar with color thresholds, 5-hour/7-day rate-limit percentages with color coding, a month-to-date spend budget for Enterprise/API seats that have no rate limits, a reasoning-effort indicator with `/effort`-matched colors (including ultracode detection), a sandbox indicator that appears while the Bash sandbox is on, session cost and duration segments, granular per-segment toggles, and a matching `/statusline-edit` flow for reconfiguring later without regenerating the script.
+Claude Code's built-in `/statusline` command covers basic setup: you describe what you want, or it builds a line from your shell prompt. This plugin adds:
 
----
+- a Unicode progress bar with color thresholds
+- 5-hour and 7-day rate-limit percentages with color coding
+- a month-to-date spend budget for Enterprise and API seats that have no rate limits
+- the reasoning-effort level in `/effort`-matched colors, including ultracode
+- a sandbox indicator that appears while the Bash sandbox is on
+- session cost and duration segments
+- a toggle for each segment
+- `/statusline-edit`, which changes the settings later without regenerating the script
 
-## Example Status Line
+## Example status line
 
 ```
 Opus 5 (1M context) · high · 420k/1000k ▓▓▓▓░░░░░░ 42% · 5h:12% 7d:4% · my-project · main · 5m 23s · 2:45pm · v2.1.80
@@ -30,15 +37,13 @@ With the optional sandbox indicator enabled, `Sandbox` appears in orange after t
 Opus 5 (1M context) · high · Sandbox · 420k/1000k ▓▓▓▓░░░░░░ 42% · 5h:12% 7d:4% · my-project · main · 5m 23s · 2:45pm · v2.1.293
 ```
 
----
-
-## Available Skills
+## Available skills
 
 ### `/statusline-wizard`
 
-Interactive setup wizard for configuring Claude Code's custom status line from scratch.
+Sets up Claude Code's status line from scratch through a wizard.
 
-**What it does:**
+#### What it does
 
 - Detects your operating system (Mac/Linux/Windows)
 - Checks for existing configuration and offers to back up if present
@@ -47,68 +52,64 @@ Interactive setup wizard for configuring Claude Code's custom status line from s
 - Updates `~/.claude/settings.json` with the statusLine configuration
 - Makes the script executable on Mac/Linux
 
-**Usage:**
+#### Usage
 
 ```
 /statusline-wizard
 ```
 
-**Wizard Questions:**
+#### Wizard questions
 
 The wizard asks about four categories of display options:
 
-1. **Context Display** (what to show about your Claude session)
+1. Context display: what to show about your Claude session
    - Token count (e.g., "420k/1000k")
    - Progress bar (visual percentage indicator)
    - Model name (e.g., "Opus 5 (1M context)")
    - Effort level (e.g., "high", with `/effort`-matched colors)
 
-2. **Project Display** (what to show about your project)
+2. Project display: what to show about your project
    - Current directory name
    - Git branch name
    - Sandbox indicator (Mac/Linux; disabled by default, and shown only while the Bash sandbox is on)
 
-3. **Session Display** (what to show about timing/costs)
+3. Session display: what to show about timing and costs
    - Session duration
    - Current time
    - Claude Code version
    - Session cost (disabled by default)
 
-4. **Usage Limits** (how close you are to your plan's limits)
-   - Rate limit usage - 5h and 7d windows (Pro, Max and Ultra plans; each window shows only when your plan has it)
-   - Monthly spend budget - month-to-date spend across sessions on this machine (disabled by default; prompts for your monthly cap in USD and when it resets)
+4. Usage limits: how close you are to your plan's limits
+   - Rate limit usage: the 5h and 7d windows (Pro, Max and Ultra plans; each window shows only when your plan has it)
+   - Monthly spend budget: month-to-date spend across sessions on this machine (disabled by default; prompts for your monthly cap in USD and when it resets)
 
 ### `/statusline-edit`
 
 Edit your existing status line configuration.
 
-**What it does:**
+#### What it does
 
 - Detects your OS and locates the existing script file
 - Reads current configuration values from the script
 - Asks the same questions as the wizard
 - Updates only the configuration variables (preserves the rest of the script)
 
-**Usage:**
+#### Usage
 
 ```
 /statusline-edit
 ```
 
-**Note:** If no status line script exists, you'll be prompted to run `/statusline-wizard` first.
+If no status line script exists, it asks you to run `/statusline-wizard` first.
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 ```
 /plugin marketplace add charlesjones-dev/ai-agent-plugins
 /plugin install ai-statusline@ai-agent-plugins
 ```
 
-### Usage
+## Usage
 
 ```
 # Step 1: Run the setup wizard
@@ -123,33 +124,29 @@ Edit your existing status line configuration.
 /statusline-edit
 ```
 
----
-
-## Configuration Options
+## Configuration options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| Model name | On | Display model name (e.g., "Opus 5 (1M context)") |
-| Effort level | On | Display reasoning effort level with `/effort`-matched colors |
-| Sandbox indicator | Off | Display `Sandbox` in orange after the effort level while the Bash sandbox is on (Mac/Linux only) |
-| Token count | On | Display token usage (e.g., "420k/1000k") |
-| Progress bar | On | Display visual progress bar with percentage |
-| Current directory | On | Display current working directory name |
-| Git branch | On | Display current git branch |
-| Session duration | On | Display how long the session has been running |
-| Current time | On | Display current time |
-| Claude Code version | On | Display Claude Code version number |
-| Session cost | Off | Display session cost in USD |
-| Rate limit usage | On | Display 5-hour and 7-day rate limit percentages. Each window is hidden when your account doesn't have it |
-| Monthly spend budget | Off | Display month-to-date spend across all sessions on this machine, e.g. `mo:$47.20/$2000 2.4%` |
+| Model name | On | The model name (e.g., "Opus 5 (1M context)") |
+| Effort level | On | The reasoning effort level, in `/effort`-matched colors |
+| Sandbox indicator | Off | `Sandbox` in orange after the effort level while the Bash sandbox is on (Mac/Linux only) |
+| Token count | On | Token usage (e.g., "420k/1000k") |
+| Progress bar | On | A progress bar with the percentage |
+| Current directory | On | The working directory's name |
+| Git branch | On | The current git branch |
+| Session duration | On | How long the session has run |
+| Current time | On | The current time |
+| Claude Code version | On | The Claude Code version number |
+| Session cost | Off | The session cost in USD |
+| Rate limit usage | On | The 5-hour and 7-day rate limit percentages. Each window is hidden when your account doesn't have it |
+| Monthly spend budget | Off | Month-to-date spend across all sessions on this machine, e.g. `mo:$47.20/$2000 2.4%` |
 | Monthly spend cap | 0 (none) | USD cap used for the spend budget percentage and colors; `0` shows the bare total |
 | Spend cap reset | 1st, 00:00 UTC | Day of month (1-28) and time (UTC) the cap resets; the wizard converts what the console shows into UTC |
 
----
-
 ## Features
 
-### Visual Progress Bar
+### Progress bar
 
 The progress bar uses Unicode block characters to show context usage:
 
@@ -159,7 +156,7 @@ The progress bar uses Unicode block characters to show context usage:
 ▓▓▓▓▓▓▓▓░░ 85%  (Red - 80%+)
 ```
 
-### Rate Limit Display
+### Rate limits
 
 Shows your 5-hour and 7-day rate limit usage with color coding:
 
@@ -169,9 +166,13 @@ Shows your 5-hour and 7-day rate limit usage with color coding:
 5h:92% 7d:85%   (Red - 80%+)
 ```
 
-**Not on every plan:** Claude Code only sends `rate_limits` for plans with rolling usage windows (Pro, Max and Ultra). Enterprise seats and API-billed accounts on a monthly spend cap receive no rate-limit data at all, so this segment stays hidden even when enabled. Use the Monthly Spend Budget segment below instead.
+#### Not on every plan
 
-**Accounts without a 5-hour limit:** Anthropic renamed its plans: Max 5x is now Max, and Max 20x is now Ultra. Verified Ultra accounts no longer have a 5-hour limit. Newer Ultra accounts keep one until they're verified. Weekly limits don't change. Without a 5-hour limit, Claude Code sends no `five_hour` window, so the segment shows the weekly window alone:
+Claude Code only sends `rate_limits` for plans with rolling usage windows (Pro, Max and Ultra). Enterprise seats and API-billed accounts on a monthly spend cap receive no rate-limit data at all, so this segment stays hidden even when enabled. Use the monthly spend budget segment below instead.
+
+#### Accounts without a 5-hour limit
+
+Anthropic renamed its plans: Max 5x is now Max, and Max 20x is now Ultra. Verified Ultra accounts no longer have a 5-hour limit. Newer Ultra accounts keep one until they're verified. Weekly limits don't change. Without a 5-hour limit, Claude Code sends no `five_hour` window, so the segment shows the weekly window alone:
 
 ```
 7d:4%
@@ -179,7 +180,7 @@ Shows your 5-hour and 7-day rate limit usage with color coding:
 
 The script checks each window on its own. It leaves out a window whose `used_percentage` or `resets_at` is missing, null or not a number, so you don't see `5h:0%`, `N/A` or an extra separator. When neither window is usable, the whole segment disappears.
 
-### Monthly Spend Budget
+### Monthly spend budget
 
 For accounts with no rolling rate limits, the optional spend segment shows month-to-date spend across all Claude Code sessions on this machine, colored on the same thresholds as the rate-limit segment:
 
@@ -192,17 +193,21 @@ mo:$47.20               (No cap configured - bare total)
 
 Enable it with `SHOW_SPEND_BUDGET=true` and set `SPEND_LIMIT_USD` to your seat's monthly cap (the "$0.96 of $2,000.00 spent" figure on the Anthropic console usage page). Leave the cap at `0` to show the bare total.
 
-**Reset day and time:** the payload doesn't tell us when your cap resets, so you provide it. `SPEND_RESET_DAY` (1-28) and `SPEND_RESET_TIME` (HH:MM, 24-hour) are both in UTC and default to the 1st at 00:00 UTC, which is what the Anthropic console uses. The console shows that same instant in your local time ("Resets Wed, Sep 30, 8:00 PM EDT" is Oct 1 00:00 UTC), and the wizard does the conversion when you paste it. Invalid values fall back to the default rather than breaking the status line.
+#### Reset day and time
 
-**How it works:** Claude Code only reports the current session's cost, so each render writes it to `~/.claude/statusline-spend/<period-start>/<session_id>` and the segment sums every file for the current billing period, where the period starts at the most recent reset day/time. One file per session means concurrent sessions never contend for a shared file. Previous periods are pruned automatically. If the directory can't be created or written (read-only home, missing `HOME`), the segment silently falls back to the current session's cost.
+The payload doesn't say when your cap resets, so you provide it. `SPEND_RESET_DAY` (1-28) and `SPEND_RESET_TIME` (HH:MM, 24-hour) are both in UTC and default to the 1st at 00:00 UTC, which is what the Anthropic console uses. The console shows that same instant in your local time ("Resets Wed, Sep 30, 8:00 PM EDT" is Oct 1 00:00 UTC), and the wizard does the conversion when you paste it. Invalid values fall back to the default rather than breaking the status line.
 
-**Caveats to know before relying on it:**
+#### How the total is kept
 
-- **It's a local estimate and won't match your bill.** The figure is Claude Code's own `cost.total_cost_usd` estimate and won't match the Anthropic console (in one observed case the console showed $0.96 spent while a single live session already reported $1.11). The authoritative sources are the console usage page and the Admin API cost report, which needs an org admin key most seat users don't have.
-- **No historical backfill.** Only sessions rendered after you enable the segment are counted.
-- **This machine only.** It doesn't include claude.ai web/desktop usage or sessions on other machines.
+Claude Code only reports the current session's cost, so each render writes it to `~/.claude/statusline-spend/<period-start>/<session_id>` and the segment sums every file for the current billing period, where the period starts at the most recent reset day/time. One file per session means concurrent sessions never contend for a shared file. The script deletes the files for earlier periods. If the directory can't be created or written (read-only home, missing `HOME`), the segment silently falls back to the current session's cost.
 
-### Effort Level Display
+#### Caveats
+
+- It's a local estimate, and it won't match your bill. The figure is Claude Code's own `cost.total_cost_usd` estimate and won't match the Anthropic console (in one observed case the console showed $0.96 spent while a single live session already reported $1.11). The authoritative sources are the console usage page and the Admin API cost report, which needs an org admin key most seat users don't have.
+- It doesn't backfill. Only sessions rendered after you enable the segment are counted.
+- It counts this machine only. It doesn't include claude.ai web/desktop usage or sessions on other machines.
+
+### Effort level
 
 Shows the session's reasoning effort level, colored to match Claude Code's `/effort` picker:
 
@@ -217,9 +222,11 @@ Shows the session's reasoning effort level, colored to match Claude Code's `/eff
 
 The segment reflects live `/effort` changes and is hidden entirely when the current model doesn't support the effort parameter.
 
-**Ultracode detection:** Claude Code reports ultracode as plain `xhigh` in the status line payload, so the scripts scan the session transcript for the most recent `/effort` command output to tell them apart. If a session never ran `/effort`, the payload value is shown as-is.
+#### Ultracode detection
 
-### Sandbox Indicator
+Claude Code reports ultracode as plain `xhigh` in the status line payload, so the scripts scan the session transcript for the most recent `/effort` command output to tell them apart. If a session never ran `/effort`, the payload value is shown as-is.
+
+### Sandbox indicator
 
 Shows `Sandbox` in orange, right after the effort level, while Claude Code's [Bash sandbox](https://code.claude.com/docs/en/sandboxing) is on for the session. It's hidden while the sandbox is off. It's disabled by default: select it in the wizard, or set `SHOW_SANDBOX=true`.
 
@@ -235,34 +242,25 @@ Turning the sandbox on or off with `/sandbox` shows up on the next refresh.
 
 The indicator reflects your settings. It can't confirm that the sandbox started, and it can't read MDM profiles or server-managed settings. On Linux and WSL2 it stays hidden when `bwrap` or `socat` is missing, because the sandbox can't start without them, but other startup failures go unnoticed. When it matters, such as before a security audit, ask Claude to run `touch ~/sandbox-probe` and check that it fails. The sandbox doesn't run on native Windows, so the PowerShell script has no sandbox indicator.
 
----
+## How it works
 
-## How It Works
+1. The wizard writes one script for your OS (Bash on Mac/Linux, PowerShell on Windows) and adds it to your `settings.json` (paths below). Claude Code sends the script JSON on stdin.
+2. The script parses the JSON with `jq` on Mac/Linux, or with PowerShell's `ConvertFrom-Json` on Windows.
+3. It builds a segment for each option you turned on and joins them with separators.
+4. It colors the segments with standard ANSI escape codes.
 
-1. **Script Generation**: The wizard writes one script for your OS (Bash on Mac/Linux, PowerShell on Windows) and adds it to your `settings.json` (paths below). The script reads JSON input from stdin (provided by Claude Code)
-
-2. **JSON Parsing**:
-   - Mac/Linux: Uses `jq` to parse the JSON data
-   - Windows: Uses PowerShell's `ConvertFrom-Json`
-
-3. **Dynamic Output**: The script builds output segments based on enabled options, joining them with separators
-
-4. **ANSI Colors**: Uses standard ANSI escape codes for cross-terminal color support
-
-### Script Location
+### Script location
 
 | OS | Script Path | Settings Path |
 |----|-------------|---------------|
 | Mac/Linux | `~/.claude/statusline.sh` | `~/.claude/settings.json` |
 | Windows | `C:/Users/USERNAME/.claude/statusline.ps1` | `C:/Users/USERNAME/.claude/settings.json` |
 
----
-
 ## Requirements
 
 ### Mac/Linux
 
-- **jq**: Required for JSON parsing
+- `jq`, which parses the JSON:
   ```bash
   # macOS
   brew install jq
@@ -277,22 +275,19 @@ The indicator reflects your settings. It can't confirm that the sandbox started,
 ### Windows
 
 - PowerShell 5.1+ (included with Windows 10/11) or PowerShell Core 7+
-- No additional dependencies required
 
-### Terminal Support
+### Terminal support
 
-- Unicode support for progress bar characters (`▓` and `░`)
-- ANSI color code support (most modern terminals)
-
----
+- Unicode support for the progress bar characters (`▓` and `░`)
+- ANSI color codes
 
 ## Customization
 
-### Manual Configuration
+### Manual configuration
 
 After running the wizard, you can manually edit the configuration variables at the top of the script file:
 
-**Bash (`~/.claude/statusline.sh`):**
+Bash, in `~/.claude/statusline.sh`:
 ```bash
 SHOW_MODEL=true           # Show model name
 SHOW_EFFORT=true          # Show reasoning effort level
@@ -312,7 +307,7 @@ SPEND_RESET_DAY=1         # Day of the month (1-28) the cap resets, UTC
 SPEND_RESET_TIME=00:00    # Time (HH:MM, 24h, UTC) the cap resets
 ```
 
-**PowerShell (`C:/Users/USERNAME/.claude/statusline.ps1`):**
+PowerShell, in `C:/Users/USERNAME/.claude/statusline.ps1`:
 ```powershell
 $SHOW_MODEL = $true
 $SHOW_EFFORT = $true
@@ -331,8 +326,6 @@ $SPEND_RESET_DAY = 1
 $SPEND_RESET_TIME = '00:00'
 ```
 
----
-
 ## Troubleshooting
 
 ### Status line not appearing
@@ -343,13 +336,11 @@ $SPEND_RESET_TIME = '00:00'
 
 ### Colors not displaying
 
-- Ensure your terminal supports ANSI escape codes
-- Try a different terminal emulator if colors don't appear
+Your terminal needs to support ANSI escape codes.
 
 ### Progress bar characters look wrong
 
-- Ensure your terminal font supports Unicode block characters
-- Try a font like "Fira Code", "JetBrains Mono", or "Cascadia Code"
+Use a font with Unicode block characters, such as "Fira Code", "JetBrains Mono" or "Cascadia Code".
 
 ### jq not found (Mac/Linux)
 
@@ -357,7 +348,7 @@ Install jq using your package manager (see Requirements section above).
 
 ### Rate limits (5h/7d) never appear
 
-Your account has no rolling rate-limit windows, so Claude Code doesn't send `rate_limits` in the status line payload. This is expected for Enterprise seats and API-billed accounts on a monthly spend cap. Enable the Monthly Spend Budget segment (`SHOW_SPEND_BUDGET=true`) for a comparable month-to-date view.
+Your account has no rolling rate-limit windows, so Claude Code doesn't send `rate_limits` in the status line payload. This is expected for Enterprise seats and API-billed accounts on a monthly spend cap. Turn on the monthly spend budget segment (`SHOW_SPEND_BUDGET=true`) for a comparable month-to-date view.
 
 ### Only the 7d window appears
 
@@ -367,26 +358,17 @@ Your account has no 5-hour limit, as on a verified Ultra plan, so Claude Code se
 
 The script couldn't write to `~/.claude/statusline-spend/` (read-only home directory or `HOME` not set), so it fell back to the current session's cost. Make that directory writable to restore cross-session totals.
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-Statusline
-- **Version:** 1.5.2
-- **Type:** UI Customization
-- **Features:**
-  - Skills: `/statusline-wizard`, `/statusline-edit`
+- **Version:** 1.5.3
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
----
-
 ## License
 
-MIT License - See [LICENSE](LICENSE) file for details.
+MIT License. See [LICENSE](LICENSE).

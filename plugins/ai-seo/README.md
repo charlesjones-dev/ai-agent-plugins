@@ -1,10 +1,8 @@
-# AI-SEO Plugin
+# AI-SEO plugin
 
-**Audits a site's code for search rankings, direct answers and citations in AI answers, crawls the live site to check what search engines get, fixes what it finds, and submits new pages for indexing, in Claude Code, Codex and Cursor.** It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
+Audits a site's code for search rankings, direct answers and citations in AI answers, crawls the live site to check what search engines get, fixes what it finds, and submits new pages for indexing, in Claude Code, Codex and Cursor. It catches the outdated SEO patterns LLMs still generate, checks that each page answers its question in a form an engine can lift, and checks whether AI answer engines can reach, trust and cite the site.
 
----
-
-## What This Plugin Does
+## The three lenses
 
 The plugin looks at a site through three lenses. `/seo-audit` runs any of them, or all three in one report with a separate score for each.
 
@@ -17,9 +15,9 @@ The plugin looks at a site through three lenses. `/seo-audit` runs any of them, 
 
 **SEO** checks the basics search engines rank on, and removes what LLMs still add from old training data, such as the keywords meta tag and IE-era markup.
 
-**Answer Engine Optimization (AEO)** structures content so an engine can lift one passage as the direct answer to a question: a featured snippet, a voice assistant reply, a direct answer box, or a question-and-answer pair an assistant quotes word for word. The usual tactics are FAQ sections, clean schema markup, concise definitions, answer-first paragraphs and clear question headings.
+**Answer Engine Optimization (AEO)** structures content so an engine can lift one passage as the direct answer to a question: a featured snippet, a voice assistant reply, a direct answer box, or a question-and-answer pair an assistant quotes word for word.
 
-**Generative Engine Optimization (GEO)** makes a site worth citing, synthesizing and mentioning inside AI answers that draw on many sources. The levers are deep topical authority, original research, expert perspectives and validation from other sites, on top of letting the right crawlers in. The term comes from [Aggarwal et al. (KDD 2024)](https://arxiv.org/abs/2311.09735): in their benchmark, adding quotations, statistics and citations to sources raised a page's visibility in generative engine answers the most, and keyword stuffing did worse than nothing. Later academic work found AI search leans heavily on third-party coverage and favors newer content.
+**Generative Engine Optimization (GEO)** makes a site worth citing, synthesizing and mentioning inside AI answers that draw on many sources. It also depends on letting the right crawlers in. The term comes from [Aggarwal et al. (KDD 2024)](https://arxiv.org/abs/2311.09735): in their benchmark, adding quotations, statistics and citations to sources raised a page's visibility in generative engine answers the most, and keyword stuffing did worse than nothing.
 
 What the engines themselves say:
 
@@ -31,8 +29,6 @@ No AI provider publishes how it picks answers or citations, so the AEO and GEO l
 `/seo-crawl` covers what the code can't show. A site can be live and still not be findable: the served HTML can be an empty shell, unknown URLs can return 200, robots.txt can mean something other than what its author meant, and headers or redirects in the repo may never reach production. The crawl fetches the deployed site the way search engines do, traces each problem to the file or host setting behind it, and says whether fixing it is worth the effort.
 
 `/seo-index` covers the step after a page goes live. It checks each URL, then tells Bing and the other IndexNow engines, Google and Brave about it through the routes each one offers site owners. Google's Request Indexing button has a small daily quota, so the skill presses it one URL at a time in your signed-in browser until the quota runs out, and offers a retry for the rest.
-
----
 
 ## Moving from ai-aeo and ai-geo
 
@@ -52,20 +48,18 @@ Claude Code users run `/plugin install ai-seo@ai-agent-plugins` once. The market
 
 New audits go to `docs/seo-audit/`. Reports already in `docs/aeo-audit/` and `docs/geo-audit/` stay where they are: `/seo-fix` can still apply them, the trend arrows in a new audit compare against them, and `/seo-audit`, `/seo-faq` and `/seo-questions` still read a question map there. Each lens keeps the categories and weights it had, so scores stay comparable.
 
----
-
-## Available Skills
+## Available skills
 
 | Command | Purpose |
 |---------|---------|
 | `/seo-audit [seo\|aeo\|geo\|all]` | Audit the site through one or more lenses and write a timestamped report with a score per lens. Optional live URL check and web search for brand mentions. |
-| `/seo-crawl [URL]` | Crawl the live site as Googlebot and a browser, read-only, and report what search engines get, where each fix goes, and whether the fixes are worth it. Works with or without the site's repo. |
+| `/seo-crawl [URL]` | Crawl the live site as Googlebot and a browser, read-only, and report what search engines get, where each fix goes, and whether the fixes are worth it. Works with or without the site's repo. `psi=no` skips the PageSpeed Insights calls. |
 | `/seo-fix` | Apply fixes from the newest audit, whatever lenses it covers, with a diff for each change. Supports `--dry-run`. |
 | `/seo-schema` | Generate and validate JSON-LD structured data, including Organization and Person with `sameAs` and FAQPage or QAPage. |
-| `/seo-faq` | Build, update or validate visible FAQ sections and, if you want it, their FAQPage or QAPage markup. Supports `--dry-run`. |
+| `/seo-faq` | Build, update or validate visible FAQ sections and, if you want it, their FAQPage or QAPage markup. `gaps` fills gaps from the question map. Supports `--dry-run`. |
 | `/seo-questions` | Map the questions the site should answer to the page that answers each one, and find gaps and competing pages. |
-| `/seo-llms-txt` | Generate, update or validate `llms.txt` and `llms-full.txt`. Supports `--dry-run`. |
-| `/seo-index [URLs]` | Submit new or changed pages to Bing and IndexNow, Google and Brave, one URL at a time where an engine has no API, and schedule a retry when Google's daily quota runs out. Supports `dry-run`. |
+| `/seo-llms-txt` | Generate, update or validate `llms.txt` and `llms-full.txt`. `type=docs`, `blog`, `product` or `mixed` sets how the sections are organized. Supports `--dry-run`. |
+| `/seo-index [URLs]` | Submit new or changed pages to Bing and IndexNow, Google and Brave, one URL at a time where an engine has no API, and schedule a retry when Google's daily quota runs out. `site=` and `property=` set the site and the Search Console property. Supports `dry-run`. |
 
 Seven of them run only when you call them. `/seo-index` also runs when you ask the agent to get pages indexed, so that a scheduled retry can start it. Each asks for what its arguments leave out, and runs with documented defaults when no one is there to answer.
 
@@ -90,7 +84,7 @@ An unattended run audits all three lenses across the whole repository, leaves `.
 
 The skill detects your framework, checks whether Context7 MCP is available, reads the latest question map for the AEO lens, runs each lens's categories, and writes one report. With all three lenses, the report has a section and a score for each lens, a shared action plan and no combined score. A problem two lenses share is written out once and counted in both.
 
-**SEO lens:**
+#### SEO lens
 
 | Category | Weight | What it checks |
 |----------|--------|----------------|
@@ -104,7 +98,7 @@ The skill detects your framework, checks whether Context7 MCP is available, read
 | Security Headers | 5% | HSTS, CSP, X-Content-Type-Options, Referrer-Policy |
 | Framework Best Practices | 5% | Next.js Metadata API, Nuxt `useSeoMeta`, TanStack Start `<HeadContent />`, Astro `<SEO>` (from the third-party `astro-seo` package), SvelteKit `<svelte:head>`, Remix `meta` export |
 
-**AEO lens:**
+#### AEO lens
 
 | Category | Weight | What it checks |
 |----------|--------|----------------|
@@ -118,7 +112,7 @@ The skill detects your framework, checks whether Context7 MCP is available, read
 | Answer Trust Signals | 5% | Dates on answers that change, sources on health, finance and legal answers, no contradictions between pages |
 | Technical Answer Accessibility | 5% | Server rendering, status codes, mobile viewport |
 
-**GEO lens:**
+#### GEO lens
 
 | Category | Weight | What it checks |
 |----------|--------|----------------|
@@ -135,7 +129,7 @@ The skill detects your framework, checks whether Context7 MCP is available, read
 
 Findings are rated Critical, High, Medium or Low, with 🧪 on heuristics and proposals. Each one has an ID (`SEO-1`, `AEO-1`, `GEO-1`), a file and line (or a live-check URL), the current code and a specific fix.
 
-**Example terminal summary:**
+#### Example terminal summary
 
 ```
 SEO Audit Complete
@@ -171,6 +165,7 @@ Latest:      docs/seo-audit/latest.md
 /seo-crawl                                  # finds the production URL in the repo, or asks
 /seo-crawl https://example.com
 /seo-crawl https://example.com pages=80 staging=https://staging.example.com save=yes
+/seo-crawl https://example.com psi=no              # skip the PageSpeed Insights calls
 ```
 
 `/seo-audit` reads the code. `/seo-crawl` asks the deployed site, with curl only, what a crawler gets. It works on any kind of site: static, single-page app, server-rendered, or a hosted platform such as WordPress or Shopify. With the repo in the working directory it ties each finding to a file and line. Without one it names the host or platform setting instead.
@@ -193,6 +188,7 @@ The crawl sends only GET and HEAD requests, one at a time at about one per secon
 /seo-index since=7d                                  # every sitemap URL changed in the last 7 days
 /seo-index engines=google,brave https://example.com/a https://example.com/b
 /seo-index since=2026-10-01 dry-run                  # check the URLs and show the plan only
+/seo-index site=https://example.com property=sc-domain:example.com since=7d
 ```
 
 Run it after new or changed pages go live. It tells each search engine about them through the routes the engine offers site owners, best route first:
@@ -250,6 +246,7 @@ It doesn't promise rich results that no longer exist: Google dropped FAQ rich re
 ```
 /seo-faq                                   # build, update or validate interactively
 /seo-faq build app/pricing/page.tsx markup=no
+/seo-faq gaps app/pricing/page.tsx         # fill gaps from the question map
 /seo-faq validate
 /seo-faq --dry-run
 ```
@@ -270,21 +267,20 @@ Starts from the questions your site already asks in its headings and FAQs. You c
 ```
 /seo-llms-txt                    # generate, update or validate interactively
 /seo-llms-txt update full=yes
+/seo-llms-txt generate type=docs
 /seo-llms-txt --dry-run
 ```
 
-Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), places it where your framework serves static files, and offers discovery hints in the `<head>`, sitemap and robots.txt. Google Search ignores `llms.txt`. Some coding tools read it, and Chrome Lighthouse's agentic browsing audit checks for it. It's cheap to publish, but it isn't a citation lever.
+Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), places it where your framework serves static files, and offers discovery hints in the `<head>`, sitemap and robots.txt. Google Search ignores `llms.txt`. Some coding tools read it, and Chrome Lighthouse's agentic browsing audit checks for it.
 
 ### Related plugins
 
 - `/accessibility-audit` ([ai-accessibility](../ai-accessibility/)) covers WCAG compliance. The SEO lens checks only where accessibility and SEO overlap.
 - `/performance-audit` ([ai-performance](../ai-performance/)) covers runtime performance beyond the static Core Web Vitals signals here.
 
----
+## What LLMs often get wrong
 
-## What LLMs Often Get Wrong
-
-**SEO:**
+### SEO
 
 | What LLMs often recommend | What this plugin enforces |
 |---------------------------|---------------------------|
@@ -302,7 +298,7 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 | `<a href="..." target="_blank">` | **Add `rel="noopener noreferrer"`** for security and performance. |
 | Raw `<head>` edits in framework projects | **Framework head APIs** (Metadata API, `useSeoMeta`, route `head`, etc.). |
 
-**AEO:**
+### AEO
 
 | What LLMs often do | What this plugin does |
 |--------------------|-----------------------|
@@ -316,7 +312,7 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 | Miss a `nosnippet` set in a layout or header | Searches meta tags, framework APIs, header config, middleware and `data-nosnippet` |
 | Write FAQ answers from thin air | Drafts only from your site or your answers |
 
-**GEO:**
+### GEO
 
 | What LLMs often do | What this plugin does |
 |--------------------|-----------------------|
@@ -332,11 +328,9 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 | Recommend chasing mentions anywhere | Points to earned coverage and flags inauthentic tactics |
 | Recommend cloaking for AI bots | Flags user-agent content changes as Critical |
 
----
+## AI crawler reference
 
-## AI Crawler Reference
-
-**Training crawlers and tokens**
+### Training crawlers and tokens
 
 | Bot | Operator | What it controls |
 |-----|----------|------------------|
@@ -350,7 +344,7 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 | `MistralAI-Training` | Mistral | Model training |
 | `Bytespider` | ByteDance | Reported as training; no vendor documentation |
 
-**AI search indexers**
+### AI search indexers
 
 | Bot | Operator | Feeds |
 |-----|----------|-------|
@@ -365,7 +359,7 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 | `Bingbot` | Microsoft | Bing, which grounds Copilot |
 | `Applebot` | Apple | Siri, Spotlight and Safari |
 
-**User-triggered fetchers**
+### User-triggered fetchers
 
 | Bot | Operator | Follows robots.txt? |
 |-----|----------|---------------------|
@@ -383,20 +377,16 @@ Generates, updates or validates `llms.txt` (and optionally `llms-full.txt`), pla
 
 **Your CDN may change the policy.** Since July 2025 Cloudflare has blocked AI crawlers by default on new domains, and its managed robots.txt can add rules. The live check compares the deployed file with the repo.
 
----
+## Measuring citations
 
-## Measuring Citations
-
-The audit measures readiness, not how often you're cited. To track that:
+The audit measures readiness. It doesn't count how often you're cited. To track that:
 
 - **Bing Webmaster Tools → AI Performance** shows citations in Copilot and Bing AI summaries, with cited pages and grounding queries.
 - **Google Search Console → Generative AI performance report** shows impressions in AI Overviews and AI Mode.
 - **Server logs** show visits from the AI user agents above (check them against each operator's published IP ranges).
 - **A fixed question list** asked of each assistant every month shows trends. `/seo-questions` can build the list.
 
----
-
-## llms.txt Primer
+## llms.txt primer
 
 `llms.txt` is a Markdown index of a site's key pages, served at `/llms.txt`. Jeremy Howard proposed it at https://llmstxt.org/ in 2024. Google says Google Search ignores it, and no other major AI search provider has said it uses it. Some coding tools read it, and Chrome Lighthouse's agentic browsing audit checks for it, so it's most useful for developer documentation 🧪.
 
@@ -421,9 +411,7 @@ The audit measures readiness, not how often you're cited. To track that:
 
 `llms-full.txt` is a companion with the full Markdown content of the linked pages.
 
----
-
-## Report Output
+## Report output
 
 Reports go to `docs/seo-audit/`. If the project already uses `documentation/` or `.docs/`, the skills write there instead.
 
@@ -445,16 +433,14 @@ The index has one row per audit:
 
 | Date | Lenses | SEO | AEO | GEO | Critical | Report |
 |------|--------|-----|-----|-----|----------|--------|
-| 2026-10-11 14:30:22 | SEO, AEO, GEO | 84/100 C 📈 | 71/100 D ➡️ | 62/100 F first run | 3 | [view](./seo-audit-all-2026-10-11-143022.md) |
-| 2026-10-04 09:15:44 | AEO | — | 70/100 D 📈 | — | 1 | [view](./seo-audit-aeo-2026-10-04-091544.md) |
+| 2026-10-11 14:30:22 | SEO, AEO, GEO | 84/100 C 📈 | 71/100 D ➡️ | 62/100 F first run | 3 | `seo-audit-all-2026-10-11-143022.md` |
+| 2026-10-04 09:15:44 | AEO | — | 70/100 D 📈 | — | 1 | `seo-audit-aeo-2026-10-04-091544.md` |
 
 **Trend indicators** compare each lens with the previous audit that covered it: 📈 improved (score up ≥3), 📉 regressed (score down ≥3), ➡️ unchanged (±2). 🔄 marks a GEO score that can't be compared because the previous GEO audit came from ai-geo before 1.2.0, which used different categories. An index from ai-seo 1.x is converted to this format on the next audit.
 
 Timestamped files are never overwritten. `latest.md`, `question-map-latest.md` and `crawl-latest.md` are file copies, not symlinks, so they work on every platform. Saved crawls get their own **Crawls** table in the index, with the URL, page count, findings by severity and the verdict.
 
----
-
-## Framework Support
+## Framework support
 
 Each skill detects the framework from `package.json`, config files and directory structure, then uses that framework's own APIs:
 
@@ -468,9 +454,7 @@ Each skill detects the framework from `package.json`, config files and directory
 
 The audit also reads hosting and edge config (`vercel.json`, `netlify.toml`, `_headers`, `wrangler.toml`, `middleware.ts`, `nginx.conf`, `.htaccess`), which can set headers or treat bots differently.
 
----
-
-## Context7 MCP Integration
+## Context7 MCP integration
 
 When [Context7 MCP](https://github.com/upstash/context7) is installed, the skills use it for current documentation: Google Search Central guidelines, featured snippets and snippet controls, Schema.org types and required properties, AI crawler docs (OpenAI, Anthropic, Google, Perplexity, Apple, Meta, Amazon), the llms.txt proposal, Core Web Vitals thresholds, and your framework's head APIs.
 
@@ -479,12 +463,10 @@ Without Context7, the skills fall back to training-data knowledge, say so in the
 Install it in Claude Code:
 
 ```bash
-claude mcp add context7 -- npx -y @upstash/context7-mcp
+claude mcp add context7 -- npx -y @upstash/context7-mcp@4.4.4
 ```
 
-Restart Claude Code after installing. In Codex or Cursor, add Context7 through that agent's MCP settings.
-
----
+Restart Claude Code after installing. In Codex or Cursor, add Context7 through that agent's MCP settings. Keep the version pinned, so npx doesn't fetch a newer release on its own. When you update, pick one that has been out at least 3 days, so a bad release has time to be found and pulled.
 
 ## Limits
 
@@ -492,18 +474,14 @@ Restart Claude Code after installing. In Codex or Cursor, add Context7 through t
 - `/seo-crawl` sees what the server sends to a spoofed crawler user agent, not what real Googlebot got, because CDNs verify crawlers by IP address. It doesn't run JavaScript, and its Core Web Vitals numbers come only from the PageSpeed Insights API, whose free quota is small. Search Console and Bing Webmaster Tools remain the only proof of what's indexed.
 - `/seo-index` sends requests, and each engine still decides when and whether to crawl and index a page. Google doesn't publish its Request Indexing quota, and the browser steps depend on Search Console's and Brave's page layouts, which change without notice.
 - Accessibility coverage is limited to the SEO overlap. For WCAG 2.1/2.2 compliance, use `/accessibility-audit` from ai-accessibility.
-- It can't see which queries show a featured snippet today or who holds it. Engines choose answers themselves and change how they do it often, and third-party tracking shows featured snippets on fewer results as AI Overviews spread.
-- Voice assistants now run on large models with their own sources, which can't be tested from code.
+- It can't see which queries show a featured snippet today or who holds it. Engines choose answers themselves and change how they do it often.
+- Voice assistants run on large models with their own sources, which can't be tested from code.
 - No AI provider publishes how it picks citations. The GEO categories and weights are judgment informed by the GEO research and Google's and Microsoft's guidance.
 - The off-site snapshot is a dated sample of web search results, not a full census of mentions.
 - robots.txt states a policy; it doesn't prove enforcement. Live user-agent tests are indicative, because CDNs verify real crawlers by IP address.
-- It doesn't measure traffic, zero-click effects or citation frequency. See [Measuring Citations](#measuring-citations).
+- It doesn't measure traffic, zero-click effects or citation frequency. See [Measuring citations](#measuring-citations).
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 Claude Code:
 
@@ -521,7 +499,7 @@ codex plugin add ai-seo@ai-agent-plugins
 
 Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-seo`. See the [Cursor install steps](../../README.md#cursor).
 
-### Recommended Flow
+## Recommended flow
 
 ```
 # 1. Map the questions your pages should answer (optional, improves the AEO lens)
@@ -548,8 +526,6 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 /seo-index since=7d
 ```
 
----
-
 ## Resources
 
 - [Google Search Central](https://developers.google.com/search)
@@ -564,24 +540,17 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 - [Bing Webmaster API access](https://learn.microsoft.com/en-us/bingwebmaster/getting-access)
 - [Context7 MCP](https://github.com/upstash/context7)
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-SEO Plugin
-- **Type:** AI Instruction Plugin (Skills)
 - **Skills:** `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`, `/seo-index`
-- **Version:** 2.2.0
+- **Version:** 2.2.1
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
----
 
 ## License
 

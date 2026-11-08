@@ -1,6 +1,6 @@
 {
   "name": "ai-compliance",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Audits the licenses of your open-source dependencies, flags copyleft and missing-license risks, and generates NOTICE or ATTRIBUTION files",
   "author": {
     "name": "Charles Jones",

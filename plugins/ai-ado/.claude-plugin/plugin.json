@@ -1,6 +1,6 @@
 {
   "name": "ai-ado",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Sets up an Azure DevOps project and its MCP server, creates Features, User Stories and Tasks, logs hours to stories, and builds weekly timesheet reports",
   "author": {
     "name": "Charles Jones",

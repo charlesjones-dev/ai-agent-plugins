@@ -1,6 +1,6 @@
 {
   "name": "ai-workflow",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. Also runs review loops with models from several providers, finishes other people's PRs and refreshes stale ones",
   "author": {
     "name": "Charles Jones",

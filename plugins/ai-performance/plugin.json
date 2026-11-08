@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-performance",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding, and measures where a repository's GitHub Actions time goes, with the file, line and seconds saved for each fix",
   "author": {
     "name": "Charles Jones",

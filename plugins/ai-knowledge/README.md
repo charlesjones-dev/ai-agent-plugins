@@ -1,8 +1,8 @@
-# AI Knowledge Plugin
+# AI-Knowledge plugin
 
 Keeps a team knowledge base in git as Claude Code rules. Each article loads when Claude works on the files it covers, in every session, or on demand from a short index, so the knowledge reaches Claude without anyone asking for it. With auto-capture on, Claude also adds to it as you work.
 
-## Overview
+## Where articles live
 
 The plugin writes what your team learns (things that didn't work, conventions, client requirements, codebase gotchas) into short topic articles and stores them where Claude Code loads them natively:
 
@@ -16,7 +16,7 @@ Because the knowledge base is made of ordinary rule files, Claude Code loads it 
 
 The approach is inspired by Karpathy's [LLM Wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) pattern, where the LLM does the filing and cross-referencing.
 
-## How It Relates to Claude Code's Memory
+## How it relates to Claude Code's memory
 
 Claude Code already has three ways to remember things. This plugin builds on rules and works whether auto memory is on or off.
 
@@ -27,17 +27,17 @@ Claude Code already has three ways to remember things. This plugin builds on rul
 | **Rules** (`.claude/rules/`) | Topic files, optionally scoped to paths | Through git | Every session, or when matching files are touched |
 | **This plugin** | Team knowledge, written as rules plus an index of articles that aren't pinned. Claude adds to it as you work when auto-capture is on | Through git | Per article: scoped, pinned or on demand |
 
-Auto memory and auto-capture both save as you work, but auto memory keeps personal notes on one machine and skips what Claude can work out from the code, while auto-capture writes team rules into the repository for everyone. Many developers run with auto memory off; auto-capture doesn't need it. Keep CLAUDE.md for what every session needs, and use `/kb-add --absorb` to move area-specific sections out of it into scoped articles.
+Auto memory and auto-capture both save as you work, but auto memory keeps personal notes on one machine and skips what Claude can work out from the code, while auto-capture writes team rules into the repository for everyone. Auto-capture works with auto memory off. Keep CLAUDE.md for what every session needs, and use `/kb-add --absorb` to move area-specific sections out of it into scoped articles.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/kb-init [auto=off] [agents=off]` | Set up `.claude/rules/kb/` and `.claude/kb/`, turn on auto-capture for you (`auto=off` to skip), and add a short `AGENTS.md` section for Codex and Cursor (`agents=off` to skip). On an existing knowledge base, report auto-capture and switch it with `auto=on` or `auto=off` |
+| `/kb-init [auto=on\|off] [agents=off]` | Set up `.claude/rules/kb/` and `.claude/kb/`, turn on auto-capture for you (`auto=off` to skip), and add a short `AGENTS.md` section for Codex and Cursor (`agents=off` to skip). On an existing knowledge base, report auto-capture and switch it with `auto=on` or `auto=off` |
 | `/kb-migrate [--dry-run] [auto=off] [agents=off]` | Move a 1.x knowledge base (CLAUDE.md table and `docs/kb/`) to the new layout, turn on auto-capture for you (`auto=off` to skip), and add the `AGENTS.md` section (`agents=off` to skip). Also fix references to renamed or removed marketplace commands. On a 2.x knowledge base, check and repair the format and run the same command check |
-| `/kb-add [note \| path \| URL ... \| --absorb]` | Add a note, project files, a folder, another repo or a web page. `--absorb` reviews CLAUDE.md and `docs/` for content to move |
-| `/kb-learn [focus]` | Review what the current conversation taught and save it. Claude also runs it on its own (`auto`) for auto-capture, or when you ask it to save something to the knowledge base |
-| `/kb-discover [paths] [--focus topics]` | Write down conventions found in the source code |
+| `/kb-add [note \| path, glob or URL ... \| --absorb]` | Add a note, project files, a folder, another repo or a web page. `--absorb` reviews CLAUDE.md and `docs/` for content to move |
+| `/kb-learn [auto <learning> \| focus]` | Review what the current conversation taught and save it. Claude also runs it on its own (`auto`) for auto-capture, or when you ask it to save something to the knowledge base |
+| `/kb-discover [paths ...] [--focus topic,topic]` | Write down conventions found in the source code |
 | `/kb-query <question> \| search <terms> \| tag:<tag> \| list` | Answer from the knowledge base with citations, search it, or list every article and how it loads |
 | `/kb-prune [remove <article> \| organize]` | Find and fix duplicates, contradictions, broken links, stale articles and globs that match nothing. Remove one article, or sort articles into folders |
 
@@ -50,12 +50,12 @@ Every command shows its plan or draft and asks before it writes. The exceptions 
 /plugin install ai-knowledge@ai-agent-plugins
 ```
 
-## Getting Started
+## Getting started
 
 1. Run `/kb-init` in the project root. It also turns on auto-capture for you; use `/kb-init auto=off` to leave it off. If the project has a 1.x knowledge base, it tells you to run `/kb-migrate` instead.
 2. If CLAUDE.md or `docs/` already holds area-specific rules, run `/kb-add --absorb` to move them into articles.
 3. Run `/kb-discover` to capture conventions the code follows but nobody wrote down.
-4. At the end of a productive conversation, run `/kb-learn`. For a single rule, run `/kb-add` followed by the rule.
+4. At the end of a conversation that taught you something, run `/kb-learn`. For a single rule, run `/kb-add` followed by the rule.
 5. Commit `.claude/rules/kb/` and `.claude/kb/`.
 6. Run `/kb-prune` now and then.
 
@@ -63,14 +63,18 @@ Every command shows its plan or draft and asks before it writes. The exceptions 
 
 Auto-capture saves team knowledge as it comes up, the way auto memory saves personal notes, so you don't have to remember to run `/kb-learn`. It's set per developer: `/kb-init` and `/kb-migrate` turn it on for you unless you pass `auto=off`, and it stays off for teammates until they run one of them.
 
-**What it saves.** When it's on, the plugin's SessionStart hook adds a short instruction to Claude's context at the start of each session and again after `/clear` or compaction. Claude watches for knowledge a teammate's session would also need: a correction to how something is done in the project, a rule or convention you state, a decision you settle, or a gotcha it confirms in the code. When one comes up, it runs `kb-learn` with `auto`, which:
+### What it saves
+
+When it's on, the plugin's SessionStart hook adds a short instruction to Claude's context at the start of each session and again after `/clear` or compaction. Claude watches for knowledge a teammate's session would also need: a correction to how something is done in the project, a rule or convention you state, a decision you settle, or a gotcha it confirms in the code. When one comes up, it runs `kb-learn` with `auto`, which:
 
 - checks the knowledge base first and updates an existing article rather than adding a duplicate, replacing a rule the new one contradicts;
 - skips personal preferences, details of the current task, things the code already shows, and secrets;
 - picks the load mode: scoped with `paths` when the learning is tied to files, `_global-learnings.md` only for short rules that apply everywhere, and on demand otherwise;
 - updates `_index.md` and `_log.md`.
 
-**Notices and undo.** Each save ends Claude's reply with one line, for example:
+### Notices and undo
+
+Each save ends Claude's reply with one line, for example:
 
 ```text
 📖 Saved to KB: conventions/api-errors.md (scoped to src/api/**). Say "undo" to remove it.
@@ -78,9 +82,13 @@ Auto-capture saves team knowledge as it comes up, the way auto memory saves pers
 
 Saying "undo" reverses that save: it deletes the new article, or restores the article it changed, and removes the log entry. Nothing is committed, so everything auto-capture writes shows up in `git diff` for review before you commit it.
 
-**Permission prompts.** Claude Code protects the `.claude/` folder: allow rules in settings can't pre-approve writes there, so how a save goes depends on the permission mode. In auto mode, the default for interactive sessions since Claude Code v2.1.283, the classifier reviews each save; in testing it allowed them without a prompt. In accept-edits and manual mode, the first save in a session asks; choose "Yes, and allow Claude to edit files in this project's .claude folder for this session" and the rest of the session's saves go through. Bypass mode doesn't ask.
+### Permission prompts
 
-**Turning it on and off.** `/kb-init` and `/kb-migrate` turn it on unless you pass `auto=off`. Running `/kb-init` again on an existing knowledge base keeps your earlier choice, and `/kb-init auto=on` or `/kb-init auto=off` switches it. The setting is per developer and per project, and it never touches a shared file:
+Claude Code protects the `.claude/` folder: allow rules in settings can't pre-approve writes there, so how a save goes depends on the permission mode. In auto mode, the classifier reviews each save. In accept-edits and manual mode, the first save in a session asks; choose "Yes, and allow Claude to edit files in this project's .claude folder for this session" and the rest of the session's saves go through. Bypass mode doesn't ask.
+
+### Turning it on and off
+
+`/kb-init` and `/kb-migrate` turn it on unless you pass `auto=off`. Running `/kb-init` again on an existing knowledge base keeps your earlier choice, and `/kb-init auto=on` or `/kb-init auto=off` switches it. The setting is per developer and per project, and it never touches a shared file:
 
 - In a git repository it's `git config --local ai-knowledge.autoCapture true` (or `false`), stored in `.git/config` and shared by the clone's worktrees. `git config --global ai-knowledge.autoCapture true` turns it on in every repository that has a 2.x knowledge base.
 - Outside git it's `"env": { "AI_KNOWLEDGE_AUTO_CAPTURE": "1" }` in `.claude/settings.local.json`.
@@ -88,7 +96,7 @@ Saying "undo" reverses that save: it deletes the new article, or restores the ar
 
 A change takes effect from the next session or `/clear`. The hook prints nothing when auto-capture is off or the project has no 2.x knowledge base. It's a POSIX shell script that runs on macOS, Linux and Windows with Git Bash, with a PowerShell version for Windows without Git Bash. Without the instruction, Claude runs `kb-learn` on its own only when you ask it to save something to the knowledge base.
 
-## How Loading Works
+## How loading works
 
 ```text
 .claude/
@@ -158,7 +166,7 @@ Version 2.0.0 replaces the CLAUDE.md "Knowledge Base" table and `docs/kb/` with 
 - drops the `related` and `sources` fields and turns their links, and any `[[name]]` links in article bodies, into plain paths in a `## Related` section. It deletes `docs/kb/.obsidian/` along with `docs/kb/`;
 - removes the Knowledge Base section and the kb-auto block from CLAUDE.md, and turns on auto-capture for you unless you pass `auto=off`;
 - finds notes that still point at commands this marketplace renamed or removed, such as `/writing-humanize` or `/geo-audit`, or at moved report folders such as `docs/geo-audit/`. It looks in the knowledge base, CLAUDE.md, CLAUDE.local.md, AGENTS.md, other `.claude/rules/` files, `.gitignore` and `docs/`, from a map of every rename and removal since 1.0. Simple renames inside the knowledge base are applied with the migration. For a command that now needs arguments or was removed, it proposes a rewrite of the whole sentence for you to accept, and it changes files outside the knowledge base only when you say yes. In `.gitignore` it adds the new report folder next to the old one. Dated notes, logs and changelogs stay as they are;
-- is safe to run again. On a migrated knowledge base it checks the format and runs the same command check, so running `/kb-migrate` after a later marketplace update also catches commands that update renamed.
+- is safe to run again. On a migrated knowledge base it checks the format and runs the same command check, so running `/kb-migrate` after a later marketplace update also catches commands that a later update renamed.
 
 Every other command stops and points to `/kb-migrate` while a 1.x knowledge base is present, so nothing gets written to the old layout.
 
@@ -182,9 +190,9 @@ Every other command stops and points to `/kb-migrate` while a 1.x knowledge base
 | `/kb-upgrade` | `/kb-migrate`, which also checks the format of a 2.x knowledge base |
 | `/kb-auto` | Auto-capture, which `/kb-init` and `/kb-migrate` turn on unless you pass `auto=off`. It's per developer instead of a CLAUDE.md block, and Claude saves as it works instead of offering at the end. Claude Code's auto memory is a separate, machine-local option |
 
-## Plugin Details
+## Plugin details
 
-- **Version**: 2.0.0
+- **Version**: 2.0.1
 - **Author**: [Charles Jones](https://charlesjones.dev)
 - **License**: MIT
 

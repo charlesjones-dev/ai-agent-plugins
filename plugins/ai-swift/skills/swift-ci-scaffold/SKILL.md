@@ -1,6 +1,6 @@
 ---
 name: swift-ci-scaffold
-description: "Scaffold the repo side of Xcode Cloud for an XcodeGen / Tuist Swift project - generate ci_scripts/ci_post_clone.sh (regen + guarded CI_BUILD_NUMBER stamping), propose a unit-test-only CI scheme, print the exact App Store Connect workflow checklist, and optionally install an opt-in .githooks/pre-push gate. Shows diffs and confirms before writing."
+description: "Scaffold the repo side of Xcode Cloud for an XcodeGen or Tuist Swift project: generate ci_scripts/ci_post_clone.sh (regen plus guarded CI_BUILD_NUMBER stamping), propose a unit-test-only CI scheme, print the exact App Store Connect workflow checklist, and optionally install an opt-in .githooks/pre-push gate. Shows diffs and confirms before writing."
 argument-hint: "[path] [--hook]"
 allowed-tools: [Bash, Read, Glob, Grep, Write, Edit, AskUserQuestion]
 disable-model-invocation: true

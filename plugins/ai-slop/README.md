@@ -1,12 +1,12 @@
-# AI-Slop Plugin
+# AI-Slop plugin
 
-**AI slop audits and rewrites for Claude Code, Codex and Cursor.** Find what a codebase shows its users that reads as machine-made and what in it is wrong, redesign a web, iOS or Android screen that looks AI-generated, rewrite one piece of text so it reads as a person wrote it, prune the code comments and workarounds that agents copy, or rebuild a feature an agent just wrote as the simpler version it can write now that it knows the problem.
+Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, reviews a web, iOS or Android screen for AI-generated design, rewrites text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version. It runs in Claude Code, Codex and Cursor.
 
----
+## Available skills
 
-## What This Plugin Does
+### `/slop-audit`
 
-`/slop-audit` reads every surface a user sees: pages and shared layout, components and data files that carry copy, forms, emails, visible error text, legal pages, metadata, app strings and store listings, READMEs and `--help` output. It reports four kinds of problem:
+Reads the surfaces a user sees: pages and shared layout, components and data files that carry copy, forms, emails, visible error text, legal pages, metadata, app strings and store listings, READMEs and `--help` output. It reports four kinds of problem:
 
 - **Copy** that reads as AI-written: em dashes, "X, not Y" slogans, triplets, filler, inflated vocabulary, résumé voice
 - **Layouts** that read as templates: the centered hero, icon grid and logo marquee stack, decorative badges, stock icon tiles, default AI palettes
@@ -15,19 +15,7 @@
 
 The audit changes nothing until you answer its questions.
 
-`/slop-rewrite` works on one piece of text instead: a file, or text you paste after the command. It uses the same signal list.
-
-`/slop-comments` works on code comments. Agents copy what's already in a codebase, so a comment that narrates the code or excuses a workaround spreads. It deletes the comments that add nothing and traces each workaround to its cause.
-
-`/slop-rebuild` works on a feature an agent just built. The first working version often keeps abstractions, helpers and layers the agent added while it was still learning the problem. The skill writes the feature again on a separate branch, keeps the first version, and recommends whichever one the tests and the diff support.
-
-`/slop-design` works on the look of one screen: a web page, an iOS view or an Android screen. It lists the signs of AI-generated design, proposes a direction from the product, and fixes the screen in ordered passes once you agree.
-
-## Available Skills
-
-### `/slop-audit`
-
-**How it works:**
+#### How it works
 
 1. Reads the project's own rules first (`CLAUDE.md`, `AGENTS.md`, an ai-knowledge knowledge base, voice or style docs, `DESIGN.md`), so it doesn't flag documented house style or re-ask questions an earlier audit settled
 2. Lists every user-facing surface before reading, and splits large repos across parallel read-only subagents
@@ -42,7 +30,7 @@ The signal checklist is [`signals.md`](skills/slop-audit/signals.md), shared wit
 
 The agent also runs the skill when you ask whether a site, app or README reads as AI-written.
 
-**Usage:**
+#### Usage
 
 ```
 /slop-audit
@@ -61,7 +49,7 @@ Rewrites one piece of text so it reads as a person wrote it. Point it at a file 
 
 It runs only when you call it.
 
-**Usage:**
+#### Usage
 
 ```
 /slop-rewrite
@@ -75,7 +63,9 @@ It runs only when you call it.
 
 Reviews code comments and the workarounds they explain. With no arguments it reviews the comments your branch adds or changes, compared with the default branch. Pass a path or glob, or `all` for the whole repo. It skips vendored and generated code, migrations, config files and prose.
 
-**How it works:**
+Agents copy what's already in a codebase, so a comment that narrates the code or excuses a workaround spreads.
+
+#### How it works
 
 1. Reads the project's rules and lint config first, so it keeps the doc comments a lint rule or doc generator needs and follows any documented comment convention
 2. Sorts every comment into delete, rewrite, encode, workaround or keep. Deletion is the default. Narration, history, commented-out code, stale notes, signature restatements, banners, agent leftovers and vague TODOs go
@@ -90,7 +80,7 @@ After you answer, it applies the batches in order and runs the typecheck, lint a
 
 The agent also runs the skill when you ask it to prune or clean up code comments.
 
-**Usage:**
+#### Usage
 
 ```
 /slop-comments
@@ -101,9 +91,9 @@ The agent also runs the skill when you ask it to prune or clean up code comments
 
 ### `/slop-rebuild`
 
-Rebuilds a feature an agent just implemented, the way the prompt "Knowing everything you know now, scrap this and implement the elegant solution" asks for, but without losing the first version. By default it covers every file the current branch changed since the default branch, plus uncommitted changes. Pass a path or glob to narrow it, or `--base <ref>` to set where the feature started. `--base HEAD` covers only the uncommitted changes.
+Rebuilds a feature an agent just implemented, the way the prompt "Knowing everything you know now, scrap this and implement the elegant solution" asks for, but without losing the first version. By default it covers every file the current branch changed since the default branch, plus uncommitted changes. Pass a path or glob to narrow it, or `--base <ref>` to set where the feature started. `--base HEAD` covers only the uncommitted changes. The first working version often keeps abstractions, helpers and layers the agent added while it was still learning the problem.
 
-**How it works:**
+#### How it works
 
 1. Saves the original to a `slop-rebuild/<slug>-original` branch. Uncommitted and untracked changes go in through a temporary index, so your working tree, index and branch stay as they are
 2. Creates a worktree on a `slop-rebuild/<slug>-rebuild` branch and runs the project's typecheck, lint and tests there as the baseline. It writes tests for any behavior of the feature that no test covers, checks that they pass on the original, and commits them first
@@ -116,7 +106,7 @@ It keeps the feature's behavior and public API unless you ask for a change, touc
 
 The agent also runs the skill when you ask it to scrap an implementation and redo it the simple or elegant way. Run it in the conversation where the agent built the feature, so it can use what it learned.
 
-**Usage:**
+#### Usage
 
 ```
 /slop-rebuild
@@ -129,7 +119,7 @@ The agent also runs the skill when you ask it to scrap an implementation and red
 
 Reviews one screen for the signs of AI-generated design and fixes it the way a designer works through a redline: purple-to-blue gradients, glows, emoji used as icons, shouty copy, uneven spacing, generic cards, and template themes nobody changed. It works on web apps and sites (Nuxt, Vue, Tailwind, TypeScript, React, plain HTML and CSS), iOS apps (SwiftUI and UIKit) and Android apps (Jetpack Compose and XML views).
 
-**How it works:**
+#### How it works
 
 1. Reads the project's rules, brand and design tokens, and notes which other screens a shared token reaches
 2. Detects the platform and loads only that platform's notes, plus a shared checklist of signs and a token guide
@@ -146,7 +136,7 @@ It keeps the product's features, content, navigation and accessibility identifie
 
 The agent also runs the skill when you ask it to unslop, polish or redesign a screen that looks AI-generated.
 
-**Usage:**
+#### Usage
 
 ```
 /slop-design
@@ -160,11 +150,7 @@ The agent also runs the skill when you ask it to unslop, polish or redesign a sc
 - `/modernize-audit` ([ai-modernize](../ai-modernize/)) covers the rest of the code: anti-patterns and technical debt left by older AI-generated code.
 - `/accessibility-audit` ([ai-accessibility](../ai-accessibility/)) runs a full WCAG audit. `/slop-design` checks only the contrast, labels, touch targets and text scaling of the screen it changes.
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 Claude Code:
 
@@ -182,30 +168,21 @@ codex plugin add ai-slop@ai-agent-plugins
 
 Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-slop`. See the [Cursor install steps](../../README.md#cursor).
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-Slop Plugin
-- **Type:** AI Instruction Plugin (Skills)
 - **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design`
-- **Version:** 1.3.0
+- **Version:** 1.3.1
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Credits
 
 `/slop-design` is inspired by [unslop](https://github.com/heydamir/unslop) by Damir Sokolovsky (@heydamir), a CC BY 4.0 skill that redesigns AI-looking web UI. `/slop-design` follows its approach (an audit, then a direction, then ordered passes) and adds iOS and Android guidance. Its text, checklists and token guides are written from scratch and copy no files from unslop.
 
----
-
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
----
 
 ## License
 

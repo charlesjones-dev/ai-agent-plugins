@@ -1,6 +1,6 @@
 {
   "name": "ai-security",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Audits a repository for security problems and saves Markdown and JSON reports that track findings across audits, plans a sandboxed audit on a stronger model that proves each finding with a failing test, scans a live site's dependencies, and sets up file-access deny rules for secrets and pnpm supply-chain hardening",
   "author": {
     "name": "Charles Jones",

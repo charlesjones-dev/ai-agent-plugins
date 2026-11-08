@@ -4,7 +4,7 @@ Bug reports and fixes are welcome. Pull requests are for fixes only; new plugins
 
 This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
-## Reporting a Bug
+## Reporting a bug
 
 [Open an issue](https://github.com/charlesjones-dev/ai-agent-plugins/issues) with:
 
@@ -14,7 +14,7 @@ This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 
 Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
 
-## Sending a Fix
+## Sending a fix
 
 1. Fork the repository and create a branch.
 
@@ -26,6 +26,8 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
      plugin.json                            # Agent Plugins manifest, only in plugins that run in Codex and Cursor
      skills/{skill-name}/SKILL.md           # one folder per command
      skills/{skill-name}/agents/openai.yaml # command-only skills: stops Codex running them unprompted
+     skills/{skill-name}/scripts/           # optional scripts a skill runs
+     hooks/hooks.json                       # optional Claude Code hooks
      agents/{agent-name}.md                 # optional Claude Code subagents; use `model: inherit`
      README.md
      LICENSE
@@ -55,6 +57,8 @@ Security problems go through [SECURITY.md](SECURITY.md), not a public issue.
    If you change ai-seo's `crawl_facts.py`, also run `python3 scripts/test-seo-crawl.py`.
 
    If you change ai-performance's `ci_timings.py`, also run `python3 scripts/test-performance-ci.py`.
+
+   If you change ai-rules' section library or `rules.py`, also run `python3 scripts/test-rules-library.py`.
 
    Then, from a project to try it on, start Claude Code with the plugin loaded from your clone and run the skill you changed as `/{plugin-name}:{skill-name}`:
 

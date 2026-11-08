@@ -1,6 +1,6 @@
 ---
 name: swift-concurrency-review
-description: "Review Swift 6 strict-concurrency and SwiftUI code for idiom and build-breaking issues - non-Sendable across actor boundaries, @MainActor witness vs nonisolated protocol requirements, Combine/ObservableObject usage, force-unwraps, #Predicate macro limits, the 6.3.x Binding IRGen crash, missing #if os() guards, and unsafe escape hatches. Reports file:line with the fix and the why."
+description: "Review Swift 6 strict-concurrency and SwiftUI code for idiom and build-breaking issues: non-Sendable across actor boundaries, @MainActor witness vs nonisolated protocol requirements, Combine/ObservableObject usage, force-unwraps, #Predicate macro limits, the 6.3.x Binding IRGen crash, missing #if os() guards, and unsafe escape hatches. Reports file:line with the fix and the why."
 argument-hint: "[path or files; default = changed files vs git]"
 allowed-tools: [Bash, Read, Glob, Grep]
 disable-model-invocation: true

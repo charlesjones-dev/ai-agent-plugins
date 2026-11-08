@@ -1,6 +1,6 @@
-# AI-Security
+# AI-Security plugin
 
-Security tools for reviewing your code, planning a sandboxed audit on a stronger model, checking a live website, and protecting your development setup.
+Reviews your code for security problems, plans a sandboxed audit on a stronger model, checks a live website, and protects your development setup.
 
 ## Quick start
 
@@ -20,12 +20,12 @@ Then open the repository you want to review and run:
 To review a smaller part of the project, describe the scope:
 
 ```text
-/ai-security:security-audit ./server — exclude generated files
+/ai-security:security-audit ./server, exclude generated files
 ```
 
 ## Choose a command
 
-| Command | Use it to… |
+| Command | Use it to |
 | --- | --- |
 | `/ai-security:security-audit` | Review source code and save a report explaining possible problems, supporting evidence, and suggested fixes. |
 | `/ai-security:security-cvp-audit` | Plan an audit for a sandboxed session on a stronger model that proves each finding with a failing test, plus a prompt for verifying and fixing what it proves. Takes an optional focus and `--model <audit-model-id>`. |
@@ -33,13 +33,13 @@ To review a smaller part of the project, describe the scope:
 | `/ai-security:security-init` | Set up Claude Code file-access rules for sensitive files such as credentials and environment files. |
 | `/ai-security:security-supply-chain` | Configure a pnpm project to delay installing newly published packages and keep automated builds aligned with its lockfile. |
 
-Some hosts also expose shorter aliases such as `/security-audit`.
+Some hosts also accept short names, such as `/security-audit`.
 
-The two setup commands show proposed configuration changes for approval. After using `security-init`, restart Claude Code for its settings to take effect; this step is optional and is not required to run an audit. The supply-chain command checks pnpm compatibility before making changes.
+The two setup commands show proposed configuration changes for approval. After using `security-init`, restart Claude Code for its settings to take effect. You don't need this step to run an audit. The supply-chain command checks pnpm compatibility before making changes.
 
 ## What to expect from an audit
 
-By default, the audit reviews the current repository, including application code, background jobs, configuration, and dependencies. It checks suspected problems against the code and uses small local tests where practical. Live infrastructure, vendor dashboards, and setting up a full test environment are not required unless you request that scope.
+By default, the audit reviews the current repository, including application code, background jobs, configuration, and dependencies. It checks suspected problems against the code and uses small local tests where practical. It doesn't need live infrastructure, vendor dashboards or a full test environment unless you ask for that scope.
 
 Reports are saved inside your repository:
 
@@ -48,16 +48,16 @@ docs/security/YYYY-MM-DD-HHMMSS-security-audit.md
 docs/security/YYYY-MM-DD-HHMMSS-security-audit.json
 ```
 
-Git treats them like any other new file, so committing them is up to you. They describe weaknesses in your code, so think before committing them to a public repository. In a clone where `/security-cvp-audit` added `/docs/security/` to `.git/info/exclude`, git ignores them; see [What it writes](#what-it-writes).
+Git treats them like any other new file, so committing them is up to you. They describe weaknesses in your code, so think before committing them to a public repository. In a clone where `/security-cvp-audit` added `/docs/security/` to `.git/info/exclude`, git ignores them. See [What it writes](#what-it-writes).
 
 Start with the Markdown summary and table of contents, then jump to the findings you need. The matching JSON keeps the full evidence and commands for deeper review or automation. Reports explain:
 
-- **What was reviewed** and which areas still need attention.
-- **Confirmed problems**, their likely impact, and recommended next steps.
-- **Uncertain concerns** separately from confirmed problems and optional improvements.
-- **Changes since a previous audit**, when a previous report is selected or supplied.
+- What was reviewed, and which areas still need attention.
+- Confirmed problems, their likely impact, and recommended next steps.
+- Uncertain concerns, kept apart from confirmed problems and optional improvements.
+- Changes since a previous audit, when a previous report is selected or supplied.
 
-The audit uses at most two reviewers at a time by default and closes its workers when they finish. If the host cannot manage workers reliably, the main assistant does the review itself. Reviewers contribute evidence to one final report, not separate reports for you to sort through.
+The audit uses at most two reviewers at a time by default and closes its workers when they finish. If the host can't manage workers reliably, the main assistant does the review itself. Reviewers add their evidence to one final report.
 
 You can ask the audit to compare against a specific report:
 
@@ -65,11 +65,11 @@ You can ask the audit to compare against a specific report:
 /ai-security:security-audit compare against docs/security/<previous-report>.md
 ```
 
-**Complete** means the agreed review work is finished. It can still say **follow-up remains** when a concern needs a production setting or vendor fact that the code cannot answer. Those concerns stay visible with next steps. **Partial** means actual review work is unfinished, such as unread routes or required tests that were skipped. Saving a report is not a reason to stop while useful, authorized checks remain.
+**Complete** means the agreed review work is finished. It can still say **follow-up remains** when a concern needs a production setting or vendor fact that the code can't answer. Those concerns stay visible with next steps. **Partial** means review work is unfinished, such as unread routes or required tests that were skipped.
 
-A finding disappearing from a report does not mean it was fixed; the comparison should explain what happened to it. Suggested fixes still need review and testing.
+A finding that disappears from a report wasn't necessarily fixed. The comparison should explain what happened to it. Suggested fixes still need review and testing.
 
-Python 3.9+ is needed for automatic report checking and formatting. If it is unavailable, the assistant can produce a partial report and explain which checks were skipped.
+Python 3.9+ is needed for automatic report checking and formatting. Without it, the assistant can produce a partial report and explain which checks it skipped.
 
 ## Planning a sandboxed audit
 
@@ -81,7 +81,7 @@ It reads the repo, makes sure git ignores the audit's files under `docs/security
 - **A launch checklist** for that session: dependencies, a clean working tree, a one-line launch that turns on auto mode and a strict sandbox, and a probe that confirms the sandbox is on.
 - **A fix prompt** for phase 3, which verifies each finding and fixes the ones you pick.
 
-CVP refers to [Anthropic's Cyber Verification Program](https://support.claude.com/en/articles/14604842-real-time-cyber-safeguards-on-claude-opus-and-sonnet), which gives qualifying security teams, open-source maintainers and researchers advanced cyber capabilities with fewer blocked requests. You don't need to be enrolled. The skill asks what authorizes the audit and writes only that into the prompt.
+CVP refers to [Anthropic's Cyber Verification Program](https://support.claude.com/en/articles/14604842-real-time-cyber-safeguards-on-claude-opus-and-sonnet), which gives qualifying users stronger cyber capabilities and fewer blocked requests. You don't need to be enrolled. The skill asks what authorizes the audit and writes only that into the prompt.
 
 ### Which audit to use
 
@@ -97,7 +97,7 @@ CVP refers to [Anthropic's Cyber Verification Program](https://support.claude.co
 | 2. Audit | A new session in the repo, launched in auto mode with a strict sandbox | Audit model: the strongest security-capable model you can use | Yes, strict | None. Third-party services are mocked | A report in `docs/security/`, one failing proof test per finding, archived as a `.disabled` file under `docs/security/tests/`, and any alternative-harness scripts and logs in `docs/security/harness/`. Nothing is fixed or committed |
 | 3. Fix | A normal session in the repo | Fixing model: Opus-class | No | Yes, for GitHub, CI and deploys, plus read-only provider checks you approve | Verified findings, a fix per change you pick with its proof test restored as the regression test, and an updated report |
 
-Opus-class means the current Opus model or one at least as capable (as of October 2026, Claude Opus 5.5). The audit model can be any model your account offers; some with stronger security capabilities require enrollment in the Cyber Verification Program.
+Opus-class means the current Opus model or one at least as capable (as of October 2026, Claude Opus 5.5). The audit model can be any model your account offers. Some with stronger security capabilities require enrollment in the Cyber Verification Program.
 
 ### How the plan works
 
@@ -107,7 +107,7 @@ Opus-class means the current Opus model or one at least as capable (as of Octobe
 4. Picks 5 to 9 attacker goals from [`attack-catalog.md`](skills/security-cvp-audit/attack-catalog.md) and rewrites each in the repo's own actors, assets and files
 5. Fills in [`prompt-template.md`](skills/security-cvp-audit/prompt-template.md): the rules for this repo, up to 8 files to read first, the goals, a retest section for earlier findings, open alerts, and how to prove each finding. That means the test framework, a file name with a `cvp` marker placed by the repo's convention, an existing test whose mocking to copy, the libraries to mock, the single-file run command for each package, and an output contract: where the report, each test and any harness files end up, plus a check the audit runs before it finishes. It checks that every path it cites exists
 6. Fills in [`fix-prompt-template.md`](skills/security-cvp-audit/fix-prompt-template.md) for phase 3
-7. Adds the ignore rule to `.git/info/exclude` unless git already ignores the audit's files, saves both prompts outside the repo, copies the audit prompt to the clipboard, and replies with the path to each prompt, a checklist for the audit session and one for the fix session, and any warnings, such as a stale workspace build or tests that bind localhost ports. It doesn't print the prompts; open the files to read or edit them
+7. Adds the ignore rule to `.git/info/exclude` unless git already ignores the audit's files, saves both prompts outside the repo, copies the audit prompt to the clipboard, and replies with the path to each prompt, a checklist for the audit session and one for the fix session, and any warnings, such as a stale workspace build or tests that bind localhost ports. It doesn't print the prompts. Open the files to read or edit them
 
 ```text
 /ai-security:security-cvp-audit
@@ -167,12 +167,12 @@ Commits, pushes and PRs wait for your consent. When the fixes have merged, run `
 
 ### Why plan outside the sandbox
 
-- **The audit model's budget goes to finding and proving bugs.** Orientation runs here, on a cheaper model plus a read-only subagent.
-- **The guardrails are written before an unattended run starts.** Banned commands, secret paths and production hosts are set for this repo before the auto-mode session begins. You can read and edit them first, and the audit model doesn't set its own limits.
-- **Steps that need network or credentials stay outside.** GitHub alert reads happen in phase 1, so the sandboxed session never needs your tokens.
-- **Earlier audits arrive sorted.** Fixed findings become a retest list, open ones aren't re-reported, and needs-investigation items get settled, so the audit doesn't rediscover known findings.
-- **The prompt is a saved file.** You can review it, edit it, rerun it and compare it across audits.
-- **Finding and fixing happen in separate sessions.** The fixing session re-checks each finding before changing code, and only an unsandboxed session can push branches, open PRs and watch CI and deploys.
+- The audit model's budget goes to finding and proving bugs. Orientation runs here, on a cheaper model plus a read-only subagent.
+- The guardrails are written before an unattended run starts. Banned commands, secret paths and production hosts are set for this repo before the auto-mode session begins. You can read and edit them first, and the audit model doesn't set its own limits.
+- Steps that need network or credentials stay outside. GitHub alert reads happen in phase 1, so the sandboxed session never needs your tokens.
+- Earlier audits arrive sorted. Fixed findings become a retest list, open ones aren't re-reported, and needs-investigation items get settled, so the audit doesn't rediscover known findings.
+- The prompt is a saved file. You can review it, edit it, rerun it and compare it across audits.
+- Finding and fixing happen in separate sessions. The fixing session re-checks each finding before changing code, and only an unsandboxed session can push branches, open PRs and watch CI and deploys.
 
 ### Trade-offs
 
@@ -182,10 +182,10 @@ Commits, pushes and PRs wait for your consent. When the fixes have merged, run `
 
 ### Requirements
 
-- **Claude Code v2.1.285 or later, with the sandbox and auto mode.** Earlier versions let the audited repo's own settings loosen a sandbox set on the command line. The sandbox runs on macOS, Linux and WSL2. Linux and WSL2 also need `bubblewrap` and `socat`. On native Windows, Claude Code runs commands unsandboxed, so run the audit in WSL2. Auto mode needs a supported model, and an organization admin can turn it off. If your audit model doesn't offer auto mode, launch with `--permission-mode acceptEdits` instead; auto-allow still runs sandboxed commands without prompts. Managed settings outrank `--settings`, so if your organization sets the sandbox keys, theirs apply.
-- **Access to a strong audit model.** Some require enrollment, such as models offered through the Cyber Verification Program.
-- **`gh`, optionally,** signed in, to include open Dependabot and code-scanning alerts.
-- **Dependencies installed before launch,** so the sandboxed session doesn't need the network.
+- Claude Code v2.1.285 or later, with the sandbox and auto mode. Earlier versions let the audited repo's own settings loosen a sandbox set on the command line. The sandbox runs on macOS, Linux and WSL2. Linux and WSL2 also need `bubblewrap` and `socat`. On native Windows, Claude Code runs commands unsandboxed, so run the audit in WSL2. Auto mode needs a supported model, and an organization admin can turn it off. If your audit model doesn't offer auto mode, launch with `--permission-mode acceptEdits` instead. Auto-allow still runs sandboxed commands without prompts. Managed settings outrank `--settings`, so if your organization sets the sandbox keys, theirs apply.
+- Access to a strong audit model. Some require enrollment, such as models offered through the Cyber Verification Program.
+- Optionally, `gh` signed in, to include open Dependabot and code-scanning alerts.
+- Dependencies installed before launch, so the sandboxed session doesn't need the network.
 
 ### What it writes
 
@@ -204,8 +204,8 @@ These files are sensitive. They map your attack surface: entry points, weak spot
 
 Git ignores the audit's files, so the report and tests stay local, even in an open-source repo. The rule goes in `.git/info/exclude` rather than `.gitignore`, so it's never committed and nothing in the repo hints at the files. It applies to this clone and all its worktrees. If you copy the files into another clone, add the rule there too. The rule depends on whether your repo already commits files in `docs/security/`:
 
-- **Git tracks nothing there:** the rule is one `/docs/security/` line. It also keeps other new files in that folder out of commits from this clone, including `/security-audit` and `/security-scan-dependencies` reports, and the reply says so. To commit one of those anyway, use `git add -f`, or replace the line with the three below.
-- **Git tracks files there:** the repo commits that folder, so the rule covers only the audit's own paths: `/docs/security/*cvp*audit*`, `/docs/security/tests/` and `/docs/security/harness/`. Your other reports stay committable. If an earlier run already added `/docs/security/`, the warnings say to replace it with these.
+- If git tracks nothing there, the rule is one `/docs/security/` line. It also keeps other new files in that folder out of commits from this clone, including `/security-audit` and `/security-scan-dependencies` reports, and the reply says so. To commit one of those anyway, use `git add -f`, or replace the line with the three below.
+- If git tracks files there, the repo commits that folder, so the rule covers only the audit's own paths: `/docs/security/*cvp*audit*`, `/docs/security/tests/` and `/docs/security/harness/`. Your other reports stay committable. If an earlier run already added `/docs/security/`, the warnings say to replace it with these.
 
 Files git already tracks at the audit's paths stay tracked, and the skill lists them in its warnings.
 
@@ -228,21 +228,25 @@ Pass the URL and a scope after the command:
 /ai-security:security-scan-dependencies example.com frontend,headers
 ```
 
-The scope is one or more of `frontend`, `cms`, `headers` and `all`. The command asks for whatever you leave out. With both supplied it asks nothing, so scheduled or headless runs should pass both; an unattended run given only a URL scans everything. The report is saved to `docs/security/YYYY-MM-DD-HHMMSS-dependency-scan.md`.
+The scope is one or more of `frontend`, `cms`, `headers` and `all`. The command asks for whatever you leave out. With both supplied it asks nothing, so scheduled or headless runs should pass both. An unattended run given only a URL scans everything. The report is saved to `docs/security/YYYY-MM-DD-HHMMSS-dependency-scan.md`.
 
 ## Limits
 
-Results depend on the available code, tools, and review time. Audits can miss problems or make mistakes, and they do not certify compliance or guarantee an identical result on every run. Use them alongside your existing tests, dependency scanners, and security reviews.
+Results depend on the available code, tools, and review time. Audits can miss problems or make mistakes. They don't certify compliance or guarantee an identical result on every run. Use them alongside your existing tests and reviews.
 
-A website scan sees what the site exposes publicly; it cannot establish the security of private server code or infrastructure.
+A website scan sees what the site exposes publicly. It can't establish the security of private server code or infrastructure.
 
 ## Updating and automation
 
-Source edits do not update an installed plugin. Once a new version is available through your configured marketplace, refresh the marketplace, update the plugin, and reload plugins or start a new session as your host requires.
+Source edits don't update an installed plugin. Once a new version is available through your configured marketplace, refresh the marketplace, update the plugin, and reload plugins or start a new session as your host requires.
 
-**Coming from ai-cvp:** ai-cvp's `/cvp-defense-audit` is now `/security-cvp-audit` in this plugin, and the ai-cvp plugin is removed. Claude Code users who only had ai-cvp run `/plugin install ai-security@ai-agent-plugins` once. New reports are named `<date>-security-cvp-audit.md`, and recon still reads earlier `<date>-cvp-security-audit.md` reports. Saved prompts stay in `~/.claude/cvp-audit-prompts/`.
+### Coming from ai-cvp
 
-**Upgrading from 1.x:** Version 2.0 changes the audit report format. New reports use JSON schema 1.1; existing schema 1.0 reports keep their original completion rules. See the [report format guide](skills/security-audit/references/artifacts.md). Automations that previously launched the `security-auditor` helper directly should invoke `/ai-security:security-audit` for a complete audit.
+ai-cvp's `/cvp-defense-audit` is now `/security-cvp-audit` in this plugin, and the ai-cvp plugin is removed. Claude Code users who only had ai-cvp run `/plugin install ai-security@ai-agent-plugins` once. New reports are named `<date>-security-cvp-audit.md`, and recon still reads earlier `<date>-cvp-security-audit.md` reports. Saved prompts stay in `~/.claude/cvp-audit-prompts/`.
+
+### Upgrading from 1.x
+
+Version 2.0 changes the audit report format. New reports use JSON schema 1.1. Existing schema 1.0 reports keep their original completion rules. See the [report format guide](skills/security-audit/references/artifacts.md). Automations that previously launched the `security-auditor` helper directly should invoke `/ai-security:security-audit` for a complete audit.
 
 ## Detailed guidance
 
@@ -253,4 +257,4 @@ Source edits do not update an installed plugin. Once a new version is available 
 - [Claude Code file-access setup](skills/security-init/SKILL.md)
 - [pnpm supply-chain setup](skills/security-supply-chain/SKILL.md)
 
-**Version:** 3.0.0 · **Author:** Charles Jones · **License:** [MIT](../../LICENSE)
+**Version:** 3.0.1 · **Author:** Charles Jones · **License:** [MIT](../../LICENSE)

@@ -1,6 +1,6 @@
 {
   "name": "ai-knowledge",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Keeps a team knowledge base in git as Claude Code rules, so each article loads when Claude works on matching files, every session, or on demand from a short index. Capture learnings as you work with auto-capture or on request, add docs, repos and URLs, query and prune it, and migrate a 1.x knowledge base",
   "author": {
     "name": "Charles Jones",
