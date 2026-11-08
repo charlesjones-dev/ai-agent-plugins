@@ -80,6 +80,20 @@ To use a plugin on one machine instead, copy its folder to `~/.cursor/plugins/lo
 
 The plugins that run in Codex and Cursor follow the [Agent Plugins](https://agent-plugins.org/) 1.0 format, with a `plugin.json` at the root of each plugin folder. Other agents that support the standard can load them from `plugins/<plugin-name>`.
 
+### Agent Skills (skills.sh)
+
+The skills are also listed on [skills.sh](https://www.skills.sh/charlesjones-dev/ai-agent-plugins). Its `skills` CLI copies the `SKILL.md` files into agents that support the [Agent Skills](https://agentskills.io/specification) format:
+
+```
+npx skills add charlesjones-dev/ai-agent-plugins                       # All skills
+npx skills add charlesjones-dev/ai-agent-plugins --skill <skill-name>  # One skill
+
+# For example:
+npx skills add charlesjones-dev/ai-agent-plugins --skill git-init
+```
+
+This path copies only the skill files. It doesn't replace the marketplace install in Claude Code, Codex or Cursor. On those agents, install from the marketplace to get the full plugin. In Claude Code, the full plugin also includes the subagents, settings, status line and knowledge-base tooling that the Claude Code-only plugins need.
+
 ## Moving from claude-code-plugins-dev
 
 Version 3.0.0 renamed the repository from `claude-code-plugins-dev` to `ai-agent-plugins`, and the marketplace to match. GitHub redirects the old URLs, so existing installs and links keep working.
