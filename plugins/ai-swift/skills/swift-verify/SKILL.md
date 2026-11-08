@@ -1,6 +1,6 @@
 ---
 name: swift-verify
-description: "Run the right local verification gate for a Swift project - detect XcodeGen vs plain .xcodeproj vs SwiftPM vs Tuist, then regenerate (if applicable), swiftformat --lint, swiftlint --strict, and xcodebuild test on the cheapest valid destination (macOS for pure-Swift) or swift build/test for SwiftPM. Reports each stage; --fix lets SwiftFormat rewrite."
+description: "Run the right local verification gate for a Swift project: detect XcodeGen vs plain .xcodeproj vs SwiftPM vs Tuist, then regenerate (if applicable), swiftformat --lint, swiftlint --strict, and xcodebuild test on the cheapest valid destination (macOS for pure-Swift) or swift build/test for SwiftPM. Reports each stage; --fix lets SwiftFormat rewrite."
 argument-hint: "[path] [--fix] [--no-test] [--destination=<dest>]"
 allowed-tools: [Bash, Read, Glob, Grep]
 disable-model-invocation: true

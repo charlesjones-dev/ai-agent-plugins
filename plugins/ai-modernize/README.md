@@ -1,10 +1,8 @@
-# AI Modernize Plugin
+# AI-Modernize plugin
 
-Codebase modernization assessment that finds technical debt, anti-patterns and quality issues in older AI-generated or legacy code.
+Finds technical debt, anti-patterns and quality issues in legacy code and in code written with older AI tools or "vibe coding", and saves a scored report with a prioritized roadmap. It runs in Claude Code, Codex and Cursor.
 
-## Overview
-
-Codebases built with older AI tools (Claude 3-era models, early Cursor, GPT-4 in 2024) or through "vibe coding" sessions can contain patterns that newer models avoid. This plugin finds those issues and produces a prioritized remediation roadmap with time estimates that assume AI-assisted work. It runs in Claude Code, Codex and Cursor.
+Older AI tools here means Claude 3-era models, early Cursor and GPT-4 in 2024.
 
 ## Installation
 
@@ -42,7 +40,8 @@ It takes optional arguments after the command: a path for the scope, `key=value`
 | `severity=` | Severity threshold | `all`, `medium` (Medium and above) or `high` (High and Critical only) |
 | `--defaults` | Everything the other arguments leave out | No value. Skips the setup questions and uses the defaults |
 
-**Usage:**
+#### Usage
+
 ```bash
 /modernize-audit
 /modernize-audit src/api categories=security,performance
@@ -63,9 +62,9 @@ It asks only about what the arguments leave out, and asks nothing when all six a
 
 `/modernize-scan` is now `/modernize-audit <path> --defaults` (since version 2.0.0). It writes the full audit report rather than the shorter scan report.
 
-## Assessment Categories
+## Assessment categories
 
-| # | Category | What It Checks |
+| # | Category | What it checks |
 |---|----------|---------------|
 | 1 | SOLID/DRY/KISS Violations | God classes, duplicated logic, over-engineering, mixed paradigms, YAGNI |
 | 2 | Type Safety & Language Misuse | `any` overuse, missing type guards, loose typing, language idiom violations |
@@ -80,29 +79,28 @@ It asks only about what the arguments leave out, and asks nothing when all six a
 | 11 | Modern Pattern Gaps | Missing modern syntax, outdated patterns, old CSS, legacy build tools |
 | 12 | Configuration & DevOps Debt | Hardcoded config, missing env validation, no health checks, poor Docker practices |
 
-## Report Output
+## Report output
 
 Reports are saved to `docs/modernize/` in the repository, with timestamped filenames: `YYYY-MM-DD-HHMMSS-modernize-audit.md`.
 
-### Report Includes
+### What the report includes
 
 - Modernization Score (0-100) with category breakdown
 - Findings grouped by severity (Critical, High, Medium, Low)
-- Exact file paths and line numbers for every finding
+- File paths and line numbers for each finding
 - Before/after code examples for remediation
-- Time estimates that assume AI-assisted work
 - Phased modernization roadmap with prioritized checklist
 - A "Why Older AI Models Did This" note on each finding
 
-## Supported Technology Stacks
+## Supported technology stacks
 
 The plugin auto-detects the stack and adds language-specific checks for:
 
-- **JavaScript/TypeScript**: React, Vue, Nuxt, Next.js, Angular, Svelte, Express, Fastify, Node.js
-- **C#/.NET**: nullable reference types, async I/O, records, pattern matching, minimal APIs
-- **Python**: type hints, f-strings, context managers, match statements, dataclasses
+- JavaScript/TypeScript: React, Vue, Nuxt, Next.js, Angular, Svelte, Express, Fastify, Node.js
+- C#/.NET: nullable reference types, async I/O, records, pattern matching, minimal APIs
+- Python: type hints, f-strings, context managers, match statements, dataclasses
 
-## Plugin Details
+## Plugin details
 
 | Field | Value |
 |-------|-------|

@@ -1,18 +1,16 @@
-# AI-Rules Plugin
+# AI-Rules plugin
 
-**Shared, versioned CLAUDE.md sections for Claude Code, and a cleanup for the files they live in.** A wizard adds sections of standing instructions to your user or project CLAUDE.md from a library. You pick the sections, the parts of each section you want, and settings such as your time zone. When a new version of a section ships, the wizard upgrades it and keeps any edits you made. A second command audits your CLAUDE.md files and trims what doesn't earn its place.
+Adds, upgrades and removes versioned sections of standing instructions in your user or project CLAUDE.md, from a library, through a wizard. You pick the sections, the parts of each section you want, and settings such as your time zone. When a new version of a section ships, the wizard upgrades it and keeps any edits you made. A second command audits your CLAUDE.md files and removes rules that cost context and change nothing.
 
 The plugin runs in Claude Code only.
 
----
-
-## Available Skills
+## Available skills
 
 ### `/rules-setup`
 
 Run `/rules-setup` and answer the questions. It takes no arguments.
 
-**What it does:**
+#### What it does
 
 - Asks for the target file: `~/.claude/CLAUDE.md` (every project) or `./CLAUDE.md` (this project). It finds your home folder on Windows, macOS and Linux
 - Scans the file and shows each library section's state: current, upgrade available, edited by you, or not installed
@@ -21,7 +19,7 @@ Run `/rules-setup` and answer the questions. It takes no arguments.
 - Shows a diff before every write, backs up the file to `~/.claude/backups/ai-rules/`, and scans again afterwards to check the result
 - Writes nothing when everything is current, so you can run it as often as you like
 
-**Usage:**
+#### Usage
 
 ```
 /rules-setup
@@ -29,11 +27,11 @@ Run `/rules-setup` and answer the questions. It takes no arguments.
 
 ### `/rules-cleanup`
 
-Audits the CLAUDE.md files Claude Code loads, and nothing else. The user and project files load into every session, and nested files load when Claude works in their folder, so a rule should change what Claude does.
+Audits the CLAUDE.md files Claude Code loads, and nothing else. The user and project files load into every session, and nested files load when Claude works in their folder. A rule that doesn't change what Claude does only costs context.
 
-> **How this relates to `/doctor prompt-audit`:** Claude Code's built-in `/doctor prompt-audit` (v2.1.283 or later) checks all your instruction files, including rules, skills, subagents and output styles, for outdated instructions, missing files and contradictions. Run it for those files. `/rules-cleanup` goes further on CLAUDE.md alone. It finds rules that restate Claude Code's own instructions, rules that a setting or hook should enforce, and rules that sit in the wrong file or load more often than needed. It also counts tokens and what each fix saves, cleans up structure, keeps a backup, and leaves `/rules-setup` sections intact.
+> Claude Code's built-in `/doctor prompt-audit` (v2.1.283 or later) checks all your instruction files, including rules, skills, subagents and output styles, for outdated instructions, missing files and contradictions. Run it for those files. `/rules-cleanup` goes further on CLAUDE.md alone. It finds rules that restate Claude Code's own instructions, rules that a setting or hook should enforce, and rules that sit in the wrong file or load more often than needed. It also counts tokens and what each fix saves, cleans up structure, keeps a backup, and leaves `/rules-setup` sections intact.
 
-**What it finds:**
+#### What it finds
 
 | Kind | Example | Usual fix |
 |------|---------|-----------|
@@ -45,7 +43,7 @@ Audits the CLAUDE.md files Claude Code loads, and nothing else. The user and pro
 | Placement | A personal preference in a shared project file, or a long runbook that loads every session | Move it to the right file, or to a file Claude reads on demand |
 | Format | Duplicate or empty headings, rules buried in paragraphs, IMPORTANT on every line, broken Markdown | Restructure without changing the meaning |
 
-**How it works:**
+#### How it works
 
 - Reads `~/.claude/CLAUDE.md`, the project's `CLAUDE.md`, `.claude/CLAUDE.md` and `CLAUDE.local.md`, CLAUDE.md files in parent folders, the project's `AGENTS.md` when Claude Code loads it in place of CLAUDE.md, nested `CLAUDE.md` files if you include them, and the files they `@` import. It reads the organization's managed policy file to find conflicts, but never edits it
 - Treats Claude Code's own system prompt, which Claude can see, as the source of truth for what's built in. A rule that changes a default on purpose stays, and the report lists it as kept
@@ -54,7 +52,7 @@ Audits the CLAUDE.md files Claude Code loads, and nothing else. The user and pro
 - Leaves sections managed by `/rules-setup` unchanged, and suggests a `/rules-setup` change for them instead
 - Never edits settings files or hooks. For a Setting finding, it shows the exact change for you to make
 
-**Usage:**
+#### Usage
 
 ```
 /rules-cleanup                 # User and project files
@@ -65,9 +63,7 @@ Audits the CLAUDE.md files Claude Code loads, and nothing else. The user and pro
 
 You can also ask in plain words, such as "clean up my CLAUDE.md".
 
----
-
-## The Library
+## The library
 
 | Section | What it tells Claude | Modules you can turn off | Settings |
 |---------|----------------------|--------------------------|----------|
@@ -82,9 +78,7 @@ You can also ask in plain words, such as "clean up my CLAUDE.md".
 
 With T3 Code turned off, Reply format leaves out the panels, scheduled tasks and snoozing, and uses normal `##` titles for every section.
 
----
-
-## How Versions Work
+## How versions work
 
 Each installed section sits between two markers that record its version and your choices:
 
@@ -109,10 +103,6 @@ To get new versions on a machine, update the marketplace and run the wizard:
 /rules-setup
 ```
 
-**Requirements:** git, for diffs and merges. Claude Code on Windows installs with Git for Windows. Python 3.8 or later is optional: with it, the bundled `rules.py` renders sections and scans the file. Without it, Claude follows the same rules by hand.
-
----
-
 ## Moving from `/workflow-rules`
 
 ai-workflow 4.0.0 removed `/workflow-rules`. Its five PR and commit rules are now the PR and commit hygiene section here. Install ai-rules once, then run `/rules-setup` on the file where you installed the rules. The wizard finds the old `<!-- workflow-rules:id=... -->` markers, moves the rules into one managed section with your edits kept, and offers to remove the retired rules, with what replaces each one.
@@ -121,41 +111,32 @@ ai-workflow 4.0.0 removed `/workflow-rules`. Its five PR and commit rules are no
 /plugin install ai-rules@ai-agent-plugins
 ```
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 ```
 /plugin marketplace add charlesjones-dev/ai-agent-plugins
 /plugin install ai-rules@ai-agent-plugins
 ```
 
----
+### Requirements
 
-## Plugin Details
+Git, for diffs and merges. Claude Code on Windows installs with Git for Windows. Python 3.8 or later is optional: with it, the bundled `rules.py` renders sections and scans the file. Without it, Claude follows the same rules by hand.
+
+## Plugin details
 
 - **Name:** AI-Rules Plugin
-- **Type:** AI Instruction Plugin (Skills)
 - **Version:** 1.0.0
 - **Skills:** `/rules-setup`, `/rules-cleanup`
 - **License:** MIT
 - **Author:** Charles Jones
 
----
-
 ## Credits
 
 The `short-pr-bodies` rule in PR and commit hygiene is adapted from `file-pr` in [tstack](https://github.com/t3dotgg/tstack) by Theo Browne (MIT). [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) has its license.
 
----
-
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
----
 
 ## License
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-swift",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Catches Xcode Cloud and TestFlight blockers before upload (XcodeGen pbxproj drift, static build numbers, missing ci_scripts, macOS App Store entitlements/Info.plist, headless-CI keychain test failures, ad-hoc signing entitlement rejections, flaky-UITest release gating), diagnoses ITMS rejection emails and red CI logs, scaffolds Xcode Cloud CI, runs a local verify gate, and reviews Swift 6 strict-concurrency and SwiftUI code",
   "author": {
     "name": "Charles Jones",

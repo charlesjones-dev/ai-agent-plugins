@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-accessibility",
-  "version": "2.0.0",
-  "description": "Audits code, or a live URL through Playwright MCP, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with fixes. Takes its settings as arguments for unattended runs",
+  "version": "2.0.1",
+  "description": "Audits code or a live URL for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues, with visual checks through Playwright MCP when it's set up, and saves a report with fixes. Takes its settings as arguments for unattended runs",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"

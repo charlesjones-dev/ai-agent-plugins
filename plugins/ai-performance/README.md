@@ -1,15 +1,6 @@
-# AI-Performance Plugin
+# AI-Performance plugin
 
-**Performance audits for Claude Code, Codex and Cursor.** `/performance-audit` reads your codebase and saves a timestamped report with an impact score for each bottleneck it finds. `/performance-ci` measures where your GitHub Actions time goes and says which line to change to cut it.
-
----
-
-## What This Plugin Does
-
-The plugin ships two skills:
-
-- `/performance-audit` finds code-level performance problems during development, before they reach production.
-- `/performance-ci` finds where each pull request's CI wait goes: waiting for a machine, setup, or the checks themselves.
+Audits a codebase, or one directory, for performance bottlenecks and saves a timestamped report with an impact score for each finding. `/performance-audit` does the code audit. `/performance-ci` measures where your GitHub Actions time goes and says which line to change to cut it. Both run in Claude Code, Codex and Cursor.
 
 ## Limits
 
@@ -17,7 +8,7 @@ The plugin ships two skills:
 
 `/performance-ci` measures GitHub Actions only, through the GitHub CLI (`gh`). For another CI system, it offers a review of the config with no measured times. Its savings are estimates built from the measured times, and they show how each one was worked out. A change shows its effect only after the new workflow has run on GitHub.
 
-## Available Skills
+## Available skills
 
 ### `/performance-audit`
 
@@ -38,13 +29,9 @@ Measures the last 150 completed GitHub Actions runs of the repository in the wor
 | `repo=OWNER/NAME` | Measure another repository you can read, without a checkout | The repository in the working directory |
 | `save=yes` or `save=no` | Save the report under `docs/performance/` | `yes` when a CI report is already saved there |
 
-It needs the GitHub CLI, logged in with read access to the repository's Actions (`gh auth login`), and Python 3.
+It needs the GitHub CLI, logged in with read access to the repository's Actions (`gh auth login`), and Python 3. To measure a fix, run it again after the changed workflow has run about ten times.
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 Claude Code:
 
@@ -64,7 +51,7 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 
 Install the plugin at user scope to use its commands in every repository.
 
-### Usage
+## Usage
 
 ```
 # Audit the whole repository
@@ -82,39 +69,37 @@ Install the plugin at user scope to use its commands in every repository.
 # Review the generated reports in docs/performance/
 ```
 
----
-
 ## Features
 
 ### `/performance-audit`
 
-#### Performance Pattern Detection
+#### What it looks for
 
-- **N+1 Query Problems**: Identifies loading related entities in loops
-- **Synchronous/Blocking Operations**: Detects blocking database calls, I/O operations, and event loop blocking (Node.js)
-- **Memory Issues**: Finds leaks from closures, uncleared listeners, large object allocations, and missing resource disposal
-- **Concurrency Problems**: Detects race conditions, deadlocks, connection pool exhaustion, and thread/worker saturation
-- **Inefficient Queries**: Detects suboptimal ORM usage and missing projections
-- **Missing Caching**: Locates frequently computed operations without caching
-- **Database Optimization**: Identifies missing indexes and expensive queries
-- **Frontend Performance**: Evaluates Core Web Vitals impact (LCP, INP, CLS), bundle size, and rendering performance
-- **GraphQL Issues**: Detects missing query depth limiting, DataLoader opportunities, and over-fetching
+- N+1 queries: related entities loaded in loops
+- Blocking work: blocking database calls and I/O, and a blocked event loop in Node.js
+- Memory: leaks from closures, listeners that are never removed, large allocations, and resources that are never disposed of
+- Concurrency: race conditions, deadlocks, an exhausted connection pool, and saturated threads or workers
+- Queries: ORM calls that load more than they need, and missing projections
+- Caching: work computed again and again with no cache
+- Databases: missing indexes and expensive queries
+- Frontend: the effect on Core Web Vitals (LCP, INP, CLS), bundle size and rendering
+- GraphQL: no query depth limit, places for a DataLoader, and over-fetching
 
-#### Detailed Reporting
+#### What each finding includes
 
-Each finding includes:
+- The file path and line number
+- An impact score from 1.0 to 10.0, with defined severity thresholds
+- The pattern it found
+- The code snippet
+- The cost to performance and scaling
+- How to fix it
+- When to fix it
 
-- **Location**: Exact file path and line number
-- **Performance Impact**: Numerical impact score (1.0-10.0) with defined severity thresholds
-- **Pattern Detected**: What performance issue was identified
-- **Code Context**: The problematic code snippet
-- **Impact**: Performance cost and scalability concerns
-- **Recommendation**: How to optimize it
-- **Fix Priority**: When it should be addressed
+Reports include 2-4 before/after examples built from code in the findings, each with an estimated improvement.
 
-#### Code Optimization Examples
+#### How it works
 
-Reports include 2-4 before/after examples built from code in the findings, each with an expected improvement estimate.
+The audit scans source files for these patterns, only under the given directory if you pass one, and tailors findings to the detected stack. It groups findings as Critical, High, Medium or Low, and the report ends with a phased optimization roadmap.
 
 ### `/performance-ci`
 
@@ -129,7 +114,7 @@ A bundled Python script (`scripts/ci_timings.py`, standard library only) pulls t
 - **Matrix jobs**, such as test shards, and how uneven they are
 - **Cache hit and miss lines and test-runner timings** from the logs of the slowest jobs
 
-#### The Nine Checks
+#### The nine checks
 
 1. Queueing on the default runners
 2. Slow lint
@@ -141,7 +126,7 @@ A bundled Python script (`scripts/ci_timings.py`, standard library only) pulls t
 8. Every PR runs the full test suite
 9. No local checks before push
 
-#### The Report
+#### The report
 
 - **Findings**: free fixes, each with the seconds it costs now, the file and line, the change, the seconds it saves and how that was worked out. Each saving says whether it shortens the wait for a CI result or only saves runner minutes.
 - **For You to Decide**: changes that cost money (bigger or paid runners, more shards on a private repository), and changes that run fewer or different checks (path filters, affected-only tests, a different linter).
@@ -150,76 +135,31 @@ A bundled Python script (`scripts/ci_timings.py`, standard library only) pulls t
 
 After the report, it asks which fixes to apply. It applies the free fixes one at a time, biggest first, so each one can be measured. It doesn't commit or push unless you ask.
 
----
+#### How it works
 
-## How It Works
+The skill reads the project's docs and workflow files, measures the runs with its script, ties each slow step to the file and line that defines it, and runs the nine checks. Logs stay in a temporary folder outside the repository.
 
-`/performance-audit` scans source files for the patterns above, only under the given directory if you pass one, and tailors findings to the detected stack. Findings are grouped as Critical, High, Medium or Low, and the report ends with a phased optimization roadmap.
+## Report files
 
-`/performance-ci` reads the project's docs and workflow files, measures the runs with its script, ties each slow step to the file and line that defines it, and runs the nine checks. Logs stay in a temporary folder outside the repository.
-
----
-
-## Best Practices
-
-### When to Run Performance Audits
-
-- Before production deployments
-- After implementing new features with database access
-- When adding new API endpoints
-- After integrating third-party services
-- During performance reviews and optimization sprints
-
-### When to Run the CI Audit
-
-- When pull requests wait on CI longer than they take to write
-- After adding jobs, workflows or test suites
-- After each CI fix ships and has run about ten times, to measure it
-
-### How to Use Audit Results
-
-1. **Prioritize Critical & High findings** - Address these immediately
-2. **Review code context** - Understand why each finding impacts performance
-3. **Apply optimization examples** - Use provided code fixes as templates
-4. **Measure improvements** - Benchmark before and after optimizations
-5. **Re-audit after fixes** - Verify improvements and track progress
-
----
-
-## Configuration
-
-There's nothing to configure.
-
-`/performance-audit` saves its reports to `docs/performance/` at the repository root as `YYYY-MM-DD-HHMMSS-performance-audit.md` (e.g., `2025-10-17-143022-performance-audit.md`). This timestamp-based naming ensures multiple audits on the same day don't overwrite each other.
+`/performance-audit` saves its reports to `docs/performance/` at the repository root as `YYYY-MM-DD-HHMMSS-performance-audit.md` (e.g., `2025-10-17-143022-performance-audit.md`). The timestamp keeps two audits from the same day apart.
 
 `/performance-ci` saves its report there as `YYYY-MM-DD-HHMMSS-ci-audit.md` when you pass `save=yes`, or when an earlier CI report is already there.
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-Performance
-- **Version:** 2.1.0
-- **Type:** Skill
-- **Features:**
-  - Skills: `/performance-audit`, `/performance-ci`
+- **Version:** 2.1.1
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Credits
 
 `/performance-ci` is inspired by [a post by Vox](https://x.com/Voxyz_ai/status/2116636332344889391) (Voxyz_ai on X) with a prompt for a CI audit. It follows the post's approach: split each job's time into queue, setup and work, check nine causes, and report before changing anything. Its text and measurement script are original.
 
----
-
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
----
-
 ## License
 
-MIT License - See [LICENSE](LICENSE) file for details.
+MIT License. See [LICENSE](LICENSE).

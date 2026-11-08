@@ -1,10 +1,10 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+## Supported versions
 
 Only the latest marketplace release gets security fixes. Update to it before you report a problem.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
 Report it privately through the contact form at [charlesjones.dev/contact](https://charlesjones.dev/contact), not in a public issue. I reply within one business day.
 
@@ -21,12 +21,13 @@ Once it's fixed, the release notes credit you unless you'd rather stay anonymous
 
 This policy covers the marketplace catalogs, the plugins in `plugins/`, and the docs and examples in this repository.
 
-## Using These Plugins Safely
+## Using these plugins safely
 
-1. **Read before you install.** Skills and subagents are plain Markdown files, so you can see exactly what a plugin tells Claude Code, Codex or Cursor to do.
-2. **Stay on the latest release.** Fixes only go into the newest version.
+1. **Read before you install.** Skills and subagents are Markdown files. ai-knowledge also ships a session-start hook, and ai-performance, ai-rules, ai-security, ai-seo and ai-workflow ship scripts. You can read all of them in the plugin folder before you install.
+2. **Stay on the latest release.**
 3. **Block reads of secrets.** The ai-security plugin's `/security-init` adds Claude Code deny rules for credential and secret files. See the [ai-security README](plugins/ai-security/README.md) for its other skills.
 4. **Check what you commit.** The git skills skip common secret files, but review the staged files before you push.
+5. **Review what an unattended run changed.** Some skills read web pages, PRs, CI logs or work items that other people wrote. They treat that text as data and don't follow instructions in it. Review what an unattended run changed before you merge.
 
 ## Contact
 

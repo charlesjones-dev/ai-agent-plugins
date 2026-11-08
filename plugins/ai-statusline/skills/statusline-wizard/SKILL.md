@@ -1,6 +1,6 @@
 ---
 name: statusline-wizard
-description: "Interactive setup wizard for configuring Claude Code's custom status line with progress bars and customizable display options."
+description: "Set up Claude Code's status line with a context progress bar, rate limits, a spend budget and the other segments you pick."
 disable-model-invocation: true
 ---
 

@@ -1,20 +1,14 @@
-# AI-ADO Plugin
+# AI-ADO plugin
 
-**Azure DevOps work items from Claude Code.** Set up a project, create Features, User Stories and Tasks through the Azure DevOps MCP server, log hours to stories, and build weekly timesheets.
-
----
-
-## What This Plugin Does
+Sets up an Azure DevOps project and its MCP server, creates Features, User Stories and Tasks, logs hours to stories, and builds weekly timesheet reports in Claude Code.
 
 The skills work through Microsoft's official Azure DevOps MCP server. Run `/ado-init` first: the other skills read their settings from `CLAUDE.md` and stop if they're missing.
 
-## Available Skills
+## Available skills
 
 ### `/ado-init`
 
 Initialize Azure DevOps configuration by creating or updating `CLAUDE.md` with your organization, project, team, default paths and naming convention.
-
-**What it does:**
 
 - Asks for your organization, project and team
 - Sets the default Area Path and Iteration Path for work items
@@ -23,10 +17,10 @@ Initialize Azure DevOps configuration by creating or updating `CLAUDE.md` with y
 - Adds the work item rules Claude follows when it uses the Azure DevOps MCP tools directly (State, hierarchy, HTML fields, Story Points and hours), and points to `/ado-create` for the full guidelines
 - If `CLAUDE.md` already has an Azure DevOps section, leaves it unchanged, except that a section from ai-ado 1.x that refers to the removed `ado-work-items` skill gets that paragraph replaced with the current rules
 
-**Naming conventions:**
+#### Naming conventions
 
-- **Decimal notation** (recommended): Features `1: Feature One`, `2: Feature Two`; User Stories `1.1: Story One`, `1.2: Story Two`, `2.1: Story One`; Tasks get descriptive titles without numbering
-- **Descriptive names**: Features are numbered for priority; User Stories and Tasks get descriptive titles
+- Decimal notation (recommended): Features `1: Feature One`, `2: Feature Two`; User Stories `1.1: Story One`, `1.2: Story Two`, `2.1: Story One`; Tasks get descriptive titles without numbering
+- Descriptive names: Features are numbered for priority; User Stories and Tasks get descriptive titles
 
 `/ado-create` and `/ado-log-story-work` ask whether to use AI or Manual mode. In AI mode you describe the work, Claude drafts the fields using your naming convention, and you confirm or override each one. In Manual mode you type each field.
 
@@ -34,11 +28,9 @@ Initialize Azure DevOps configuration by creating or updating `CLAUDE.md` with y
 
 Create a Feature, a User Story under an existing Feature, or a Task under an existing User Story, following your configured conventions. Each argument is optional: the command asks for whatever you leave out, starting with the type.
 
-**What it does:**
-
-- **Feature**: asks for the title and description, or drafts them in AI mode
-- **User Story**: asks for the parent Feature ID, then the title, persona statement ("As a... I want to... so that..."), background, Given/When/Then acceptance criteria and Story Points (1, 2, 3, 5, 8, 13, etc.), drafting all but the Story Points in AI mode
-- **Task**: asks for the parent User Story ID, the title (drafted in AI mode from the parent story) and an hour estimate. Sets Original Estimate and Remaining Work to the same value, leaves Completed Work empty, and keeps the description to one line that points to the parent story
+- Feature: asks for the title and description, or drafts them in AI mode
+- User Story: asks for the parent Feature ID, then the title, persona statement ("As a... I want to... so that..."), background, Given/When/Then acceptance criteria and Story Points (1, 2, 3, 5, 8, 13, etc.), drafting all but the Story Points in AI mode
+- Task: asks for the parent User Story ID, the title (drafted in AI mode from the parent story) and an hour estimate. Sets Original Estimate and Remaining Work to the same value, leaves Completed Work empty, and keeps the description to one line that points to the parent story
 - Looks up the parent first and warns if it isn't a Feature (for a story) or a User Story (for a task)
 - Writes Description and Acceptance Criteria as HTML, and sets Area Path, Iteration Path and State automatically
 - Shows the work item ID, its Azure DevOps link, and the command for the next level down
@@ -52,13 +44,11 @@ Create a Feature, a User Story under an existing Feature, or a Task under an exi
 
 The work item guidelines it follows (hierarchy, HTML formatting, acceptance criteria, Story Points, hour estimation, naming conventions and default fields) are in [`skills/ado-create/references/work-items.md`](skills/ado-create/references/work-items.md).
 
-**Replaces (2.0.0):** `/ado-create-feature`, `/ado-create-story` and `/ado-create-task` are now `/ado-create feature`, `/ado-create story` and `/ado-create task`. The `/ado-work-items` guidelines are now that reference file, which `/ado-create` reads each time it runs.
+Version 2.0.0 replaced `/ado-create-feature`, `/ado-create-story` and `/ado-create-task` with `/ado-create feature`, `/ado-create story` and `/ado-create task`. The `/ado-work-items` guidelines are now that reference file, which `/ado-create` reads each time it runs.
 
 ### `/ado-log-story-work`
 
 Log completed work to a User Story by creating a Task with completed hours already set. Built for logging several times a day.
-
-**What it does:**
 
 - Asks for the parent User Story ID, the title and description (drafted in AI mode), and the completed hours
 - Sets Original Estimate and Completed Work to the same value
@@ -66,7 +56,7 @@ Log completed work to a User Story by creating a Task with completed hours alrea
 - Optionally subtracts hours from a placeholder task's Original Estimate and Remaining Work
 - Shows the new task and any placeholder changes, with Azure DevOps links
 
-**Git Commit Hash Detection:**
+#### Git commit hashes
 
 In AI mode, the skill looks for git commit hashes in your description:
 - Supports both full SHA (40 characters) and short SHA (7+ characters)
@@ -74,17 +64,15 @@ In AI mode, the skill looks for git commit hashes in your description:
 - Runs `git show` and adds the commit message and changed files to the task description
 - If git lookup fails, continues without commit context (non-blocking)
 
-**Placeholder Task Hour Subtraction:**
+#### Placeholder tasks
 
-- Useful for tracking hours from a pre-allocated hour bucket
+- Tracks hours from a pre-allocated hour bucket
 - Subtracts from both "Original Estimate" and "Remaining Work", never going below zero
 - Shows before/after values and links to both tasks
 
 ### `/ado-timesheet-report`
 
 Report the "Completed Work" hours logged on work items during a given week, as a Feature > User Story > Task tree with rolled-up hours or grouped by day.
-
-**Usage:**
 
 ```
 /ado-timesheet-report
@@ -103,17 +91,17 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 # Step 2a: If you chose "Specific team member", provide their name
 ```
 
-**Report Features:**
+#### Report options
 
-- **Date Fields**: Closed Date (when the task was closed) or Changed Date (when it was last updated)
-- **Three Grouping Modes**:
-  - **By hierarchy**: Feature > User Story > Task tree with rolled-up hours
-  - **By date**: Flat list grouped by day of the week
-  - **By date with hierarchy**: The hierarchy within each day of the week
-- **All Work Item Types**: Includes Tasks, Bugs, Issues, and any other types with logged hours
-- **Orphaned Items**: Work items without a parent go under a "No Parent" section
+- Date fields: Closed Date (when the task was closed) or Changed Date (when it was last updated)
+- Three grouping modes:
+  - By hierarchy: Feature > User Story > Task tree with rolled-up hours
+  - By date: flat list grouped by day of the week
+  - By date with hierarchy: the hierarchy within each day of the week
+- All work item types: Tasks, Bugs, Issues, and any other types with logged hours
+- Orphaned items: work items without a parent go under a "No Parent" section
 
-**Example Report (Verbosity Level 2, By Hierarchy):**
+#### Example: verbosity level 2, by hierarchy
 
 ```
 📊 Timesheet Report
@@ -144,7 +132,7 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Example Report (Verbosity Level 2, By Date):**
+#### Example: verbosity level 2, by date
 
 ```
 📊 Timesheet Report
@@ -176,24 +164,20 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Use Cases:**
+#### Which filter to use
 
-- **Daily Close & Log**: If your team creates and closes tasks daily, use "Closed only" filter with "Closed Date"
-- **Incremental Logging**: If your team logs hours throughout the week on active tasks, use "Worked on only" or "Both" filter with "Changed Date"
+- If your team creates and closes tasks daily, use the "Closed only" filter with "Closed Date".
+- If your team logs hours on active tasks through the week, use "Worked on only" or "Both" with "Changed Date".
 
----
-
-## Quick Start
+## Quick start
 
 ### Prerequisites
 
-1. **Node.js 20+**: Required for `npx` to run the Azure DevOps MCP server
+1. Node.js 20+, which `npx` needs to run the Azure DevOps MCP server
    - Check your version: `node --version`
    - Download from: https://nodejs.org/
 
-2. **Azure DevOps Access**: Ensure you have access to your Azure DevOps organization.
-
-3. **MCP Configuration**: `/ado-init` can create `.mcp.json` for you (see [MCP Server Setup](#mcp-server-setup)).
+2. An MCP configuration. `/ado-init` can create `.mcp.json` for you (see [MCP server setup](#mcp-server-setup)).
 
 ### Installation
 
@@ -237,13 +221,12 @@ Report the "Completed Work" hours logged on work items during a given week, as a
 # Logs completed work with hours already set
 ```
 
----
+## Work item creation example
 
-## Work Item Creation Example
+Once configured, Claude Code creates work items following your conventions.
 
-Once configured, Claude Code creates work items following your conventions:
+#### Feature
 
-**Feature:**
 ```
 Title: 1: User Authentication System
 Description: High-level overview of authentication features including login,
@@ -253,7 +236,8 @@ Iteration Path: MyProject\Sprint 1
 State: New
 ```
 
-**User Story:**
+#### User Story
+
 ```
 Title: 1.1: Implement user login functionality
 Description:
@@ -281,7 +265,8 @@ Iteration Path: MyProject\Sprint 1
 State: New
 ```
 
-**Task:**
+#### Task
+
 ```
 Title: Development for user login functionality
 Original Estimate: 8 hours
@@ -292,25 +277,20 @@ Iteration Path: MyProject\Sprint 1
 State: New
 ```
 
----
+## Best practices
 
-## Best Practices
-
-- Use **decimal notation** for better organization and sorting in backlog
-- Set **Area Path** to match your team structure
-- Configure **Iteration Path** to your current sprint
+- Use decimal notation, so backlog items sort in order
+- Set Area Path to match your team structure
+- Set Iteration Path to your current sprint
 - When sprints or teams change, edit the Azure DevOps section of `CLAUDE.md` (`/ado-init` won't overwrite it)
-- Run `/ado-init` in each new project
-
----
 
 ## Configuration
 
-### MCP Server Setup
+### MCP server setup
 
 `/ado-init` can optionally create a `.mcp.json` file to configure the Microsoft Azure DevOps MCP server.
 
-**Windows Configuration:**
+#### Windows
 
 ```json
 {
@@ -323,7 +303,7 @@ State: New
 }
 ```
 
-**Linux/Mac Configuration:**
+#### Linux/Mac
 
 ```json
 {
@@ -336,52 +316,39 @@ State: New
 }
 ```
 
-**How it works:**
+#### How it works
 
 - Asks whether you're on Windows or Linux/Mac to pick the command format
-- If `.mcp.json` doesn't exist, it will be created with your organization name and OS-specific command
-- If `.mcp.json` already exists, you'll get a manual configuration snippet to add (for security reasons, existing files aren't read or modified)
+- If `.mcp.json` doesn't exist, creates it with your organization name and OS-specific command
+- If `.mcp.json` already exists, leaves it unchanged for security and shows the snippet to add by hand
 - Uses `npx` to run the MCP server without requiring global installation
 - Windows needs the `cmd /c` prefix to run `npx`
-
-**Security Note:**
-
-For security reasons, the plugin won't read or modify existing `.mcp.json` files. If you already have this file, `/ado-init` shows you the OS-appropriate configuration snippet to add manually.
 
 ### Authentication
 
 See the [Azure DevOps MCP server](https://github.com/microsoft/azure-devops-mcp) docs to set up authentication with your Azure DevOps account.
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-ADO Plugin
-- **Type:** AI Instruction Plugin (Skills)
-- **Version:** 2.0.0
+- **Version:** 2.0.1
 - **Skills:** `/ado-init`, `/ado-create`, `/ado-log-story-work`, `/ado-timesheet-report`
-- **MCP Integration:** Microsoft Azure DevOps MCP Server (optional, OS-aware configuration)
+- **MCP Integration:** Microsoft Azure DevOps MCP Server (required; `/ado-init` can create its `.mcp.json`)
 - **Requirements:** Node.js 20+
 - **License:** MIT
 - **Author:** Charles Jones
 
----
-
-## Related Resources
+## Related resources
 
 - [Microsoft Azure DevOps MCP Server](https://github.com/microsoft/azure-devops-mcp)
 - [Azure DevOps Documentation](https://learn.microsoft.com/en-us/azure/devops/)
 - [Work Item Types](https://learn.microsoft.com/en-us/azure/devops/boards/work-items/about-work-items)
 - [Model Context Protocol](https://modelcontextprotocol.io/)
 
----
-
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
----
-
 ## License
 
-MIT License - See [LICENSE](LICENSE) file for details.
+MIT License. See [LICENSE](LICENSE).

@@ -1,22 +1,16 @@
-# AI-Accessibility Plugin
+# AI-Accessibility plugin
 
-**Accessibility audits for Claude Code, Codex and Cursor.** `/accessibility-audit` checks your code or a live URL against WCAG 2.1, WCAG 2.2 or 508 / WCAG 2.0 AA and saves a report with before/after fixes. URL audits can use Playwright MCP for visual checks.
-
----
-
-## What This Plugin Does
-
-The plugin ships one skill, which runs in Claude Code, Codex and Cursor. Run the audit during development to catch accessibility barriers in code or on a rendered page before they reach production.
+Audits code, or a live URL, for Section 508/WCAG 2.0, WCAG 2.1 or WCAG 2.2 issues and saves a report with before/after fixes. URL audits can use Playwright MCP for visual checks. The plugin has one skill, `/accessibility-audit`, and it runs in Claude Code, Codex and Cursor.
 
 ## Limits
 
 An audit doesn't certify WCAG or legal compliance. It also doesn't replace manual screen reader testing or testing with people with disabilities.
 
-## Available Skills
+## Available skills
 
 ### `/accessibility-audit`
 
-**Arguments:**
+#### Arguments
 
 ```
 /accessibility-audit [WCAG version] [level] [path or URL]
@@ -34,29 +28,20 @@ Examples:
 /accessibility-audit 2.2 .
 ```
 
-The skill uses whatever the arguments supply and asks only for what's missing. With all three it asks nothing, so the audit can run unattended. With none, it asks:
+The skill uses whatever the arguments supply and asks only for what's missing. With all three it asks nothing, so the audit can run unattended. With none, it asks for:
 
-1. **WCAG Version**: Choose WCAG 2.1, WCAG 2.2, or 508 / WCAG 2.0 AA
-2. **Conformance Level**: Choose A (minimum), AA (industry standard), or AAA (enhanced)
-3. **Scope**: Choose entire codebase, specific directory, or a URL
-4. **Visual Scanning** (if URL selected): Choose whether to use Playwright MCP tools for visual accessibility testing
+1. The WCAG version: WCAG 2.1, WCAG 2.2, or 508 / WCAG 2.0 AA.
+2. The conformance level: A (minimum), AA (recommended) or AAA (enhanced).
+3. The scope: the entire codebase, one directory, or a URL.
+4. For a URL, whether to use Playwright MCP for visual testing.
 
-When the URL comes from the arguments, the skill uses Playwright if the Playwright MCP server responds. If it doesn't, the audit falls back to HTML and code analysis and the report notes that visual testing was skipped.
+When the URL comes from the arguments, the skill uses Playwright if the Playwright MCP server responds. If it doesn't, the audit falls back to HTML and code analysis, and the report says that visual testing was skipped.
 
-**What it analyzes:** the areas listed under [Features](#features). URL audits with Playwright MCP also check:
+#### What it analyzes
 
-- **Visual Color Contrast Testing** - Contrast measurements of rendered elements
-- **Actual Focus Indicator Visibility** - Visual verification of focus states
-- **Rendered DOM Structure** - Accessibility tree as perceived by assistive technologies
-- **Interactive Element Testing** - Keyboard navigation testing on live page
-- **Touch Target Size Verification** - Actual pixel measurements of interactive elements
-- **Screenshot-based Analysis** - Visual accessibility assessment with evidence
+The audit covers the areas under [Features](#features). URL audits with Playwright MCP also measure contrast on rendered elements, check that focus states are visible, read the accessibility tree that assistive technologies get, test keyboard navigation on the live page, measure touch targets in pixels, and keep screenshots as evidence.
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 Claude Code:
 
@@ -74,9 +59,10 @@ codex plugin add ai-accessibility@ai-agent-plugins
 
 Cursor: add this repository as a team marketplace, or copy this folder to `~/.cursor/plugins/local/ai-accessibility`. See the [Cursor install steps](../../README.md#cursor).
 
-### Usage
+## Usage
 
-**Codebase Analysis:**
+### Codebase analysis
+
 ```
 # Step 1: Run an accessibility audit
 /accessibility-audit
@@ -95,7 +81,8 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 # Follow the prioritized remediation roadmap (Phase 1-4)
 ```
 
-**URL Analysis with Playwright MCP:**
+### URL analysis with Playwright MCP
+
 ```
 # Step 1: Run an accessibility audit
 /accessibility-audit
@@ -122,80 +109,78 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 # Follow the prioritized remediation roadmap
 ```
 
----
-
 ## Features
 
-### Configurable WCAG Assessment
+### WCAG versions and levels
 
-**WCAG 2.1 vs 2.2:**
-- **WCAG 2.1**: 78 success criteria across 13 guidelines (Level A 30, AA 20, AAA 28)
-- **WCAG 2.2**: 86 success criteria (adds 9 and removes SC 4.1.1 Parsing; Level A 31, AA 24, AAA 31)
-  - New criteria: Focus Not Obscured (AA/AAA), Focus Appearance (AAA), Dragging Movements (AA), Target Size Minimum (AA), Consistent Help (A), Redundant Entry (A), Accessible Authentication (AA/AAA)
+- WCAG 2.1 has 78 success criteria across 13 guidelines: Level A 30, AA 20, AAA 28.
+- WCAG 2.2 has 86 success criteria. It adds 9 and removes SC 4.1.1 Parsing: Level A 31, AA 24, AAA 31.
+  - The new criteria are Focus Not Obscured (AA/AAA), Focus Appearance (AAA), Dragging Movements (AA), Target Size Minimum (AA), Consistent Help (A), Redundant Entry (A) and Accessible Authentication (AA/AAA).
 
-**Conformance Levels** (WCAG 2.2, cumulative):
-- **Level A** (31 criteria) - Minimum accessibility, critical barriers
-- **Level AA** (55 criteria, A plus AA) - Industry standard
-- **Level AAA** (86 criteria) - Enhanced accessibility, highest level
+The conformance levels are cumulative. In WCAG 2.2:
 
-### Analysis Areas
+- Level A has 31 criteria and covers the critical barriers.
+- Level AA has 55 criteria (A plus AA). It's the recommended level.
+- Level AAA has 86 criteria and is the highest level.
 
-#### Semantic HTML & Structure
-- Heading hierarchy validation (h1-h6 without skipping levels)
-- Semantic element usage (nav, main, footer, article, section)
+### Analysis areas
+
+#### Semantic HTML and structure
+- Heading hierarchy (h1-h6 without skipping levels)
+- Semantic elements (nav, main, footer, article, section)
 - Landmark regions for screen reader navigation
-- Logical reading order assessment
+- Logical reading order
 
-#### ARIA Implementation
+#### ARIA
 - Valid ARIA roles, states, and properties
 - Landmark roles (banner, navigation, main, complementary)
 - Widget roles (button, checkbox, tab, dialog)
 - Live regions for dynamic content
 - ARIA labels and descriptions
 
-#### Keyboard Accessibility
-- Tab order follows logical flow
-- All interactive elements keyboard accessible
-- No keyboard traps detected
+#### Keyboard access
+- Tab order that follows the layout
+- Keyboard access to every control
+- Keyboard traps
 - Visible focus indicators
 - Skip navigation links
-- Focus management in modals/dialogs
+- Focus management in modals and dialogs
 - WCAG 2.2: Focus Not Obscured (SC 2.4.11), Focus Appearance (SC 2.4.13)
 
-#### Color Contrast
+#### Color contrast
 - Normal text: 4.5:1 minimum (AA), 7:1 (AAA)
 - Large text: 3:1 minimum (AA), 4.5:1 (AAA)
 - UI components: 3:1 minimum
 - Information not conveyed by color alone
-- Color blindness considerations
+- Color blindness
 
-#### Form Accessibility
-- Label associations (explicit/implicit)
-- Fieldset/legend for grouped controls
+#### Forms
+- Label associations (explicit and implicit)
+- Fieldset and legend for grouped controls
 - Required field indication
 - Error identification and suggestions
 - Accessible error messages (aria-describedby, aria-invalid)
 - Autocomplete attributes
 - WCAG 2.2: Redundant Entry (SC 3.3.7), Accessible Authentication (SC 3.3.8/3.3.9)
 
-#### Alternative Text
+#### Alternative text
 - Descriptive alt text for informative images
 - Empty alt for decorative images
-- Complex image descriptions
-- Icon button accessible names
-- SVG accessibility
+- Descriptions for complex images
+- Accessible names for icon buttons
+- SVG names and roles
 - Video captions and audio transcripts
 
-#### Interactive Components
-- Accessible names for all interactive elements
-- Proper button vs link semantics
-- Modal/dialog accessibility (focus trap, ESC key, aria-modal)
-- Tooltip accessibility
-- Dropdown/select accessibility
-- Custom widget ARIA patterns
+#### Interactive components
+- Accessible names for every control
+- Button vs link semantics
+- Modals and dialogs (focus trap, ESC key, aria-modal)
+- Tooltips
+- Dropdowns and selects
+- ARIA patterns for custom widgets
 - WCAG 2.2: Consistent Help (SC 3.2.6)
 
-#### Mobile & Responsive
+#### Mobile and responsive
 - Touch target size: 24×24px minimum (AA, SC 2.5.8); 44×44px (AAA, SC 2.5.5)
 - No horizontal scrolling at 320px width
 - Text can be zoomed to 200%
@@ -203,22 +188,16 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 - Content reflows at 400% zoom
 - WCAG 2.2: Dragging Movements (SC 2.5.7), Target Size Minimum (SC 2.5.8)
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-Accessibility
-- **Version:** 2.0.0
+- **Version:** 2.0.1
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
----
 
 ## License
 

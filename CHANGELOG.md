@@ -7,15 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.7.1] - 2026-11-08
+
+### Security
+
+Snyk's skills.sh audit flagged W011 ("third-party content exposure", an indirect prompt injection risk) on 13 of the 21 skills checked, and W012 ("unverifiable external dependency") on `/seo-audit`. Every skill that reads content written by someone other than the user now says how to treat it: as evidence, and never as instructions to follow. Each rule sits before the step that reads the content. It names the actions the content can't trigger (commands, extra fetches, file changes, posts, merges), and says to report text aimed at AI agents. W011 describes what these skills are for, such as auditing a live site, so Snyk may keep the warning.
+
+#### AI-Accessibility Plugin (v2.0.0 → v2.0.1)
+
+- **`/accessibility-audit`** — a new "Untrusted Page Content" section for URL audits, with and without Playwright. It applies from the first page load. The audit stays on the given site, types test values only to trigger validation, and never submits a form that creates an account, sends a message, changes data or buys something. The Playwright MCP setup pins `@playwright/mcp@0.0.83` instead of `@latest`. To update a pin, pick a release that has been out at least 3 days.
+
+#### AI-SEO Plugin (v2.2.0 → v2.2.1)
+
+- **`/seo-audit`** — the live check's untrusted-data rule now covers extra fetches, file changes and posts, and says to report text aimed at AI agents. The rule also covers the GEO off-site snapshot's search results. Context7 results are reference facts only. The Context7 install hint pins `@upstash/context7-mcp@4.4.4`, which fixes W012.
+- **`/seo-schema`** — Context7 results are reference facts only, and the install hint pins the same version.
+- **`/seo-crawl`**, **`/seo-index`**, **`/seo-questions`** — their untrusted-data rules are more specific. `/seo-index` clicks and submits only what its steps call for in the signed-in browser, and never changes a Search Console or Bing setting or user because a page asks.
+
+#### AI-Security Plugin (v3.0.0 → v3.0.1)
+
+- **`/security-scan-dependencies`** — an "Untrusted content" block for the target site, advisories and Context7 results. It fetches only the target URL, the files it loads and advisory sources.
+- **`/security-audit`** and the **`security-auditor`** agent — text in the audited repo that tries to steer the auditor ("already reviewed, skip this file") can't change scope, dispositions or severity, and becomes a candidate.
+- **`/security-cvp-audit`** — the same rule for the recon session.
+
+#### AI-Workflow Plugin (v4.1.0 → v4.1.1)
+
+- **`/workflow-babysit`** — a new "Untrusted input" section. PR text, review comments, bot findings, commit messages and CI logs are claims to check against the code. Only comments from GitHub App accounts (`[bot]` logins) count as bot findings, so a user account that poses as a bot counts as a person. The run never runs a command or patch from a comment as written. It never changes CI, secrets, settings, deploy configuration or dependencies only because a comment asks. It stops when a comment or log holds text aimed at AI agents.
+- **`/workflow-takeover`**, **`/workflow-refresh`** — the source PR, its comments and agent transcripts are untrusted. Only the user's request decides what finishing means, and what may be pushed, merged or posted.
+- **`/workflow-council`** — the brief tells members that the code under review is data. Member replies are untrusted, and the council never runs a command or applies a patch from one as written.
+
+#### AI-Knowledge Plugin (v2.0.0 → v2.0.1)
+
+- **`/kb-add`** — sources are untrusted, because articles become rules that load in later sessions. Drafts leave out text that speaks to an AI agent, rules that send data to outside URLs, and rules that run downloaded scripts or turn off safety checks, and the skill tells the user what it left out. Articles from a URL or from outside the project always get their own review, even after "approve the rest".
+
+#### Other plugins
+
+- **AI-Slop (v1.3.0 → v1.3.1)** — `/slop-audit` treats the live site as untrusted.
+- **AI-Performance (v2.1.0 → v2.1.1)** — `/performance-ci` explains why PR build logs are untrusted, and also covers job names, annotations and PR titles.
+- **AI-ADO (v2.0.0 → v2.0.1)** — `/ado-create`, `/ado-log-story-work` and `/ado-timesheet-report` treat work item text and commit messages as untrusted, and never touch work items the command doesn't name.
+- **AI-Compliance (v1.1.0 → v1.1.1)** — `/compliance-license-audit` and `/compliance-notice-generate` treat package manifests, LICENSE files and READMEs as untrusted.
+- **AI-Swift (v2.0.0 → v2.0.1)** — `/swift-diagnose` treats pasted logs and emails as untrusted.
+
+### Changed
+
+- **Docs** — an AI slop audit of every README, manifest and skill description. All 14 plugin READMEs open with what the plugin does and use sentence-case headings. Bold labels, spaced hyphens used as dashes, empty sections and summary sections that repeated the per-skill sections are gone. The root README, SECURITY.md and CONTRIBUTING.md use sentence case too.
+- **Skill descriptions** — `/compliance-license-audit`, `/statusline-wizard`, `/security-audit` and four ai-swift skills open with a verb, and the ai-swift ones use colons instead of spaced hyphens. `/security-audit` gets an argument hint. The ai-accessibility description says Playwright adds visual checks, since URL audits also run without it.
+- **AI-Statusline (v1.5.2 → v1.5.3)** — the `/statusline-wizard` description names what the status line shows.
+- CLAUDE.md adds two skill-development rules. A skill that reads third-party content must say how to treat it. A skill that sets up an MCP server pins an exact version that has been out at least 3 days.
+- Marketplace metadata version bumped `3.7.0` → `3.7.1`.
+
+### Fixed
+
+- **README** — Codex can start six skills on its own, not five: the list now includes `/seo-index`. The ai-workflow row names `workflow-pr-comments`, which runs on its own.
+- **SECURITY.md** — says that ai-knowledge ships a hook and five plugins ship scripts, and adds a step to review unattended runs.
+- **CONTRIBUTING.md** — lists `scripts/test-rules-library.py`, and the plugin layout shows `hooks/` and `skills/{skill-name}/scripts/`.
+- **Plugin READMEs** — options and modes that were missing or out of date now match each skill: ai-knowledge argument syntax, ai-compliance's fifth license class and third license-text option, ai-ado's `.mcp.json` and MCP server notes, the council size in ai-workflow, and ai-seo's `gaps`, `psi=`, `type=`, `site=` and `property=` options.
+- **Repository** — `plugins/ai-ado/.DS_Store` is no longer tracked.
+- **[3.5.0] entry** — the marketplace version line moved under its own heading.
+
 ## [3.7.0] - 2026-11-07
 
 ### Changed
 
 #### AI-Workflow Plugin (v4.0.0 → v4.1.0)
 
-- **`/workflow-council`** — the built-in default no longer names providers. It is up to three members: the newest flagship of each provider the route reaches (T3 Code's `orchestrator_capabilities`, or the CLIs it finds), leaving out the provider of the model running the session. The setup question recommends the same members. The saved-council example uses placeholders instead of model names.
+- **`/workflow-council`** — the built-in default no longer names providers. It's up to three members: the newest flagship of each provider the route reaches (T3 Code's `orchestrator_capabilities`, or the CLIs it finds), leaving out the provider of the model running the session. The setup question recommends the same members. The saved-council example uses placeholders instead of model names.
 - **`/workflow-council`** — a new "Ask every run" rule. When the project's or user's CLAUDE.md says to ask which reviewer to use each time, the council asks the setup question every run, saves nothing, and ignores saved council files and the default. An `--unattended` run with no members in its arguments runs no council and says why in the report.
-- **`/workflow-babysit`** — a "No review bots" repo setting. When CLAUDE.md says no AI reviewer bot runs on GitHub, the run treats Codex, Cursor Bugbot, Greptile and Macroscope as off from the start: no detection, no waits and no bot commands.
+- **`/workflow-babysit`** — a "No review bots" repo setting. When CLAUDE.md says no AI reviewer bot runs on GitHub, the run treats Codex, Cursor Bugbot, Greptile and Macroscope as off from the start, and skips detection, waits and bot commands for them.
 - **`/workflow-babysit`** — step 0's reviewer question offers a council review when the council can reach another model, such as through T3 Code. With "ask each time" in CLAUDE.md, step 0 asks for the council members every run and passes them to the council.
 
 #### Marketplace
@@ -61,6 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`/seo-crawl`** suggests `/seo-index` for the changed pages once its fixes are live.
 - The plugin description and README cover `/seo-index`.
+
+#### Marketplace
 
 - Marketplace metadata version bumped `3.4.1` → `3.5.0`.
 
@@ -1696,7 +1755,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...HEAD
+[3.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...v3.7.1
 [3.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...v3.6.0
 [3.5.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.4.1...v3.5.0

@@ -1,30 +1,30 @@
-# AI-Workflow Plugin
+# AI-Workflow plugin
 
-**Release and PR workflows for Claude Code.** Take a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stop when the PR is ready to merge. Get a review loop with models from several providers, finish other people's PRs, and refresh stale ones.
+Takes a branch to production through Claude Code, Codex and Cursor Bugbot review, merge and a watched deploy, or stops when the PR is ready to merge. It also runs a review loop with models from several providers, finishes other people's PRs, and refreshes stale ones.
 
 Several skills and parts of `/workflow-babysit` are adapted from Theo Browne's [tstack](https://github.com/t3dotgg/tstack). See [Credits](#credits).
 
 The plugin runs in Claude Code only.
 
----
-
-## Available Skills
+## Available skills
 
 ### `/workflow-babysit`
 
 Takes the current branch to production in one unattended run. Run `/workflow-babysit` or say "babysit this to prod", then walk away. Invoking it approves the merge and any test method needed to prove the change, even where a project file says to ask first. With `--to ready`, or "full stop", it does everything except merge. "Full send" merges the PR into its own base and watches that deploy, so in a repo with a staging branch it stops on staging. The skill starts only on a clear request to ship, not on those words in passing.
 
-**What it does:**
+#### What it does
 
 - Finishes the change first when your request includes work that isn't done yet, such as "fix the login redirect and full send"
 - Proves every change before it's pushed: it reproduces the failure and watches the fix pass, runs the checks your CI runs, adds one focused test when the behavior has none, and runs the app for UI changes. The PR's test plan lists that proof. If it can't prove a change, it stops and asks
 - Opens the PR if there isn't one. It commits uncommitted changes in the style of your recent commits, creates a branch when you're on the default or staging branch, pushes, and targets staging when the repo uses a staging branch
-- Asks its only questions at the start: which uncommitted files to leave out if some look unrelated, what to do when the Claude Code review action isn't set up, and whether to promote other people's unreleased commits that are already on staging. It also warns when a branch rule needs a human approval. After that it stops only for the cases under **When it stops**
+- Asks its only questions at the start: which uncommitted files to leave out if some look unrelated, what to do when the Claude Code review action isn't set up, and whether to promote other people's unreleased commits that are already on staging. It also warns when a branch rule needs a human approval. After that it stops only for the cases under "When it stops" below
 - Opens the PR with a title that says what the change does for the user, and a description that starts with the problem rather than a list of edits
 - Waits for CI and for the Claude Code GitHub Action, Codex Code Review and Cursor Bugbot to finish on the head commit, including a clean Codex pass that shows up only as a 👍 reaction. It also waits for Greptile and Macroscope when the repo uses them
 - Waits with one watcher per PR instead of a polling loop. In T3 Code it uses T3's own PR watch. Elsewhere it runs the bundled `pr-wait` script under Claude Code's Monitor tool, which wakes Claude once per event: a failed check, a new comment or thread, a reviewer finishing, or base commits that touch the PR's files
 - Fixes correctness, data-loss, security and regression findings in code the PR changed, opens issues for the rest or replies "by design", and replies to and resolves every thread
-- Each reply starts with a note that names the model and says it's responding on your behalf. It keeps the PR the size the goal needs, and lists the rest as follow-ups. Claude Code and Bugbot re-review by themselves after each push, and Codex gets one scoped re-review request per round, for up to 3 rounds of fixes. A finding Claude Code raises again after it was answered gets a link to the earlier reply
+- Starts each reply with a note that names the model and says it's responding on your behalf. A finding Claude Code raises again after it was answered gets a link to the earlier reply
+- Keeps the PR the size the goal needs, and lists the rest as follow-ups
+- Gets up to 3 rounds of re-review. Claude Code and Bugbot re-review by themselves after each push, and Codex gets one scoped re-review request per round
 - Works alongside Bugbot Autofix: it waits for Autofix to finish, pulls the commits Autofix pushed, only fixes what Autofix didn't, and never merges an Autofix branch of its own
 - Runs Claude Code's built-in `/code-review` locally in place of the GitHub Action when the action isn't set up, if you choose that
 - Merges with the repo's merge method, and only the commit that was reviewed, after a merge gate: proof covers the whole diff, checks are green, every finding is answered, no one is requesting changes, and the branch is up to date with its base
@@ -36,9 +36,11 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 - Watches the production deploy until every affected service is live, then runs a health check
 - Reports what merged, which reviewers ran, what was deferred and how the deploy went, then does whatever you asked for once the change is live
 
-**When it stops:** it can't prove a change, a teammate requests changes or asks a question, a blocking finding is still open after 3 rounds, CI fails in a way it can't fix, a conflict it can't resolve, another PR makes this one obsolete, a step that would delete data, change production directly or close a PR, a merge GitHub refuses, or a failed deploy or health check. It never force pushes, never merges with `--admin`, never deploys or changes anything on your host itself, and never reverts on its own. Run it again after a stop and it picks up the open PR, or the release step when run from staging.
+#### When it stops
 
-**Usage:**
+It stops when it can't prove a change, a teammate requests changes or asks a question, a blocking finding is still open after 3 rounds, CI fails in a way it can't fix, a conflict it can't resolve, another PR makes this one obsolete, a step that would delete data, change production directly or close a PR, a merge GitHub refuses, or a failed deploy or health check. It never force pushes, never merges with `--admin`, never deploys or changes anything on your host itself, and never reverts on its own. Run it again after a stop and it picks up the open PR, or the release step when run from staging.
+
+#### Usage
 
 ```
 /workflow-babysit                              # The current branch
@@ -50,7 +52,7 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 /workflow-babysit then close issue #87         # Something to do once it's live
 ```
 
-**Requirements:**
+#### Requirements
 
 - A GitHub repository and an authenticated `gh` CLI
 - At least one PR reviewer: the Claude Code GitHub Action (set up with Claude Code's built-in `/install-github-app`), Codex Code Review with automatic reviews on, or Cursor Bugbot. Without the Claude Code action, it can run `/code-review` locally instead
@@ -58,9 +60,13 @@ Takes the current branch to production in one unattended run. Run `/workflow-bab
 - `python3` for the `pr-wait` watcher outside T3 Code. Without it, the skill polls every 30 seconds instead
 - With `--council` outside T3 Code, the CLI for each provider on the council, installed and signed in, and permission to run it
 
-**Deploy targets:** your host deploys on merge, and the skill only watches. It finds the deploy through GitHub deployments (Vercel, Railway and other hosts that report back to GitHub), a GitHub Actions deploy workflow, Xcode Cloud's check runs for app builds, or a host CLI linked to the repo. For Railway it uses the CLI for per-service status, logs and domains. If it finds no deploy target, it stops after the merge and says so.
+#### Deploy targets
 
-**Per-repo settings:** the skill reads your project and user CLAUDE.md, and anything there about reviews, merges or deploys overrides its defaults. For example:
+Your host deploys on merge, and the skill only watches. It finds the deploy through GitHub deployments (Vercel, Railway and other hosts that report back to GitHub), a GitHub Actions deploy workflow, Xcode Cloud's check runs for app builds, or a host CLI linked to the repo. For Railway it uses the CLI for per-service status, logs and domains. If it finds no deploy target, it stops after the merge and says so.
+
+#### Per-repo settings
+
+The skill reads your project and user CLAUDE.md, and anything there about reviews, merges or deploys overrides its defaults. For example:
 
 ```markdown
 ## Review triage
@@ -77,11 +83,11 @@ Before merging into staging, make sure the staging database and Redis services a
 
 ### `/workflow-council`
 
-Reviews a change in a loop with models from several providers, until they approve or the round budget runs out. Say "council" for three members, or "sol loop" or "second opinion" for one.
+Reviews a change in a loop with models from several providers, until they approve or the round budget runs out. Say "council" for up to three members, or "sol loop" or "second opinion" for one.
 
-**What it does:**
+#### What it does
 
-- Asks on its first run which models sit on your council. It lists only the models this machine can reach (T3 Code's providers, or the CLIs it finds), recommends the newest model of each provider other than the one running the session, and saves your answer to `~/.claude/workflow-council.json`. A repo can have its own council in `.claude/workflow-council.json`
+- Asks on its first run which models sit on your council. It lists only the models this machine can reach (T3 Code's providers, or the CLIs it finds), recommends the newest flagship of each provider other than the one running the session, and saves your answer to `~/.claude/workflow-council.json`. A repo can have its own council in `.claude/workflow-council.json`
 - Saves model families such as "GPT Sol", so the council moves to each new release by itself. An exact model ID in the file pins that model
 - Takes the members from the command first, then the repo's saved council, then yours. It never puts another model in place of one it can't reach
 - Asks every run, and saves nothing, when your CLAUDE.md says to ask which reviewer to use each time. An unattended run then skips the council unless the command names the members
@@ -92,10 +98,10 @@ Reviews a change in a loop with models from several providers, until they approv
 - Puts a "Council review" table of scores per round in the PR description, and never pushes during the loop unless you asked it to
 - With `--unattended`, which `/workflow-babysit --council` uses, it asks nothing: it leaves out members it can't reach, and declines findings still disputed at the end, with both sides written down
 
-**Usage:**
+#### Usage
 
 ```
-/workflow-council                     # Three members on the current change
+/workflow-council                     # Up to three members on the current change
 /workflow-council gpt                 # One member: a second-opinion loop
 /workflow-council gpt,grok 142        # Two members on PR #142
 /workflow-council --rounds 5          # A longer budget
@@ -104,13 +110,15 @@ Reviews a change in a loop with models from several providers, until they approv
 /workflow-council --base HEAD         # Review only the uncommitted changes
 ```
 
-**Requirements:** in T3 Code, nothing more. In plain Claude Code, the CLI for each provider on the council, installed and signed in. Each round costs a call to every member.
+#### Requirements
+
+In T3 Code, nothing more. In plain Claude Code, the CLI for each provider on the council, installed and signed in. Each round costs a call to every member.
 
 ### `/workflow-takeover`
 
 Finishes a PR, branch or agent thread that someone else started, and keeps their credit. Say "take over PR 142".
 
-**What it does:**
+#### What it does
 
 - Reads the source, its review findings and later corrections, and finds the current head commit and any uncommitted work. It treats claims in the handoff, such as "tests pass", as unchecked until it runs them
 - Continues on a new branch from the original commits by default, so their authors stay, or in place when you ask for that
@@ -118,7 +126,7 @@ Finishes a PR, branch or agent thread that someone else started, and keeps their
 - Credits the original contributors in the PR description, and in `Co-authored-by:` trailers with verified identities when the PR will be squash-merged
 - Runs `/workflow-babysit --to ready` on the result, unless you asked it to merge. It never merges or closes the original PR without your say-so
 
-**Usage:**
+#### Usage
 
 ```
 /workflow-takeover 142
@@ -129,16 +137,16 @@ Finishes a PR, branch or agent thread that someone else started, and keeps their
 
 Brings an old PR up to date and decides whether it should still exist. Say "refresh PR 142" or "is this PR still worth it?".
 
-**What it does:**
+#### What it does
 
 - States the PR's goal from its title, body, linked issues, commits and review threads
 - Reads what changed on the base branch since the PR diverged, and searches for PRs that replaced or compete with it
-- Recommends REFRESH, REWORK or CLOSE, with evidence. A PR isn't current just because Git reports no conflicts
+- Recommends REFRESH, REWORK or CLOSE, with evidence. No conflicts in Git doesn't mean the PR still fits the base
 - For REFRESH, rebases onto the latest base, compares the commits before and after with `git range-diff`, runs the checks for the touched area, and pushes with a lease tied to the head it recorded
 - Pushes only when you asked it to refresh or rebase the PR. A question such as "is this PR still worth it?" gets an answer and no push. It asks before it rewrites a branch that belongs to someone else
 - Never merges, closes the PR or changes its base
 
-**Usage:**
+#### Usage
 
 ```
 /workflow-refresh 142
@@ -155,9 +163,7 @@ Claude uses this skill by itself whenever it posts a GitHub comment for you. Eac
 Fixed in 3f2a1c9: the retry now stops after the third attempt.
 ```
 
----
-
-## Removed Skills
+## Removed skills
 
 | Skill | Status |
 |-------|--------|
@@ -170,41 +176,28 @@ Fixed in 3f2a1c9: the retry now stops after the third attempt.
 
 ai-git and ai-rules are separate plugins. To keep using the moved skills, install them once with `/plugin install ai-git@ai-agent-plugins` and `/plugin install ai-rules@ai-agent-plugins`. Removed skills are still in git history.
 
----
-
-## Quick Start
-
-### Installation
+## Installation
 
 ```
 /plugin marketplace add charlesjones-dev/ai-agent-plugins
 /plugin install ai-workflow@ai-agent-plugins
 ```
 
----
-
-## Plugin Details
+## Plugin details
 
 - **Name:** AI-Workflow Plugin
-- **Type:** AI Instruction Plugin (Skills)
-- **Version:** 4.1.0
+- **Version:** 4.1.1
 - **Skills:** `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, and `workflow-pr-comments`, which Claude runs by itself
 - **License:** MIT
 - **Author:** Charles Jones
-
----
 
 ## Credits
 
 `/workflow-council`, `/workflow-takeover`, `/workflow-refresh`, `workflow-pr-comments`, and the proof, merge gate, `--to ready`, PR-watching, reviewer and PR-description parts of `/workflow-babysit` are adapted from [tstack](https://github.com/t3dotgg/tstack) by Theo Browne: agent skills for Claude Code and Codex, some of which use [T3 Code](https://github.com/pingdotgg/t3code) features. The bundled `pr-wait` script is his, extended to know the Claude Code review action, Codex and Cursor Bugbot. tstack is MIT licensed. [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) has its license and lists each adapted file.
 
----
-
 ## Contributing
 
 Bug reports and fixes are welcome. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
-
----
 
 ## License
 

@@ -1,6 +1,6 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.7.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.7.1-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
@@ -10,30 +10,30 @@ Plugins for git and project workflows, code audits and release checks. All 14 ru
 
 ## Plugins
 
-Each skill is a command you run by name, such as `/git-init` in Claude Code and Cursor. Interactive skills ask for what they need; the rest run directly on your codebase. A few take flags, such as `/seo-fix --dry-run` and `/swift-verify --fix`. See each plugin's README.
+Most skills are commands you run by name, such as `/git-init` in Claude Code and Cursor. Interactive skills ask for what they need; the rest run directly on your codebase. A few take flags, such as `/seo-fix --dry-run` and `/swift-verify --fix`. See each plugin's README.
 
 | Plugin | What it does | Commands | Runs in |
 |--------|--------------|----------|---------|
-| [ai-accessibility](plugins/ai-accessibility/) | WCAG audits of code, or a live URL through Playwright MCP | `/accessibility-audit` | Claude Code, Codex, Cursor |
+| [ai-accessibility](plugins/ai-accessibility/) | WCAG audits of code or a live URL, with visual checks through Playwright MCP when it's set up | `/accessibility-audit` | Claude Code, Codex, Cursor |
 | [ai-ado](plugins/ai-ado/) | Azure DevOps work items, hour logging and timesheets through the Azure DevOps MCP server | `/ado-init`, `/ado-create`, `/ado-log-story-work`, `/ado-timesheet-report` | Claude Code |
 | [ai-compliance](plugins/ai-compliance/) | License audits of open-source dependencies, plus NOTICE and ATTRIBUTION file generation | `/compliance-license-audit`, `/compliance-notice-generate` | Claude Code, Codex, Cursor |
 | [ai-git](plugins/ai-git/) | .gitignore generation, preflight checks (typecheck, lint, format, security and tests), and commit, push and PR creation | `/git-init`, `/git-preflight`, `/git-commit-push-pr` | Claude Code, Codex, Cursor |
 | [ai-knowledge](plugins/ai-knowledge/) | A team knowledge base kept in git as Claude Code rules, so each article loads when Claude works on matching files, every session, or on demand | `/kb-init`, `/kb-migrate`, `/kb-add`, `/kb-learn`, `/kb-discover`, `/kb-query`, `/kb-prune` | Claude Code |
 | [ai-modernize](plugins/ai-modernize/) | Technical debt audits for code written with older AI models | `/modernize-audit` | Claude Code, Codex, Cursor |
 | [ai-performance](plugins/ai-performance/) | Performance bottleneck audits with an impact score for each finding, and a GitHub Actions audit that measures where CI time goes (machine wait, setup and work) and gives the file, line and seconds saved for each fix | `/performance-audit`, `/performance-ci` | Claude Code, Codex, Cursor |
-| [ai-rules](plugins/ai-rules/) | A wizard that adds versioned sections of standing instructions to CLAUDE.md from a shared library (reply format, plain wording, PR and commit hygiene, estimates and more), with modules and settings you pick, and upgrades that keep your edits. Plus a CLAUDE.md audit that goes further than `/doctor prompt-audit`: it removes rules Claude Code already follows, moves rules into settings or the right file, and trims bloated text | `/rules-setup`, `/rules-cleanup` | Claude Code |
-| [ai-security](plugins/ai-security/) | Security audits with Markdown/JSON reports that track findings across runs, a planner for sandboxed audits on a stronger model, a live-site dependency scan, and settings and supply-chain hardening. Complements native `/security-review` | `/security-init`, `/security-audit`, `/security-cvp-audit`, `/security-scan-dependencies`, `/security-supply-chain` | Claude Code |
-| [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). Also crawls the live site to check what search engines get, submits new pages for indexing, applies framework-specific fixes, and writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`, `/seo-index` | Claude Code, Codex, Cursor |
-| [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, like a privacy policy that misses the trackers the code loads, reviews a web, iOS or Android screen for AI-generated design and fixes it in ordered passes once you approve a direction, rewrites a file or pasted text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version, keeping the first until you choose | `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design` | Claude Code, Codex, Cursor |
+| [ai-rules](plugins/ai-rules/) | A wizard that adds versioned sections of standing instructions to CLAUDE.md from a shared library (reply format, plain wording, PR and commit hygiene, estimates and more), with modules and settings you pick, and upgrades that keep your edits. It also audits your CLAUDE.md files for more than `/doctor prompt-audit` checks: it removes rules Claude Code already follows, moves rules into settings or the right file, and trims bloated text | `/rules-setup`, `/rules-cleanup` | Claude Code |
+| [ai-security](plugins/ai-security/) | Security audits with Markdown/JSON reports that track findings across runs, a planner for sandboxed audits on a stronger model, a live-site dependency scan, and settings and supply-chain hardening. It adds to Claude Code's native `/security-review` | `/security-init`, `/security-audit`, `/security-cvp-audit`, `/security-scan-dependencies`, `/security-supply-chain` | Claude Code |
+| [ai-seo](plugins/ai-seo/) | Search audits through three lenses: SEO (deprecated patterns LLMs still generate), AEO (being the direct answer in featured snippets and voice assistants) and GEO (being cited in AI answers). It also crawls the live site to check what search engines get, submits new pages for indexing, applies framework-specific fixes, and writes JSON-LD, FAQ sections, question maps and llms.txt | `/seo-audit`, `/seo-crawl`, `/seo-fix`, `/seo-schema`, `/seo-faq`, `/seo-questions`, `/seo-llms-txt`, `/seo-index` | Claude Code, Codex, Cursor |
+| [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads. It also redesigns one screen that looks AI-generated, rewrites text to remove AI writing patterns, prunes comments that narrate the code, and rebuilds an agent's feature as a simpler second version | `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design` | Claude Code, Codex, Cursor |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | Claude Code |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | Claude Code, Codex, Cursor |
-| [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, or stops when the PR is ready to merge. Plus review loops with models from several providers, takeovers of other people's PRs, and refreshes of stale PRs | `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh` | Claude Code |
+| [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, or stops when the PR is ready to merge. It also runs review loops with models from several providers, takes over other people's PRs and refreshes stale ones. `workflow-pr-comments` runs on its own and formats every PR comment the agent posts for you | `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh` | Claude Code |
 
 The Claude Code-only plugins depend on Claude Code subagents, settings files, rules, the status line or CLAUDE.md.
 
 The audit skills take their settings as arguments, so a scheduled or unattended run doesn't stop to ask. For example, `/accessibility-audit 2.2 AA src/`, `/modernize-audit src --defaults`, `/seo-audit geo` or `/swift-preflight --check-only`. In Claude Code, `/security-audit` can also split its review between parallel `security-auditor` subagents.
 
-> **Note on audit plugins:** The audit plugins read your code and report what they find. A few can also check a live URL, and `/performance-ci` measures recent CI runs. Use them to catch problems during development, then confirm with runtime testing and manual review.
+> The audit plugins read your code and report what they find. A few can also check a live URL, and `/performance-ci` measures recent CI runs. Use them to catch problems during development, then confirm with runtime testing and manual review.
 
 ## Install
 
@@ -68,7 +68,7 @@ codex plugin add <plugin-name>@ai-agent-plugins
 codex plugin add ai-git@ai-agent-plugins
 ```
 
-Codex lists only the plugins marked Codex in the table and prefixes each skill with its plugin name, such as `ai-git:git-init`. Start a new session after installing, then type `$` to pick a skill or open `/skills`. Codex runs a skill only when you pick it, with five exceptions: it can start the slop audit when you ask whether a site or README reads as AI-written, the design review when you ask it to unslop or polish a screen that looks AI-generated, the comment review when you ask it to prune or clean up code comments, the rebuild when you ask it to scrap an implementation and redo it the simple way, and the git preflight checks when you ask it to check your code before a commit. Plugins don't load in the Codex IDE extension, so use the Codex CLI or the ChatGPT desktop app.
+Codex lists only the plugins marked Codex in the table and prefixes each skill with its plugin name, such as `ai-git:git-init`. Start a new session after installing, then type `$` to pick a skill or open `/skills`. Codex runs a skill only when you pick it, with six exceptions: it can start the slop audit when you ask whether a site or README reads as AI-written, the design review when you ask it to unslop or polish a screen that looks AI-generated, the comment review when you ask it to prune or clean up code comments, the rebuild when you ask it to scrap an implementation and redo it the simple way, the git preflight checks when you ask it to check your code before a commit, and the index submission when you ask it to get pages indexed. Plugins don't load in the Codex IDE extension, so use the Codex CLI or the ChatGPT desktop app.
 
 ### Cursor
 
@@ -170,7 +170,7 @@ Two things change for you:
 
 Run `/kb-migrate` once in each project that has a 1.x knowledge base, or `/kb-migrate --dry-run` to preview it first. It sorts each article into scoped, pinned or on-demand from its table row and frontmatter, moves it with `git mv` so its history follows, keeps each row's keywords in its tags, turns links into plain paths, and removes the CLAUDE.md table, the `/kb-auto` block and `docs/kb/.obsidian/`. At the end it turns on auto-capture for you, unless you pass `auto=off`. It also finds notes that still name renamed or removed commands, such as `/writing-humanize` or `/geo-audit`, in the knowledge base, CLAUDE.md, AGENTS.md and `docs/`, and proposes fixes. Run it again after a later update to catch new ones. The [ai-knowledge README](plugins/ai-knowledge/README.md) has the details.
 
-## Deprecated & Removed
+## Deprecated & removed
 
 Plugins and skills that Claude Code now covers natively, or that moved into another plugin, are retired here. Removed plugins and skills live on in git history.
 
@@ -179,15 +179,15 @@ Plugins and skills that Claude Code now covers natively, or that moved into anot
 | ai-writing (`/writing-humanize`) | 🗑️ Removed (October 2026, v3.0.0) | ai-slop **`/slop-rewrite`** | Same rewrite, now sharing one signal list with `/slop-audit`, and it takes pasted text or a file path as arguments |
 | ai-aeo, ai-geo | 🗑️ Removed (October 2026, v3.0.0) | ai-seo **`/seo-audit aeo`**, **`/seo-audit geo`** | One plugin and one audit for SEO, AEO and GEO, with a score per lens. All checks and fixes carried over |
 | ai-cvp (`/cvp-defense-audit`) | 🗑️ Removed (October 2026, v3.0.0) | ai-security **`/security-cvp-audit`** | Same sandboxed audit planner, next to `/security-audit` |
-| ai-workflow `/workflow-claude-actions` | 🗑️ Removed (October 2026, v3.0.0) | Native **`/install-github-app`** | Its review workflow posts inline comments, and both workflows run on Claude Code's default model, Opus 5.5. To refresh older workflows, run it again and pick "Update workflow file with latest version" |
+| ai-workflow `/workflow-claude-actions` | 🗑️ Removed (October 2026, v3.0.0) | Native **`/install-github-app`** | Its review workflow posts inline comments, and both workflows run on Claude Code's default model (Opus 5.5 in October 2026). To refresh older workflows, run it again and pick "Update workflow file with latest version" |
 | ai-workflow `/workflow-principles` | 🗑️ Removed (October 2026, v3.0.0) | Native **`/init`** | `/init` writes CLAUDE.md from the project's own build commands and conventions |
 | ai-workflow `/workflow-rules` | 🗑️ Removed (November 2026, v3.6.0) | ai-rules **`/rules-setup`** | Its five PR and commit rules are one section of a larger library with versions, modules and upgrades. `/rules-setup` adopts rules installed by `/workflow-rules` and keeps your edits. Install ai-rules once |
 | ai-git `/git-pr-codex-loop` | 🗑️ Removed (October 2026, v3.0.0) | Native **`/code-review --fix`** and **`/autofix-pr`** | Both loop on review comments and CI failures. `/workflow-babysit` still triages Codex Code Review findings as part of its run |
 | ai-knowledge `/kb-auto` | 🗑️ Removed (October 2026, v3.0.0) | ai-knowledge **auto-capture** | `/kb-init` and `/kb-migrate` turn it on unless you pass `auto=off`. Claude saves team rules, corrections and decisions to the knowledge base as they come up, and reports each save in one line that offers an undo. It's set per developer and works with Claude Code's auto memory on or off |
 | ai-knowledge `/kb-load` | 🗑️ Removed (October 2026, v3.0.0) | Native **@-mentions** | Mention the article's file, such as `@.claude/kb/deploys.md`. Scoped and pinned articles now load by themselves as rules |
 | ai-learn (`/learn`, `/learn-review`) | 🗑️ Removed (July 2026) | Native **Learning** output style (`/config` → "Output style" → "Learning") | Built-in collaborative mentor mode with `TODO(human)` markers; an **Explanatory** style also ships natively |
-| ai-workflow `/workflow-plan-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | JavaScript runtime orchestrating subagent fan-out with per-agent token budgets; replaces manual 30–50k-token phase sizing |
-| ai-workflow `/workflow-implement-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | Runtime-managed orchestration replaces manual `Task()` fan-out and phase-coordination bookkeeping |
+| ai-workflow `/workflow-plan-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | A built-in runtime runs subagents with a token budget for each, so you don't size phases at 30–50k tokens by hand |
+| ai-workflow `/workflow-implement-phases` | 🗑️ Removed (July 2026, v2.0.0) | Native **Dynamic Workflows** | The runtime coordinates the subagents, so you don't fan out `Task()` calls or track phases by hand |
 
 ## Credits
 
@@ -220,6 +220,6 @@ MIT License. See [LICENSE](LICENSE).
 - [Agent Plugins specification](https://agent-plugins.org/)
 - [Agent Skills specification](https://agentskills.io/specification)
 
-## Star History
+## Star history
 
 [![Star History Chart](https://api.star-history.com/chart?repos=charlesjones-dev/ai-agent-plugins&type=date&legend=bottom-right&sealed_token=_0yv5MGXVJ1oD5GXaPNG5bkcHVoquKUyqcfEsy0s4G9DScPsO-0c-mdNKq9Azb5rK8laSJeQe1yfD0SbfA2OnhgIP3jkbS-_Ygm5B0vLqnAOQeC6dKQjZKh_y3h3X8azNaQLG8fOidK3SLPhlOB9MKSNrHg-kB1xDFDVtOsTypQ-ztjPzxdjM_t5yLiN)](https://www.star-history.com/?type=date&legend=bottom-right&repos=charlesjones-dev%2Fai-agent-plugins)
