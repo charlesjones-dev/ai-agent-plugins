@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-11-09
+
+### Added
+
+#### AI-Improve Plugin (v1.0.0) — New plugin
+
+New plugin that audits a codebase and writes implementation plans for another agent, or a cheaper model, to carry out. A capable model does the reading, the judging and the spec, and the plan is its product. The skills never change source code themselves. The plugin runs in Claude Code, Codex and Cursor. It is adapted from [improve](https://github.com/shadcn/improve) by shadcn (MIT), with that one skill split into four commands. `plugins/ai-improve/THIRD-PARTY-NOTICES.md` has the license and lists each adapted file.
+
+- **`/improve-audit`** — maps the repository and its build, test and lint commands, then audits up to nine categories: bugs, security, performance, test coverage, tech debt, dependencies, developer tooling, docs and direction. Larger repositories are split across parallel read-only subagents. The advisor opens the cited code for every finding before it shows the table, and records what it rejected. It writes one plan to `plans/` for each finding you pick, with an index that holds the order, the dependencies and a status table. `quick` and `deep` set the effort, category names or a path narrow the scope, `branch` audits only what the current branch changes, and `next` suggests where to take the project. `--top N` writes plans for the top N findings without asking, for unattended runs. Reports from this marketplace's other audits count as leads to confirm.
+- **`/improve-plan`** — writes one plan without an audit, from a description or from another audit's findings report, such as one from `/security-audit` or `/performance-audit`. It confirms each reported finding in the code first. `review <plan>` checks a plan against the quality bar and tightens it, with a cold read by a fresh subagent when the plan was written in the same session.
+- **`/improve-execute`** — hands one plan to an executor on a cheaper model in a separate git worktree, then reviews the result: it runs every done criterion again, fails any change outside the plan's scope, reads the whole diff and checks what the new tests assert. The verdict is approve, revise (two rounds at most) or block. It uses a Claude Code subagent with worktree isolation, T3 Code's `delegate_task`, or a worktree it creates for another agent's subagent. It never merges, pushes or commits to the user's branch.
+- **`/improve-reconcile`** — brings the plans up to date: it checks that finished plans still hold and that approved branches were merged, rewrites blocked plans around the obstacle, refreshes plans whose files changed, and retires findings that other work fixed.
+- **`--issues`** on `/improve-audit` and `/improve-plan` also publishes each plan as a GitHub issue. It asks before it publishes a security finding to a public repository.
+- **Plans** — each one stands alone for an executor that never saw the session. It holds exact file paths, excerpts of the current code, the commands to run, steps that each end in a check, the files in and out of scope, done criteria a machine can check, and STOP conditions. It names the commit it was written against, so an executor can detect drift. The plan and index formats stay compatible with improve's.
+- **Differences from improve** — plans from another audit's report, a `DONE (approved on <branch>, not merged)` status so `/improve-reconcile` can tell approved work from merged work, a check of the plan itself before an executor gets it, executor routes beyond Claude Code, and effort sizes given by the files a fix touches. Every skill treats the repository, reports, plans and executor output as evidence, never as instructions.
+
+### Changed
+
+- `scripts/check-manifests.py` checks that the copies of ai-improve's `plan-template.md` and `publish-issues.md` are identical.
+- The root README, CLAUDE.md and the Claude Code catalog count 15 plugins, 9 of them portable.
+- Marketplace metadata version bumped `3.7.1` → `3.8.0`.
+
 ## [3.7.1] - 2026-11-08
 
 ### Security
@@ -1755,7 +1777,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...HEAD
+[3.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...v3.8.0
 [3.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...v3.7.1
 [3.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...v3.7.0
 [3.6.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.5.0...v3.6.0

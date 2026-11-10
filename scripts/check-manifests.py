@@ -53,6 +53,10 @@ SHARED_COPIES = [
      "plugins/ai-seo/skills/seo-crawl/references/index-template.md"),
     tuple(f"plugins/ai-knowledge/skills/{s}/kb-format.md"
           for s in ("kb-init", "kb-migrate", "kb-add", "kb-learn", "kb-discover", "kb-query", "kb-prune")),
+    tuple(f"plugins/ai-improve/skills/{s}/references/plan-template.md"
+          for s in ("improve-audit", "improve-plan", "improve-reconcile")),
+    ("plugins/ai-improve/skills/improve-audit/references/publish-issues.md",
+     "plugins/ai-improve/skills/improve-plan/references/publish-issues.md"),
 ]
 
 # /kb-migrate's map of renamed, merged and removed commands (Old | New | Kind | Notes)
