@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-improve",
+  "version": "1.0.0",
+  "description": "Audits a codebase across nine categories and writes self-contained implementation plans that another agent or a cheaper model can carry out, each with exact files, steps that end in a check, scope limits and STOP conditions. It also writes a plan from a description or from another audit's report, hands a plan to an executor in a separate git worktree and reviews the result, and keeps the plans up to date as the code changes. It never changes source code itself",
+  "author": {
+    "name": "Charles Jones",
+    "url": "https://charlesjones.dev"
+  },
+  "repository": "https://github.com/charlesjones-dev/ai-agent-plugins",
+  "license": "MIT",
+  "keywords": [
+    "ai",
+    "audit",
+    "planning",
+    "implementation-plans",
+    "handoff",
+    "code-quality",
+    "technical-debt",
+    "security",
+    "performance",
+    "testing",
+    "roadmap",
+    "subagents",
+    "git-worktree",
+    "skills"
+  ]
+}

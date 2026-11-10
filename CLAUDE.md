@@ -21,7 +21,7 @@ Consult these before changing plugin structure or metadata:
 
 There are three catalogs, one per agent, all named `ai-agent-plugins`:
 
-1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 14 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
+1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 15 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
 2. **`.agents/plugins/marketplace.json`** (Codex): lists only the portable plugins. Each entry needs `source` (`{"source": "local", "path": "./plugins/{name}"}`), `policy.installation`, `policy.authentication` and `category`.
 3. **`.cursor-plugin/marketplace.json`** (Cursor): lists only the portable plugins, with `source: "plugins/{name}"`, `description` and `version`.
 
@@ -57,7 +57,7 @@ plugins/
 
 ### Portable and Claude Code-only Plugins
 
-Portable (in all three catalogs): ai-accessibility, ai-compliance, ai-git, ai-modernize, ai-performance, ai-seo, ai-slop, ai-swift.
+Portable (in all three catalogs): ai-accessibility, ai-compliance, ai-git, ai-improve, ai-modernize, ai-performance, ai-seo, ai-slop, ai-swift.
 
 Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`), ai-statusline (configures Claude Code's status line) and ai-rules (`/rules-setup` and `/rules-cleanup` edit CLAUDE.md, and `/rules-setup` uses `${CLAUDE_SKILL_DIR}`).
 
@@ -204,7 +204,7 @@ These rules came from an AI slop audit (October 2026). They apply to READMEs, ma
 
 ### Third-party Material
 
-When a plugin adapts someone else's skills, scripts or docs, as ai-workflow and ai-git do with Theo Browne's [tstack](https://github.com/t3dotgg/tstack) (MIT):
+When a plugin adapts someone else's skills, scripts or docs, as ai-workflow and ai-git do with Theo Browne's [tstack](https://github.com/t3dotgg/tstack) (MIT), and ai-improve does with shadcn's [improve](https://github.com/shadcn/improve) (MIT):
 
 1. Check that the source's license allows it, and keep its copyright and permission notice. Ship `plugins/{plugin-name}/THIRD-PARTY-NOTICES.md` with the full license text, the source URL and commit, and a table of the adapted files. Plugins install one at a time, so the notice must sit inside the plugin's own folder.
 2. End each adapted `SKILL.md` with a credit line that names the source, its author and its license, and points to `THIRD-PARTY-NOTICES.md`.

@@ -123,6 +123,21 @@
         ]
       },
       "category": "Developer Tools"
+    },
+    {
+      "name": "ai-improve",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-improve"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+        "products": [
+          "CODEX"
+        ]
+      },
+      "category": "Developer Tools"
     }
   ]
 }
