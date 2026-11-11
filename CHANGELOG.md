@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.1] - 2026-11-11
+
+### Fixed
+
+#### AI-Rules Plugin (v1.1.0 → v1.1.1)
+
+- **`/rules-setup`** — the main menu always has a "Done" option. A question holds 4 options, and the menu left "Done" out when "Upgrade", "Add", "Change" and "Remove" all applied, so the user had to type "Done" to stop. That happened whenever a file had both a section to upgrade and a section to add. The menu now shows one "Change or remove sections" option in that case, and asks which of the two next. A new rule in the skill says that a fixed option such as "Done", "Cancel" or "Skip" counts toward the 4 and is never left out.
+- **`/rules-setup`** — Remove asks about sections the library no longer knows in a question of their own. They belong to no group, and adding one to a group that already had 4 sections made a question of 5 options.
+- **`/rules-cleanup`** — "Pick by kind" splits the kinds into questions of at most 4 options. Seven kinds can have findings, and the skill asked for them in one question.
+
+### Changed
+
+- Marketplace metadata version bumped `3.9.0` → `3.9.1`.
+
 ## [3.9.0] - 2026-11-11
 
 ### Added
@@ -1800,7 +1814,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...HEAD
+[3.9.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...v3.9.1
 [3.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...v3.9.0
 [3.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...v3.8.0
 [3.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...v3.7.1

@@ -85,7 +85,7 @@ Ask:
   - Header: "Apply"
   - Options:
     - "All proposed fixes (recommended)"
-    - "Pick by kind": a multi-select question of the kinds that have findings
+    - "Pick by kind": multi-select questions of the kinds that have findings, at most 4 options per question
     - "Pick one by one": multi-select questions of the findings, at most 4 options per question and 4 questions per call, labeled `#<n> <short summary>`
     - "None": stop with no changes
 

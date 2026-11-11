@@ -151,7 +151,7 @@ Git, for diffs and merges. Claude Code on Windows installs with Git for Windows.
 ## Plugin details
 
 - **Name:** AI-Rules Plugin
-- **Version:** 1.1.0
+- **Version:** 1.1.1
 - **Skills:** `/rules-setup`, `/rules-cleanup`
 - **License:** MIT
 - **Author:** Charles Jones
