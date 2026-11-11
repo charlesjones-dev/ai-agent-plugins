@@ -1,7 +1,7 @@
 {
   "name": "ai-rules",
-  "version": "1.0.0",
-  "description": "Adds, upgrades and removes versioned sections of standing instructions in CLAUDE.md through a wizard: reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome and iOS simulators. You pick the sections, modules and settings, and upgrades merge new versions into sections you edited. Also audits your CLAUDE.md files, going further than /doctor prompt-audit, for rules that restate Claude Code's own behavior, belong in a setting or hook, sit in the wrong file, or cost context for little gain, and cleans up their structure",
+  "version": "1.1.0",
+  "description": "Adds, upgrades and removes versioned sections of standing instructions in CLAUDE.md through a wizard: code ownership, steps Claude does for the user, reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome, iOS simulators and T3 Code rules. You pick the sections, modules and settings, and upgrades merge new versions into sections you edited. Also audits your CLAUDE.md files, going further than /doctor prompt-audit, for rules that restate Claude Code's own behavior, belong in a setting or hook, sit in the wrong file, or cost context for little gain, and cleans up their structure",
   "author": {
     "name": "Charles Jones",
     "url": "https://charlesjones.dev"
@@ -13,6 +13,7 @@
     "claude-md",
     "rules",
     "instructions",
+    "code-ownership",
     "reply-format",
     "plain-language",
     "simplified-technical-english",

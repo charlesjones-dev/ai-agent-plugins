@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-11-11
+
+### Added
+
+#### AI-Rules Plugin (v1.0.0 → v1.1.0)
+
+Six new library sections for `/rules-setup`, in two new groups. The wizard asks about one group at a time, and every section is a separate choice.
+
+- **Code ownership** — Claude works as the owner in your own repos: it merges duplicate code, fixes the bugs it finds and changes the structure when it's in the way. In other people's repos it works as a guest: it follows the maintainers' rules, keeps the change small, and never pushes or posts upstream unasked. The wizard asks how your machine is set up and writes only the rules that fit: whether a company owns the code with you, whether Claude tells your repos by folder or by the account in the git remote, or treats every repo as yours, whether you work in clones and forks, where your worktrees sit, and which accessibility standard applies. In a project CLAUDE.md it says only that this codebase is Claude's to own. [A blog post on code ownership in a global CLAUDE.md](https://charlesjones.dev/blog/claude-code-codebase-ownership-claude-md) explains the reasoning.
+- **Steps Claude does for the user** — before Claude hands you a step, it checks whether a CLI, an API, a connected tool or Claude in Chrome can do it. It does read-only and easy-to-undo work without asking, asks first for an outward-facing, hard-to-undo or destructive action, and stops at sign-ins, payments, physical devices and native dialogs. It needs Reply format. A Claude in Chrome setting turns the browser rules on.
+- **T3 Code reviewer**, **T3 Code thread titles**, **T3 Code phase threads** and **T3 Code context handoff** — four sections for T3 Code, each installed alone: how to choose and run a second-model reviewer, project names at the start of thread titles, a new thread for each project phase, and a new thread when the context is nearly full. T3 Code reviewer has an optional module for repos with no reviewer bot on GitHub.
+
+### Changed
+
+#### AI-Rules Plugin (v1.0.0 → v1.1.0)
+
+- **Reply format 1.1.0** — Claude checks whether it can do a step before it lists the step for you. Each step that only you can do carries one short reason. A step that Claude can do but must ask about becomes a "Decide: should I" offer with a `do it` / `I'll do it` reply line. The sample reply shows both.
+- **Claude in Chrome 1.1.0** — after a sign-in or a CAPTCHA, Claude continues in the kept tab and closes it when the browser work is done. A new module, off by default and for T3 Code only, tells Claude never to use T3 Code's preview browser.
+- **`/rules-setup`** — asks a short set of questions for Code ownership instead of one question per setting, and detects Claude in Chrome. A text setting can now be empty, which leaves out the text that uses it. On an upgrade that adds a setting, the wizard reuses the value another section already stores.
+- **`rules.py`** — a setting can have a `since` version, like a module. A section installed before the setting existed now shows as `upgrade`, not as edited, and `status` lists the settings an upgrade adds as `new_options`.
+- `scripts/test-rules-library.py` also renders every text setting that may be empty, both set and empty. It checks that no group holds more than 4 sections, and that no rendering leaves a subheading with nothing under it.
+- Marketplace metadata version bumped `3.8.0` → `3.9.0`.
+
 ## [3.8.0] - 2026-11-09
 
 ### Added
@@ -1777,7 +1800,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...HEAD
+[3.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...v3.9.0
 [3.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...v3.8.0
 [3.7.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.0...v3.7.1
 [3.7.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.6.0...v3.7.0
