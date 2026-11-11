@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 15 run in Claude Code, and 9 also run in Codex and Cursor.",
-    "version": "3.8.0",
+    "version": "3.9.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -196,13 +196,14 @@
     {
       "name": "ai-rules",
       "source": "./plugins/ai-rules",
-      "description": "Adds, upgrades and removes versioned sections of standing instructions in CLAUDE.md through a wizard: reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome and iOS simulators. You pick the sections, modules and settings, and upgrades merge new versions into sections you edited. Also audits your CLAUDE.md files, going further than /doctor prompt-audit, for rules that restate Claude Code's own behavior, belong in a setting or hook, sit in the wrong file, or cost context for little gain, and cleans up their structure",
-      "version": "1.0.0",
+      "description": "Adds, upgrades and removes versioned sections of standing instructions in CLAUDE.md through a wizard: code ownership, steps Claude does for the user, reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome, iOS simulators and T3 Code rules. You pick the sections, modules and settings, and upgrades merge new versions into sections you edited. Also audits your CLAUDE.md files, going further than /doctor prompt-audit, for rules that restate Claude Code's own behavior, belong in a setting or hook, sit in the wrong file, or cost context for little gain, and cleans up their structure",
+      "version": "1.1.0",
       "keywords": [
         "ai",
         "claude-md",
         "rules",
         "instructions",
+        "code-ownership",
         "reply-format",
         "plain-language",
         "simplified-technical-english",

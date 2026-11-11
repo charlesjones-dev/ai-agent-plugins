@@ -2,15 +2,135 @@
   "format": 1,
   "groups": [
     {
+      "id": "autonomy",
+      "title": "Ownership and autonomy"
+    },
+    {
       "id": "writing",
       "title": "Replies and writing"
     },
     {
       "id": "habits",
       "title": "Work habits and tools"
+    },
+    {
+      "id": "t3",
+      "title": "T3 Code"
     }
   ],
   "sections": [
+    {
+      "id": "code-ownership",
+      "title": "Code ownership",
+      "group": "autonomy",
+      "summary": "Claude works as the owner in your own repos and as a guest in other people's, and finds the owner by folder or by git remote",
+      "heading": "## Code Ownership",
+      "aliases": [
+        "## Code ownership"
+      ],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "37b25e4c57753b1927587d2c400eefaf6f695d06c9213351f61c330eac0a0892"
+        }
+      ],
+      "modules": [
+        {
+          "id": "guest",
+          "title": "Other people's repos",
+          "summary": "Guest rules for clones and forks: follow the maintainers' rules, keep changes small, and never push or post upstream unasked",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        },
+        {
+          "id": "worktrees",
+          "title": "Worktrees",
+          "summary": "A git worktree has the same owner as the repo it came from",
+          "default": true,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": [
+        {
+          "id": "company",
+          "title": "Company",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which company owns your code with you? Leave it empty if you have none."
+        },
+        {
+          "id": "own-folder",
+          "title": "Folder for your own repos",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which folder holds your own repos? Leave it empty if folders don't tell whose a repo is."
+        },
+        {
+          "id": "accounts",
+          "title": "Your git host accounts",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which accounts or organizations on your git host are yours? Leave it empty if Claude doesn't need the remote to tell."
+        },
+        {
+          "id": "guest-folder",
+          "title": "Folder for other people's repos",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which folder holds your clones and forks of other people's repos? Leave it empty if they have no folder of their own."
+        },
+        {
+          "id": "worktree-folder",
+          "title": "Worktree folders",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which folders hold your git worktrees? Leave it empty if you don't know."
+        },
+        {
+          "id": "a11y",
+          "title": "Accessibility standard",
+          "kind": "text",
+          "default": "WCAG 2.2 level AA",
+          "prompt": "Which accessibility standard should Claude hold UI code to? Leave it empty for none."
+        }
+      ]
+    },
+    {
+      "id": "user-steps",
+      "title": "Steps Claude does for the user",
+      "group": "autonomy",
+      "summary": "Claude does a step itself before it hands the step to you, asks first for outward-facing or hard-to-undo actions, and stops at sign-ins and payments",
+      "heading": "## Steps Claude does for the user",
+      "aliases": [],
+      "requires": [
+        "reply-format"
+      ],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "e9dbe47612327ef589bf95bb1da81a10be6cf3837686231ff2390fb509f3064b"
+        }
+      ],
+      "modules": [],
+      "options": [
+        {
+          "id": "chrome",
+          "title": "Claude in Chrome",
+          "kind": "yes-no",
+          "default": "detect",
+          "prompt": "Do you use Claude in Chrome?"
+        }
+      ]
+    },
     {
       "id": "reply-format",
       "title": "Reply format",
@@ -19,13 +139,19 @@
       "heading": "## Reply format",
       "aliases": [],
       "requires": [],
-      "current": "1.0.0",
+      "current": "1.1.0",
       "versions": [
         {
           "version": "1.0.0",
           "date": "2026-11-03",
           "changes": "First release.",
           "sha256": "65e332bc2bf38c1b53d005eb7b16e2736d953f2625212462b8add4abecf4f43b"
+        },
+        {
+          "version": "1.1.0",
+          "date": "2026-11-11",
+          "changes": "Claude checks whether it can do a step before it hands the step to you, gives a reason on each step it can't do, and writes a step it must ask about as a \"Decide: should I\" offer.",
+          "sha256": "3690ced0f854663d88242fcf444bd106aeaba84d72171218d627e8657cce98ee"
         }
       ],
       "modules": [
@@ -253,17 +379,43 @@
       "heading": "## Claude in Chrome",
       "aliases": [],
       "requires": [],
-      "current": "1.0.0",
+      "current": "1.1.0",
       "versions": [
         {
           "version": "1.0.0",
           "date": "2026-11-03",
           "changes": "First release.",
           "sha256": "c2b3c937981858c13114b2e0d6662a36b9115282e944f8e8b9e89cff07e2132c"
+        },
+        {
+          "version": "1.1.0",
+          "date": "2026-11-11",
+          "changes": "Claude continues in the kept tab after a sign-in or a CAPTCHA. Adds an optional rule against T3 Code's preview browser.",
+          "sha256": "cc9ac5757f15c70104f689ff958dfa733ef262c308ce33aaf3df49de9984cf2b"
         }
       ],
-      "modules": [],
-      "options": []
+      "modules": [
+        {
+          "id": "t3-preview",
+          "title": "No T3 preview browser",
+          "summary": "Claude never uses T3 Code's built-in preview browser, and uses Claude in Chrome instead",
+          "default": false,
+          "requires": [
+            "t3"
+          ],
+          "since": "1.1.0"
+        }
+      ],
+      "options": [
+        {
+          "id": "t3",
+          "title": "T3 Code",
+          "kind": "yes-no",
+          "default": "detect",
+          "prompt": "Do you use T3 Code?",
+          "since": "1.1.0"
+        }
+      ]
     },
     {
       "id": "ios-simulators",
@@ -309,6 +461,95 @@
           "prompt": "Do you use T3 Code?"
         }
       ]
+    },
+    {
+      "id": "t3-reviewer",
+      "title": "T3 Code reviewer",
+      "group": "t3",
+      "summary": "For a second-model review, Claude asks which reviewer to use every time and runs it as a T3 delegated task in its own worktree",
+      "heading": "## T3 Code reviewer",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "9705bc984c8a27c52067c9de55befa582e31b4df17d0572c289c38552418935e"
+        }
+      ],
+      "modules": [
+        {
+          "id": "no-review-bots",
+          "title": "No reviewer bots on GitHub",
+          "summary": "No AI reviewer bot runs on your GitHub repos, so Claude doesn't wait for one or tag one",
+          "default": false,
+          "requires": [],
+          "since": "1.0.0"
+        }
+      ],
+      "options": []
+    },
+    {
+      "id": "t3-thread-titles",
+      "title": "T3 Code thread titles",
+      "group": "t3",
+      "summary": "Thread titles start with the project name, so you can tell threads apart in the T3 Code mobile app",
+      "heading": "## T3 Code thread titles",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "4908c87a032f54425acc902928a83ec8cbb39ab407c05091fdd646dd94be3976"
+        }
+      ],
+      "modules": [],
+      "options": []
+    },
+    {
+      "id": "t3-phase-threads",
+      "title": "T3 Code phase threads",
+      "group": "t3",
+      "summary": "In a project that works in phases, Claude asks whether to start a new T3 thread for the next phase",
+      "heading": "## T3 Code phase threads",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "88ed84bf6e866dc6b22ee30447745bbd984202e2bb3938ec6849863077c21aed"
+        }
+      ],
+      "modules": [],
+      "options": []
+    },
+    {
+      "id": "t3-context-handoff",
+      "title": "T3 Code context handoff",
+      "group": "t3",
+      "summary": "When the context is nearly full, Claude starts a new T3 thread for the rest of the work without asking, with a prompt that carries everything over",
+      "heading": "## T3 Code context handoff",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-11",
+          "changes": "First release.",
+          "sha256": "d94e2b5e98809e8062f44f7116fbb6cecde495085bcc6d45b89ddb1a378dde17"
+        }
+      ],
+      "modules": [],
+      "options": []
     }
   ],
   "legacy": {

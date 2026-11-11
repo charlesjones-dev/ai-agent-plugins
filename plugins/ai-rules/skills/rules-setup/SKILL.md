@@ -1,6 +1,6 @@
 ---
 name: rules-setup
-description: "A wizard that adds, upgrades, changes and removes versioned sections of standing instructions in CLAUDE.md, picked from a shared library: reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome and iOS simulators. Each section has optional modules and settings, and upgrades merge new versions into sections you edited."
+description: "A wizard that adds, upgrades, changes and removes versioned sections of standing instructions in CLAUDE.md, picked from a shared library: code ownership, steps Claude does for the user, reply format, plain wording, messages to other people, PR and commit hygiene, estimates, personal data, Claude in Chrome, iOS simulators and four sections for T3 Code. Each section has optional modules and settings, and upgrades merge new versions into sections you edited."
 disable-model-invocation: true
 ---
 
@@ -56,7 +56,7 @@ Run `<python> "${CLAUDE_SKILL_DIR}/scripts/rules.py" status "<path>"`, or follow
   - `newer`: the file was written by a newer version of this plugin. Leave the block alone, and tell the user to run `/plugin marketplace update ai-agent-plugins` and update ai-rules on this machine.
   - `unknown`: the library has no section with this ID, for the same reason as `newer`, or because the section was removed. Offer only Remove for it.
   - `duplicate` or `broken`: a marker problem.
-- For upgradable blocks, `changes` (the notes for each version after the installed one) and `new_modules` (modules added since then).
+- For upgradable blocks, `changes` (the notes for each version after the installed one), `new_modules` (modules added since then) and `new_options` (options added since then that the block has no value for).
 - `unmanaged`: library sections whose heading is in the file without markers, such as sections pasted by hand, with the lines each one covers (`line` to `end_line`).
 - `legacy`: markers left by `/workflow-rules`, the ai-workflow skill this one replaces. Retired rules carry their replacement.
 - `available`: sections not in the file at all.
@@ -90,7 +90,7 @@ Ask "What would you like to do?" (Header: "Rules setup"). After a flow finishes 
 
 ### Add
 
-1. Ask which sections to add, with one multi-select question per catalog group (`groups` in the catalog, used as the header), listing only sections in `available`. Each option's label is the section title, and its description is the section `summary`.
+1. Ask which sections to add, with one multi-select question per catalog group (`groups` in the catalog, used as the header), listing only sections in `available`. Each option's label is the section title, and its description is the section `summary`. Every section is a separate choice, so never add a whole group because the user picked one section in it. In the question for the `t3` group, say that these sections need T3 Code.
 2. If a picked section has `requires` that are neither installed nor picked, such as Messages to other people, which needs Plain wording, ask whether to add the required section too. Recommend yes.
 3. Run [Choose modules and options](#choose-modules-and-options) for the picked sections.
 4. Render each section at its current version with markers (`render <id> --modules a,b --set key=value ... --markers`).
@@ -100,7 +100,7 @@ Ask "What would you like to do?" (Header: "Rules setup"). After a flow finishes 
 
 1. If more than one block can upgrade, ask "Upgrade all <N> sections (recommended)" / "Pick sections". With "Pick sections", ask a multi-select question of those blocks.
 2. For each block, show its version notes from `changes`, one line per version, such as `reply-format 1.0.0 → 1.1.0: Adds a rule for long-running PR watches.`
-3. If `new_modules` is not empty, ask whether to turn each one on. Recommend the catalog default. If the new version adds an option the marker doesn't have, ask for it as in [Choose modules and options](#choose-modules-and-options).
+3. If `new_modules` is not empty, ask whether to turn each one on. Recommend the catalog default. For each option in `new_options`, use the value another installed section already stores for the same option, such as `t3`. If no section stores one, ask for it as in [Choose modules and options](#choose-modules-and-options). Leave out a new module whose `requires` option is off.
 4. For a block in state `upgrade`, render the current version with the stored modules and options plus the new choices, and replace the whole block, markers included.
 5. For a block in state `edited-upgrade`, go to [Edited sections](#edited-sections).
 6. Then [Preview and write](#preview-and-write).
@@ -150,9 +150,59 @@ For each section, in catalog order:
 - **Options shared between sections**, such as `t3`, are asked once and stored in every section that has them.
 - **`t3`** (yes/no): recommend yes if this session has tools whose names start with `mcp__t3-code__`, which means it runs in T3 Code. Otherwise recommend no. Ask "Do you use T3 Code?", and say in the description that T3 Code is the app that renders collapsed panels and runs scheduled tasks and thread snoozing.
 - **`timezone`** (text): detect the system time zone. On macOS run `readlink /etc/localtime` (the part after `zoneinfo/`). On Linux run `timedatectl show -p Timezone --value`, or read `/etc/timezone`. On Windows run `powershell -NoProfile -Command "(Get-TimeZone).Id"`. Turn it into a short name people say, such as "US Eastern" for `America/New_York` or `Eastern Standard Time`, "US Pacific", "UK time" or "Central European". Offer that name (recommended) and "UTC".
-- **Other options**: offer the catalog default (recommended), and let the user type a value through "Other". Values can't contain a double quote.
+- **`chrome`** (yes/no): recommend yes if this session has tools whose names start with `mcp__claude-in-chrome__`. Otherwise recommend no. Ask "Do you use Claude in Chrome?", and say in the description that Claude in Chrome is the browser extension that lets Claude work in your own browser, with your sign-ins.
+- **Code ownership**: don't ask for its options and modules one by one. Follow [Code ownership questions](#code-ownership-questions).
+- **Other options**: offer the catalog default (recommended), and let the user type a value through "Other". An option whose default is `""` may stay empty, and an empty option turns off the text that uses it. Values can't contain a double quote.
+- When you pass a value to `rules.py`, quote it for the shell, such as `--set 'company=Acme LLC'`. Never put a value inside double quotes or backticks on the command line, because the shell could run part of it.
 - **Modules**: list only modules whose `requires` options are on. For example, with `t3` set to no, Reply format offers only Examples. Ask a multi-select question per section with each module's title and summary, and mark the defaults "(recommended)". A section with more than 4 modules gets "All <N> (recommended)" / "Pick" first, then the split questions. A section with one module gets a yes/no question.
 - Put up to 4 questions in each AskUserQuestion call.
+
+### Code ownership questions
+
+The Code ownership section tells Claude where it works as the owner and where it works as a guest. Its options depend on each other, so ask about the user's setup, then set the options and modules from the answers. In Change, mark the stored answers "(recommended)". In Adopt, read the answers from the user's text instead of asking.
+
+**A project CLAUDE.md.** The file loads only in this repo, so skip questions 2 and 3 and the worktrees question. Leave `own-folder`, `accounts`, `guest-folder` and `worktree-folder` empty, and turn `guest` and `worktrees` off. The section then says that this codebase is Claude's to own. First run `git remote -v`. If the repo has an `upstream` remote, or its `origin` belongs to someone else, tell the user that this looks like someone else's repo, and ask whether to go on.
+
+**The user CLAUDE.md.** Ask these four questions in one call:
+
+1. "Who owns the code in your own repos?" (Header: "Owner")
+   - "Only me"
+   - "Me and my company": you type the company's name next
+2. "How can Claude tell that a repo is yours?" (Header: "Your repos")
+   - "By folder": your own repos sit in one folder, away from other people's repos
+   - "By git remote": a repo is yours when its remote is under your account or your organization
+   - "Every repo is mine": you never work in someone else's repo on this machine
+3. "Do you work in other people's repos, such as clones and forks?" (Header: "Other repos")
+   - "No"
+   - "Yes, in their own folder": they sit in one folder, away from your own repos
+   - "Yes, next to my own repos": Claude reads the git remote to tell them apart
+4. "Which accessibility standard should Claude hold UI code to?" (Header: "Accessibility")
+   - "WCAG 2.2 level AA (recommended)"
+   - "None"
+
+Then ask only for the values those answers need. Put them in one call where you can:
+
+- **`company`**: for "Me and my company", ask for the company's name as the user writes it. For "Only me", leave it empty.
+- **`own-folder`**: for "By folder", ask which folder. Offer up to three folders that exist: the folder that holds this project's main repo (the first line of `git worktree list`), and any of `~/code`, `~/dev`, `~/Developer`, `~/git`, `~/projects`, `~/repos`, `~/src`, `~/Source` and `~/workspace`. The user can type another one.
+- **`accounts`**: for "By git remote", and for "Yes, next to my own repos", ask which accounts and organizations on the git host are the user's. Offer the owner in this project's `origin` URL (`git remote get-url origin`) if it has one. Store the answer as plain words, such as `sam-lee and acme-inc on GitHub`.
+- **`guest-folder`**: for "Yes, in their own folder", ask which folder.
+- **`a11y`**: the standard's name, or empty for "None".
+- **Worktrees**: ask "Do you use git worktrees?" Recommend yes if this session has `mcp__t3-code__` tools, if `git worktree list` prints more than one line, or if `~/.t3/worktrees` exists. On yes, turn on the `worktrees` module. Set `worktree-folder` to the worktree folders you found or the user names, and leave it empty when there is no fixed folder.
+
+Set the rest from the answers:
+
+| Answer | Options and modules |
+|--------|---------------------|
+| "By folder" | `own-folder` is set |
+| "By git remote" | `accounts` is set, `own-folder` is empty |
+| "Every repo is mine" | `own-folder` and `accounts` are empty |
+| Other repos: "No" | `guest` is off, `guest-folder` is empty |
+| Other repos: "Yes, in their own folder" | `guest` is on, `guest-folder` is set |
+| Other repos: "Yes, next to my own repos" | `guest` is on, `guest-folder` is empty, `accounts` is set |
+
+- "Every repo is mine" with "Yes, next to my own repos" can't both hold, because Claude then has no way to tell the repos apart. Treat it as "By git remote", and tell the user.
+- Write a folder the way the user types it, with `~` for the home folder and forward slashes. Join several folders with "and", such as `~/code/worktrees and ~/.t3/worktrees`.
+- Before the preview, tell the user in one or two sentences what the section will say: which repos Claude treats as its own, and which as someone else's.
 
 ### Edited sections
 
@@ -180,7 +230,7 @@ Use this when a block's text differs from what its stored version and choices re
 - A begin marker looks like this, with modules in catalog order and options in catalog order:
 
   ```markdown
-  <!-- ai-rules:begin id=reply-format v=1.0.0 modules="panels,snooze,examples" t3="yes" timezone="US Eastern" -->
+  <!-- ai-rules:begin id=reply-format v=1.1.0 modules="panels,snooze,examples" t3="yes" timezone="US Eastern" -->
   ## Reply format
   ...
   <!-- ai-rules:end id=reply-format -->
@@ -203,7 +253,7 @@ Use this when a block's text differs from what its stored version and choices re
 Rendering turns a template into section text. `rules.py render` does this. In manual mode, follow these rules exactly, so that the result matches what the script would produce:
 
 1. Templates use Mustache-style tags. `{{#name}}...{{/name}}` keeps its content when `name` is on. `{{^name}}...{{/name}}` keeps its content when `name` is off. `{{name}}` is replaced by the option's value. Sections can nest.
-2. A name is **on** when it is a module in the block's `modules` list, or an option whose value is `yes`. An option with the value `no` or an empty value is off.
+2. A name is **on** when it is a module in the block's `modules` list, or an option whose value is `yes` or any other text. An option with the value `no`, `false`, `off` or `0`, or an empty value, is off.
 3. A module whose `requires` lists an option that is off is treated as off, even if the user picked it.
 4. A line that holds nothing but one section tag (`{{#x}}`, `{{^x}}` or `{{/x}}`) is removed along with its line break.
 5. After that, strip trailing spaces from every line, reduce every run of two or more blank lines to one, and remove blank lines at the start and end. The result ends with one line break.
@@ -213,7 +263,7 @@ Rendering turns a template into section text. `rules.py render` does this. In ma
 Without Python, work out each block's state yourself:
 
 1. Find each `<!-- ai-rules:begin ... -->` line and its `<!-- ai-rules:end id=<same id> -->` line. Read `id`, `v`, `modules`, any `skip` and the option attributes.
-2. Render the block's installed version with its stored modules and options.
+2. Render the block's installed version with its stored modules and options. A module or option whose `since` in the catalog is later than the installed version doesn't exist in that version, so the block has no value for it.
 3. Compare the rendering with the text between the markers, ignoring line endings, trailing spaces and blank lines. If git is available, use `git diff --no-index --ignore-all-space --ignore-blank-lines --ignore-cr-at-eol`. Any remaining difference means edited.
 4. Compare `v` with the section's `current` in the catalog to decide between `current`, `edited`, `upgrade`, `edited-upgrade`, `kept` (a `skip` at or above `current`) and `newer` (`v` above `current`).
 5. Look for library headings (`heading` in the catalog) outside markers, and for `<!-- workflow-rules:id=... -->` markers. Ignore anything inside fenced code blocks, including markers.

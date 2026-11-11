@@ -11,6 +11,8 @@ rendering rules here are the ones SKILL.md describes under "Rendering".
 
 `render` prints one section. Options left out take their catalog default. A
 default of "detect" has no value until the skill picks one, so pass --set for it.
+An option whose `since` is later than the rendered version doesn't exist in that
+version, so it is left out.
 `status` prints JSON that describes each managed block, each library section
 that sits in the file without markers, and each legacy /workflow-rules marker.
 `hash` prints the sha256 that catalog.json records for a released version file.
@@ -115,8 +117,14 @@ def render_template(text, modules, options, known):
     return result + "\n"
 
 
-def resolve(sec, modules, options):
+def added_after(item, version):
+    """True when a module or option was added in a version later than this one."""
+    return vkey(item.get("since", "1.0.0")) > vkey(version)
+
+
+def resolve(sec, modules, options, version=None):
     """Check the modules and options against the catalog and fill in defaults."""
+    version = version or sec["current"]
     known_modules = {m["id"]: m for m in sec.get("modules", [])}
     for mid in modules:
         if mid not in known_modules:
@@ -125,6 +133,9 @@ def resolve(sec, modules, options):
     for o in sec.get("options", []):
         if o["id"] in options:
             opts[o["id"]] = options[o["id"]]
+        elif added_after(o, version):
+            # This version has no such option, so a block on it stores no value.
+            continue
         elif o["default"] != "detect":
             opts[o["id"]] = o["default"]
         else:
@@ -132,9 +143,11 @@ def resolve(sec, modules, options):
     for key in options:
         if key not in opts:
             raise RulesError(f"{sec['id']} has no option '{key}'")
-    # A module that needs an option that is off can't be on.
+    # A module that needs an option that is off can't be on. Nor can a module
+    # that this version doesn't have yet.
     active = [m for m in modules
-              if all(truthy(r, set(), opts) for r in known_modules[m].get("requires", []))]
+              if not added_after(known_modules[m], version)
+              and all(truthy(r, set(), opts) for r in known_modules[m].get("requires", []))]
     return active, opts
 
 
@@ -145,7 +158,7 @@ def known_names(sec):
 def render(catalog, sid, version=None, modules=(), options=None, markers=False):
     sec = section(catalog, sid)
     version = version or sec["current"]
-    active, opts = resolve(sec, list(modules), dict(options or {}))
+    active, opts = resolve(sec, list(modules), dict(options or {}), version)
     body = render_template(read_template(sid, version), set(active), opts, known_names(sec))
     if not markers:
         return body
@@ -260,7 +273,10 @@ def status(catalog, path):
                 installed = vkey(block["version"])
                 block["changes"] = [v for v in sec["versions"] if vkey(v["version"]) > installed]
                 block["new_modules"] = [m["id"] for m in sec.get("modules", [])
-                                        if vkey(m.get("since", "1.0.0")) > installed]
+                                        if added_after(m, block["version"])]
+                block["new_options"] = [o["id"] for o in sec.get("options", [])
+                                        if added_after(o, block["version"])
+                                        and o["id"] not in block["options"]]
         blocks.append(block)
         i = j + 1
 
