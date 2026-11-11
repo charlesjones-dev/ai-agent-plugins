@@ -20,6 +20,7 @@ Every question has 2 to 4 options, and one call holds up to 4 questions. The use
 
 - Split a list longer than 4 into questions of 2 to 4 options each, in catalog order. Balance the split, so 5 becomes 3 + 2, never 4 + 1.
 - A list of one becomes a yes/no question.
+- A fixed option, such as "Done", "Cancel" or "Skip", counts toward the 4. Never leave it out to make room. Combine or split the other options instead.
 - A multi-select question can't preselect options. Add "(recommended)" to the label of each option that is on by default.
 
 ### Step 1: Find the tools
@@ -82,7 +83,9 @@ Build the options from the scan, in this order, and leave out any that has nothi
 - "Add sections": something is in `available`
 - "Change modules or options": at least one block is `current`, `edited`, `upgrade`, `edited-upgrade` or `kept`
 - "Remove sections": at least one block exists
-- "Done": always, when fewer than four options are left
+- "Done": always, as the last option
+
+A question holds 4 options, and "Done" must be one of them. When all four actions apply, which happens whenever "Upgrade" and "Add" both do, show one option "Change or remove sections" in place of "Change modules or options" and "Remove sections". The menu is then "Upgrade <N> sections (recommended)", "Add sections", "Change or remove sections" and "Done". If the user picks "Change or remove sections", ask "Change or remove?" (Header: "Sections") with "Change modules or options" and "Remove sections", then run that flow.
 
 If only "Done" would be left, say "Everything is current. Nothing to change." and stop.
 
@@ -116,7 +119,7 @@ Ask "What would you like to do?" (Header: "Rules setup"). After a flow finishes 
 
 ### Remove
 
-1. Ask which installed sections to remove (multi-select, grouped as in Add). Include `unknown` blocks.
+1. Ask which installed sections to remove (multi-select, grouped as in Add). Ask about `unknown` blocks in a question of their own, because they belong to no group, and a group's question can already hold 4 sections.
 2. If a remaining section `requires` one being removed, warn the user and ask whether to remove both or keep the required one.
 3. Delete each block from its begin marker through its end marker. Collapse the blank lines around the gap to one.
 4. Then [Preview and write](#preview-and-write).
