@@ -71,6 +71,7 @@ The wizard asks about one group at a time, and every section is a separate choic
 |---------|----------------------|---------|----------|
 | **Ownership and autonomy** | | | |
 | Code ownership | Work as the owner in your own repos: merge duplicate code, fix the bugs you find, and change the structure when it's in the way. Work as a guest in other people's repos | Other people's repos, worktrees | Company, folder for your own repos, your git host accounts, folder for other people's repos, worktree folders, accessibility standard |
+| Public and private repos | Find out whether a repo is public before planning or editing, and ask when it can't tell. Keep your infrastructure, deploy notes, private repos and secrets out of public commits, PRs, comments and briefs for other threads, and check before each push | none | Private names (user CLAUDE.md only) |
 | Steps Claude does for the user | Do a step before handing it to you, with a CLI, an API or your browser. Ask first for an outward-facing or hard-to-undo action. Stop at sign-ins, payments and physical devices. Needs Reply format | none | Claude in Chrome |
 | **Replies and writing** | | | |
 | Reply format | Open with the outcome, put details under CHANGES, FINDINGS and RISKS, and end with a numbered ACTIONS NEEDED list with reply lines, or with a fixed ending. Give a reason on each step that only you can do, and write a step Claude must ask about as an offer | Collapsed panels, T3 scheduled tasks and snoozing (T3 Code only), examples | T3 Code, time zone |
@@ -151,7 +152,7 @@ Git, for diffs and merges. Claude Code on Windows installs with Git for Windows.
 ## Plugin details
 
 - **Name:** AI-Rules Plugin
-- **Version:** 1.1.1
+- **Version:** 1.2.0
 - **Skills:** `/rules-setup`, `/rules-cleanup`
 - **License:** MIT
 - **Author:** Charles Jones

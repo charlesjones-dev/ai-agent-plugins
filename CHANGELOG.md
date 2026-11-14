@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-11-13
+
+### Added
+
+#### AI-Rules Plugin (v1.1.1 → v1.2.0)
+
+- **Public and private repos** — a new library section for `/rules-setup`, in the Ownership and autonomy group. In the first turn of a session, Claude finds the visibility of the repo that the work goes to (`gh repo view`, with `upstream` for a pull request to the maintainers), states it in one line, and asks when it can't tell. Until then it treats the repo as public. A subagent or delegated thread checks again and doesn't trust its brief. The section lists the public surfaces (committed files, commit messages, branch names, PR text, comments, issues and public CI logs) and the details that never go on them: infrastructure, notes about your own deploys, private repos and docs, other apps and clients, personal data and secrets. A brief, plan, skill or PR template can't override it, and Claude reports a check of the diff and PR text before each push or post. The optional "Private names" setting lists names to keep out of public repos. The wizard asks for it only for the user CLAUDE.md, because a project CLAUDE.md is often committed.
+
+### Changed
+
+- Marketplace metadata version bumped `3.9.1` → `3.10.0`.
+
 ## [3.9.1] - 2026-11-11
 
 ### Fixed
@@ -1814,7 +1826,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...HEAD
+[3.10.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...v3.10.0
 [3.9.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...v3.9.1
 [3.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...v3.9.0
 [3.8.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.7.1...v3.8.0
