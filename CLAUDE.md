@@ -182,6 +182,13 @@ When adding new features or fixing bugs in a plugin, follow this workflow:
    - Update version in Plugin Details section
    - Add usage examples for new functionality
 
+6. **Create a GitHub release** after the PR with the new version is merged into `main`. Every new marketplace version gets one, with no exceptions:
+   - Tag the merge commit of that PR as `v{marketplace version}`, such as `v3.10.0`.
+   - Title it `v{version} - {plugin}: {one-line summary}`, such as `v3.9.1 - ai-rules: the /rules-setup main menu always has a "Done" option`.
+   - Use the version's CHANGELOG section as the body, without its `## [x.y.z]` heading, and end it with `**Full Changelog**: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v{previous}...v{version}`.
+   - Mark it as the latest release, for example with `gh release create v3.10.0 --target <merge commit> --latest --title "..." --notes-file <file>`.
+   - A PR that changes no version, such as a CLAUDE.md or docs change, gets no release.
+
 **Example:** When ai-security plugin added `/security-init` command:
 - Plugin version: 1.0.0 → 1.1.0 (new feature = minor bump)
 - Marketplace version: 1.0.1 → 1.1.0 (significant update)
