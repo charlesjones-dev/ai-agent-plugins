@@ -102,6 +102,34 @@
       ]
     },
     {
+      "id": "repo-visibility",
+      "title": "Public and private repos",
+      "group": "autonomy",
+      "summary": "Claude checks whether a repo is public before it plans or edits, and keeps your infrastructure, deploy notes and private repos out of public commits, PRs and comments",
+      "heading": "## Public and private repos",
+      "aliases": [],
+      "requires": [],
+      "current": "1.0.0",
+      "versions": [
+        {
+          "version": "1.0.0",
+          "date": "2026-11-13",
+          "changes": "First release.",
+          "sha256": "ec5c1598b36016e8ff765e5d7b8e8f2511921ed646489f48f72d6e5ec52c1885"
+        }
+      ],
+      "modules": [],
+      "options": [
+        {
+          "id": "private-names",
+          "title": "Private names",
+          "kind": "text",
+          "default": "",
+          "prompt": "Which of your names should never appear in a public repo, such as server names, deploy tools and private repos? Leave it empty to rely on the general rules."
+        }
+      ]
+    },
+    {
       "id": "user-steps",
       "title": "Steps Claude does for the user",
       "group": "autonomy",
