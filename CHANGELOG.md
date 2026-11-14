@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-11-14
+
+### Changed
+
+#### AI-Rules Plugin (v1.2.0 → v1.3.0)
+
+Four library sections ask the user less often. Each one gets a new version, and `/rules-setup` offers the upgrade.
+
+- **Steps Claude does for the user (1.1.0)** — an approved plan, phase or task approves each step it names, such as merging a PR after its review passes, committing at the end of a phase, deploying to staging, starting the next phase, or changing the DNS records it lists. Claude does those steps without asking and reports them. It still asks first for a step the plan doesn't name, and always for a delete, a payment, a public post or comment, an app store submission, and a production change the plan doesn't name. A new "Decide, then tell" rule has Claude pick its recommended answer for a choice that is easy to undo and say so, and ask only when a choice is hard to undo, costs money or is a product decision. When Claude Code's permission check blocks an action that the user's yes already named, Claude asks the user to do that one step instead of asking for the same yes again.
+- **Reply format (1.2.0)** — ACTIONS NEEDED no longer repeats every open item in full in each reply. A new or changed item is written in full, and so is an item whose details are no longer in context. An unchanged item that an earlier reply showed in full gets one line: its marker, its bold verb phrase and its Reply line. A ⏳ step that blocks nothing and has no due point is mentioned once and then dropped. When Claude can check an item itself, such as a page, a PR, a setting or a file, it checks the item and closes it without waiting for a `done` reply. In the sample reply, the email question became a product decision, so the example doesn't ask about a choice Claude would now make itself.
+- **T3 Code reviewer (1.1.0)** — Claude no longer asks which reviewer to use every time. It uses the reviewer that the user picked last in the T3 project, with the same provider, model and settings, and finds it with `t3_thread_list` and `includeSubagents: true`. It asks only when the project has no earlier pick, `orchestrator_capabilities` no longer lists that reviewer, or the user asks to choose. Claude doesn't ask whether to run a review, runs another round only when the fixes changed how the code behaves, and says which reviewer it used and how it found it.
+- **T3 Code phase threads (1.1.0)** — the approved phase plan covers the phase commit and the start of the next phase. When a phase is finished and its checks pass, Claude commits it and starts a new T3 thread for the next phase, if its dependencies are done and nothing that waits on the user blocks it. Claude asks first only after a failed check, when the next phase depends on unfinished work, or when the user asked to pause between phases.
+- Marketplace metadata version bumped `3.10.0` → `3.11.0`.
+
 ## [3.10.0] - 2026-11-13
 
 ### Added
@@ -1826,7 +1840,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...HEAD
+[3.11.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...v3.10.0
 [3.9.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...v3.9.1
 [3.9.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.8.0...v3.9.0

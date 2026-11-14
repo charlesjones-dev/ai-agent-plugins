@@ -72,9 +72,9 @@ The wizard asks about one group at a time, and every section is a separate choic
 | **Ownership and autonomy** | | | |
 | Code ownership | Work as the owner in your own repos: merge duplicate code, fix the bugs you find, and change the structure when it's in the way. Work as a guest in other people's repos | Other people's repos, worktrees | Company, folder for your own repos, your git host accounts, folder for other people's repos, worktree folders, accessibility standard |
 | Public and private repos | Find out whether a repo is public before planning or editing, and ask when it can't tell. Keep your infrastructure, deploy notes, private repos and secrets out of public commits, PRs, comments and briefs for other threads, and check before each push | none | Private names (user CLAUDE.md only) |
-| Steps Claude does for the user | Do a step before handing it to you, with a CLI, an API or your browser. Ask first for an outward-facing or hard-to-undo action. Stop at sign-ins, payments and physical devices. Needs Reply format | none | Claude in Chrome |
+| Steps Claude does for the user | Do a step before handing it to you, with a CLI, an API or your browser. Do the steps that an approved plan names without asking, and decide easy-to-undo choices, then tell you. Ask first for an outward-facing or hard-to-undo action that the plan doesn't name. Stop at sign-ins, payments and physical devices. Needs Reply format | none | Claude in Chrome |
 | **Replies and writing** | | | |
-| Reply format | Open with the outcome, put details under CHANGES, FINDINGS and RISKS, and end with a numbered ACTIONS NEEDED list with reply lines, or with a fixed ending. Give a reason on each step that only you can do, and write a step Claude must ask about as an offer | Collapsed panels, T3 scheduled tasks and snoozing (T3 Code only), examples | T3 Code, time zone |
+| Reply format | Open with the outcome, put details under CHANGES, FINDINGS and RISKS, and end with a numbered ACTIONS NEEDED list with reply lines, or with a fixed ending. Give a reason on each step that only you can do, and write a step Claude must ask about as an offer. Repeat an unchanged item as one line, and close items Claude can check without a "done" reply | Collapsed panels, T3 scheduled tasks and snoozing (T3 Code only), examples | T3 Code, time zone |
 | Plain wording | Sentence rules from ASD-STE100 Simplified Technical English: one name for one thing, one idea per sentence, active voice | none | none |
 | Messages to other people | Short, plain drafts for emails, Slack, texts and comments you send as yourself. Needs Plain wording | none | none |
 | PR and commit hygiene | PR descriptions and commit messages that cover only what was done. The five rules from `/workflow-rules` | Each of the five rules | none |
@@ -84,9 +84,9 @@ The wizard asks about one group at a time, and every section is a separate choic
 | Claude in Chrome | Work in one tab group, close its tabs when the browser work is done, and continue in the kept tab after a sign-in | No T3 preview browser (T3 Code only, off by default) | T3 Code |
 | iOS simulators | Reuse existing simulators, and shut down the ones Claude booted | Reuse, shut down | T3 Code |
 | **T3 Code** | | | |
-| T3 Code reviewer | For a second-model review, ask which reviewer to use every time, and run it as a T3 delegated task in its own worktree | No reviewer bots on GitHub (off by default) | none |
+| T3 Code reviewer | For a second-model review, use the reviewer you picked last in the T3 project, and run it as a T3 delegated task in its own worktree. Ask only when there is no earlier pick | No reviewer bots on GitHub (off by default) | none |
 | T3 Code thread titles | Start each thread title with the project name, so you can tell threads apart in the mobile app | none | none |
-| T3 Code phase threads | In a project that works in phases, ask whether to start a new thread for the next phase | none | none |
+| T3 Code phase threads | In a project that works in phases, commit a finished phase and start a new thread for the next one without asking, unless a check failed or the next phase isn't ready | none | none |
 | T3 Code context handoff | Start a new thread for the rest of the work when the context is nearly full, without asking, with a prompt that carries everything over | none | none |
 
 With T3 Code turned off, Reply format leaves out the panels, scheduled tasks and snoozing, and uses normal `##` titles for every section.
@@ -152,7 +152,7 @@ Git, for diffs and merges. Claude Code on Windows installs with Git for Windows.
 ## Plugin details
 
 - **Name:** AI-Rules Plugin
-- **Version:** 1.2.0
+- **Version:** 1.3.0
 - **Skills:** `/rules-setup`, `/rules-cleanup`
 - **License:** MIT
 - **Author:** Charles Jones
