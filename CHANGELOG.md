@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.11.1] - 2026-11-14
+
+### Fixed
+
+#### AI-Rules Plugin (v1.3.0 → v1.3.1)
+
+- **T3 Code reviewer (1.1.1)** — the optional "No reviewer bots on GitHub" rule no longer names a bot as its example. The section tells Claude never to write provider names into a rule, and the example named one. It now says not to @-mention a review bot to ask for a review.
+
+### Changed
+
+- Marketplace metadata version bumped `3.11.0` → `3.11.1`.
+
 ## [3.11.0] - 2026-11-14
 
 ### Changed
@@ -1840,7 +1852,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...HEAD
+[3.11.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...v3.11.1
 [3.11.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...v3.10.0
 [3.9.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.0...v3.9.1

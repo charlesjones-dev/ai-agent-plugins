@@ -510,7 +510,7 @@
       "heading": "## T3 Code reviewer",
       "aliases": [],
       "requires": [],
-      "current": "1.1.0",
+      "current": "1.1.1",
       "versions": [
         {
           "version": "1.0.0",
@@ -523,6 +523,12 @@
           "date": "2026-11-14",
           "changes": "Claude no longer asks for the reviewer every time. It uses the reviewer you picked last in the T3 project, and asks only when there is no earlier pick, that reviewer is no longer available, or you ask to choose. Claude doesn't ask whether to run a review.",
           "sha256": "b79d0735dad098017cd76c13a3bf0da564ed8fdb973185eff138b3e84d1b9f5d"
+        },
+        {
+          "version": "1.1.1",
+          "date": "2026-11-14",
+          "changes": "Wording fix: the optional \"No reviewer bots on GitHub\" rule no longer names a bot as its example.",
+          "sha256": "6e9fe3c69d4d88940bcda1335f42b9c571d57767121744b54fcb035c57ac37e0"
         }
       ],
       "modules": [
