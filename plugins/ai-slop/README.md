@@ -1,6 +1,6 @@
 # AI-Slop plugin
 
-Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, reviews a web, iOS or Android screen for AI-generated design, rewrites text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround, and rebuilds a feature an agent just wrote as a simpler second version. It runs in Claude Code, Codex and Cursor.
+Audits a codebase's user-facing copy, layouts and metadata for AI-written tells and factual errors, reviews a web, iOS or Android screen for AI-generated design, rewrites text to remove AI writing patterns, prunes code comments that narrate the code or excuse a workaround and tests that can't catch a bug, and rebuilds a feature an agent just wrote as a simpler second version. It runs in Claude Code, Codex and Cursor.
 
 ## Available skills
 
@@ -89,6 +89,40 @@ The agent also runs the skill when you ask it to prune or clean up code comments
 /slop-comments "src/**/*.ts" --fix
 ```
 
+### `/slop-tests`
+
+Reviews tests that can't catch a bug. With no arguments it reviews the tests your branch adds or changes, compared with the default branch. Pass a path or glob, or `all` for the whole suite. Its checklist covers Vitest, Jest, Playwright, pytest, XCTest, Swift Testing and Go, and it finds the test command for other runners in the project's scripts and CI.
+
+Agents add tests to look thorough. An agent asked to remove a feature often adds tests that check the feature is gone. These tests slow every run and every refactor, and the next agent copies them.
+
+#### How it works
+
+1. Reads the project's rules and finds each test stack, its command and any coverage or mutation tool already set up
+2. Runs the suite once before it changes anything, and leaves tests that already fail or flake alone
+3. Sorts every test into three kinds, with a confidence for each finding:
+   - **Change detectors:** large structural snapshots, assertions only on mock calls, private internals, brittle selectors, tests that mock every collaborator or copy the implementation. Git history counts how often the test changed with its source
+   - **Tests that check a removed feature is gone:** absence checks with no cause, and tests that scan source files for a missing string. `git log -S` shows whether the same commit removed the feature and added the test
+   - **Tests that can never fail:** no assertion, tautologies, mocks that echo their stub, swallowed errors, unawaited or unreached assertions, empty tables, skips and stray `.only`
+4. Checks that another test still covers the behavior before it plans a delete. A broken test that guards real behavior is planned as a fix, and a change detector over untested behavior as a rewrite
+5. Ends with a batched plan and numbered questions, and changes nothing until you answer
+
+`--verify` confirms each uncertain finding in a scratch git worktree: it breaks the code under test to see whether the test fails, or refactors it without changing behavior to see whether a change detector breaks. Your checkout isn't touched.
+
+After you answer, it applies the batches in order and runs the suite after each one. If a change turns a passing test red, or drops coverage of a line no other test reaches, it undoes that change and reports it. It then offers a short testing rule for `AGENTS.md`, `CLAUDE.md` or a Cursor rule, and the `forbidOnly` or `allowOnly` setting where the stack has one.
+
+`--fix` applies the high-confidence findings without asking, for unattended runs, and only when the baseline ran. It leaves rewrites and anything that waits on a question in the report. The detection rules are in [`test-rules.md`](skills/slop-tests/test-rules.md).
+
+The agent also runs the skill when you ask it to prune or clean up low-value tests.
+
+#### Usage
+
+```
+/slop-tests
+/slop-tests src/billing/
+/slop-tests all --verify
+/slop-tests "tests/**/*.py" --fix
+```
+
 ### `/slop-rebuild`
 
 Rebuilds a feature an agent just implemented, the way the prompt "Knowing everything you know now, scrap this and implement the elegant solution" asks for, but without losing the first version. By default it covers every file the current branch changed since the default branch, plus uncommitted changes. Pass a path or glob to narrow it, or `--base <ref>` to set where the feature started. `--base HEAD` covers only the uncommitted changes. The first working version often keeps abstractions, helpers and layers the agent added while it was still learning the problem.
@@ -147,6 +181,7 @@ The agent also runs the skill when you ask it to unslop, polish or redesign a sc
 
 ### Related plugins
 
+- `/improve-audit` ([ai-improve](../ai-improve/)) reports test coverage gaps and plans the tests that are missing. `/slop-tests` removes and repairs the tests that are there.
 - `/modernize-audit` ([ai-modernize](../ai-modernize/)) covers the rest of the code: anti-patterns and technical debt left by older AI-generated code.
 - `/accessibility-audit` ([ai-accessibility](../ai-accessibility/)) runs a full WCAG audit. `/slop-design` checks only the contrast, labels, touch targets and text scaling of the screen it changes.
 
@@ -171,8 +206,8 @@ Cursor: add this repository as a team marketplace, or copy this folder to `~/.cu
 ## Plugin details
 
 - **Name:** AI-Slop Plugin
-- **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-rebuild`, `/slop-design`
-- **Version:** 1.3.1
+- **Skills:** `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-tests`, `/slop-rebuild`, `/slop-design`
+- **Version:** 1.4.0
 - **License:** MIT
 - **Author:** Charles Jones
 

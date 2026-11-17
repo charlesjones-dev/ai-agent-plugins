@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.12.0] - 2026-11-17
+
+### Added
+
+#### AI-Slop Plugin (v1.3.1 → v1.4.0)
+
+- **`/slop-tests`** — finds tests that can't catch a bug and plans which to delete, fix or rewrite. By default it reviews the tests the branch adds or changes, or a path, glob or `all`. It sorts each test into change detectors (large structural snapshots, mock-call-only assertions, private internals, brittle selectors, tests that mock everything or copy the code), tests that check a removed feature is gone (confirmed with `git log -S`), and tests that can never fail (no assertion, tautologies, mock echoes, swallowed errors, unawaited assertions, empty tables, skips and `.only`). It runs the suite before changing anything, checks that another test still covers each behavior before a delete, and plans a fix instead of a delete for a broken test that guards real behavior. `--verify` confirms uncertain findings by breaking or refactoring the code in a scratch worktree. It changes nothing until the user answers, and `--fix` applies only high-confidence findings. After each batch it runs the suite and undoes a change that turns a passing test red or drops coverage. It ends by offering a testing rule for the agent instructions file. Its checklist covers Vitest, Jest, Playwright, pytest, XCTest, Swift Testing and Go.
+
+### Changed
+
+- Marketplace metadata version bumped `3.11.1` → `3.12.0`.
+
 ## [3.11.1] - 2026-11-14
 
 ### Fixed
@@ -1852,7 +1864,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...HEAD
+[3.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...v3.12.0
 [3.11.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...v3.11.1
 [3.11.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...v3.11.0
 [3.10.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.9.1...v3.10.0
