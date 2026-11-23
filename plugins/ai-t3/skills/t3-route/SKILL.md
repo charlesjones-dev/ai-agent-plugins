@@ -46,7 +46,7 @@ Read `~/.claude/model-router/config.json`. If it doesn't exist, copy `${CLAUDE_S
 | `cacheDays` | `30` | Research a model again when its cache file is older than this. |
 | `balancedMargin` | `3` | Points of score that `balanced` gives up to save cost and time. |
 | `costMargin` | `10` | Points of score that `cost` gives up to save cost. |
-| `preferOtherProviders` | `false` | When two picks are within the margin, prefer a provider other than this thread's. Turn it on to spread work across subscriptions. |
+| `preferOtherProviders` | `false` | When candidates are within the margin, prefer a provider other than this thread's. See [Scores](#scores). Turn it on to spread work across subscriptions. |
 | `minOwnOutcomes` | `3` | How many of your own results for one kind of task a model needs before they outweigh benchmarks. |
 | `sites` | four sites | The benchmark sites, each with `name`, `url`, `fetch` (`web` or `browser`) and `notes`. Add or remove sites here. |
 
@@ -62,11 +62,11 @@ These instructions name the tools without a prefix. Other harnesses may also lac
 
 ## 1. List the models
 
-1. Call `orchestrator_capabilities`. Keep each provider that is enabled and has `canRunChildTask: true`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time.
+1. Call `orchestrator_capabilities`. Keep each provider that has `canRunChildTask: true` and no "disabled" entry in its `constraints`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time.
 2. The result is a short list. When the task clearly needs a model the list leaves out, such as a model the user named, call it again with `search`.
-3. Record each provider's `providerInstanceId`, `driverKind`, `displayName`, and each model's `id`, `label` and options with their allowed values and default. The same model can come from several providers with different option ranges. For example, one provider may allow `max` effort and another only `high`.
-4. Find the effort option for each model. Its `id` is `effort`, `reasoningEffort`, `reasoning_effort` or `thought_level`. Benchmark sites name efforts `low`, `medium`, `high`, `xhigh` and `max`. Leave values outside that set, such as `default`, `ultrathink` or an `ultracode` switch, at the provider's default.
-5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `instanceId`, `model` and effort. "Stay" means the work runs on this model.
+3. Record each provider's `providerInstanceId`, `driverKind`, `displayName`, and each model's `id`, `label` and options with their allowed values and default. Some options list no default. The same model can come from several providers with different option ranges. For example, one provider may allow `max` effort and another only `high`.
+4. Find the effort option for each model. Its `id` is `effort`, `reasoningEffort`, `reasoning_effort` or `thought_level`. Benchmark sites name efforts `low`, `medium`, `high`, `xhigh` and `max`. Rank only those five. Never pick a value outside that set, such as `default` or `ultrathink`, and leave other switches, such as `ultracode`, as they are. A model with no effort option runs without one.
+5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `modelSelection.instanceId`, `modelSelection.model` and the effort option in `modelSelection.options`. "Stay" means the work runs on this model.
 
 Never list models from memory, from an old cache file or from these instructions. Only `orchestrator_capabilities` says what is available.
 
@@ -74,7 +74,7 @@ Never list models from memory, from an old cache file or from these instructions
 
 Only Claude Code loads `~/.claude/CLAUDE.md`. `references/harnesses.md` lists, for each harness, the rules file it loads, its size cap and where the rules pointer goes.
 
-For each kept provider, find its profile by `driverKind`:
+For each distinct `driverKind` among the kept providers, find its profile. Two providers with the same `driverKind` share one pointer file, so check it once:
 
 - **Claude Code**: nothing to do.
 - **No profile**: say "No harness profile for <displayName> (<driverKind>)". Don't guess a path. Its models can still be options, with the warning "may not load your rules", but never the recommended pick.
@@ -91,6 +91,8 @@ Never change text outside the router's markers.
 ## 3. Check the cache
 
 For each model on the list, look for `~/.claude/model-router/models/<model-id>.md`. A model needs research when it has no file, or its `researched` date is more than `cacheDays` old. `--refresh` marks every model for research.
+
+A provider can rename a model's ID. When a model has no file but another file has the same `label`, research the new ID anyway, and name both files in the report so the user can remove the old one. Never delete a cache file yourself, because a model can come back and its file holds the user's observations.
 
 ## 4. Research the gaps
 
@@ -110,14 +112,16 @@ Put the task in one category, and say which in the reply. Each category maps to 
 
 | Category | Examples | LiveBench | Arena | Artificial Analysis and Slopalytics |
 | --- | --- | --- | --- | --- |
-| Agentic | Long multi-step work across many files, runs that last hours | Agentic | Agent Arena Index | Intelligence Index |
-| Coding | A bug fix, a feature, a refactor, tests | Coding | Coding index | Intelligence Index |
-| Design | A web page, a UI, a slide layout | Design | WebDev | Intelligence Index |
-| Research | A report, a comparison, docs to read and sum up | Research | Search | Intelligence Index |
-| Data analysis | Numbers, tables, logs, spreadsheets | Data Analysis | none | Intelligence Index |
-| Reasoning | A plan, a hard bug to think through, math | Reasoning | Text | Intelligence Index |
-| Browser use | Work done in a web browser | Browser Use | none | Intelligence Index |
-| General | Writing, short questions, anything else | Overall | Text | Intelligence Index |
+| Agentic | Long multi-step work across many files, runs that last hours | Agentic | Agent Arena Index | Intelligence index |
+| Coding | A bug fix, a feature, a refactor, tests | Coding | Coding Index | Intelligence index |
+| Design | A web page, a UI, a slide layout | Design | WebDev | Intelligence index |
+| Research | A report, a comparison, docs to read and sum up | Research | Search | Intelligence index |
+| Data analysis | Numbers, tables, logs, spreadsheets | Data Analysis | none | Intelligence index |
+| Reasoning | A plan, a hard bug to think through, math | Reasoning | Text | Intelligence index |
+| Browser use | Work done in a web browser | Browser Use | none | Intelligence index |
+| General | Writing, short questions, anything else | Overall | Text | Intelligence index |
+
+The cache files use these metric names. Match them without regard to case, because older files may spell them differently.
 
 ### Hard filters
 
@@ -130,19 +134,23 @@ A harness that doesn't load the user's rules stays in, with its warning, but can
 
 ### Scores
 
-1. **Follow `sameAs`.** A cache file with `sameAs` takes its scores from that model's file.
-2. **Pick the main site** for the category: the site whose metric covers the most candidates. Compare scores from one site only, because each site uses its own scale. Use the other sites to confirm or to break ties.
-3. **Pick the model** with the effort setting:
+1. **Follow `sameAs`.** A cache file with `sameAs` takes its scores, its `confidence` and any vendor fact it lacks, such as the context window, from that model's file.
+2. **Pick the main site** for the category: the site whose category metric scores the most candidate models. A model that takes its scores through `sameAs` counts. Compare category scores from one site only, because each site uses its own scale. Use the other sites to confirm or to break ties.
+3. **Pick an effort for each candidate model on each provider.** Use the per-effort Intelligence index from Slopalytics, or from Artificial Analysis when Slopalytics lacks the model. Consider only the efforts that provider allows and that have data:
+   - `quality`: the highest effort that still adds at least one point over the next lower effort.
+   - `balanced`: the lowest effort within `balancedMargin` points of the best of those efforts. Skip extra effort that adds only a point or two.
+   - `cost`: the lowest effort within `costMargin` points of the best.
+   - When no allowed effort has data, use the highest allowed effort for `quality`. For `balanced` and `cost`, use the provider's default when it is one of the five benchmark efforts, otherwise the allowed effort nearest to `medium`, taking the higher one on a tie.
+4. **Pick a provider for each model** that several providers offer. Prefer the one whose effort from step 3 has the higher Intelligence index, then the one that loads the user's rules, then, with `preferOtherProviders`, one other than this thread's provider. Each model now has one provider and one effort.
+5. **Pick the model** with the effort setting. A model's category score is the main site's score at its effort. When the site gives no score at that effort, use its `unspecified` score, or else its score at the nearest effort the site gives.
    - `quality`: the highest category score, whatever it costs.
-   - `balanced`: take every model within `balancedMargin` points of the best category score. Of those, pick the one with the lowest cost per task, and the shorter time per task on a tie.
+   - `balanced`: take every model within `balancedMargin` points of the best category score. With `preferOtherProviders`, drop the models on this thread's provider, if any model in the group remains. Of the rest, pick the one with the lowest cost per task, and the shorter time per task on a tie.
    - `cost`: the same, with `costMargin`.
-4. **Pick the effort** from the per-effort data (Slopalytics or Artificial Analysis), within the efforts that provider allows:
-   - `quality`: the highest effort that still adds at least one point.
-   - `balanced`: the lowest effort within `balancedMargin` points of the model's best effort score on that provider. Skip extra effort that adds only a point or two.
-   - `cost`: the lowest effort within `costMargin` points.
-   - With no per-effort data, use the provider's default effort for `balanced` and `cost`, and the highest allowed effort for `quality`.
-5. **Pick the provider** when several offer the chosen model: the one whose effort range includes the chosen effort, then the one that loads the user's rules, then, with `preferOtherProviders`, one other than this thread's provider.
-6. **Apply the user's own results.** Read the model's "Own observations" and its rows in `log.md` for this category. A reroute away from a model counts as a bad result for it. A note counts as good, bad or neutral by what it says. When a model has at least `minOwnOutcomes` good or bad results in this category, they outweigh benchmarks: move it above or below the others to match. With fewer, mention them in the reasoning only.
+   - Cost and time per task come from Slopalytics at the model's effort, or from Artificial Analysis when Slopalytics lacks the model. When a model in the group lacks those figures, compare the whole group on LiveBench's `Cost per successful task (USD)` instead. LiveBench has no time per task, so its cost decides alone. When no source covers the whole group, pick the higher category score and say that cost data was missing.
+6. **Apply the user's own results.** Count them per category:
+   - A log row is a bad result for its `Pick` in its `Category` when a later row names its run in `Reroute of`. Every other log row is neutral, because a run that wasn't rerouted may still have gone badly.
+   - A note in "Own observations" counts as good, bad or neutral by what it says. It counts for the category it names, or for every category when it names none.
+   - When a model has at least `minOwnOutcomes` good or bad results in this category, they outweigh benchmarks: move it above or below the others to match. With fewer, mention them in the reasoning only.
 7. **Weigh confidence.** A model with `confidence: low`, such as one on no leaderboard, can be an option but not the recommended pick, unless the user's own results support it.
 
 ### Mode
@@ -157,7 +165,7 @@ Pick one mode for each option:
 
 ### Ask mode
 
-Take the top pick and the next two best candidates that differ from it by model or provider. Where one passes the filters, include at least one option from another provider. Ask one question with AskUserQuestion:
+Take the top pick and the next two best candidates that differ from it by model or provider. When a candidate on a provider other than the top pick's passes the filters, include at least one such option. Ask one question with AskUserQuestion:
 
 - Question: "Which model should take this task? <category>, effort setting <setting>." Header: "Route".
 - Up to three options. The tool adds "Other" by itself.
@@ -189,9 +197,11 @@ Routed by /t3-route, run <run ID>.
 
 The run ID is the date and time, such as `20261123-1405`. The last line lets a later `/t3-route` in that thread find this run.
 
-- **stay**: say so in one line, then do the task in this thread.
-- **new thread**: call `t3_thread_launch` with a short `title`, the brief as `message`, `modelSelection` set to `{ "instanceId": <providerInstanceId>, "model": <model id>, "options": [{ "id": <effort option id>, "value": <effort> }] }`, and `clientRequestId` set to `t3-route-<run ID>`. Leave out `projectId`, so the thread joins this project. If the working folder is a git worktree (`git rev-parse --git-dir` differs from `git rev-parse --git-common-dir`), pass `workspaceStrategy` `{ "type": "existing_worktree", "worktreePath": <the worktree's top folder> }`, so the thread works in the same checkout. Otherwise leave `workspaceStrategy` out. Give the user the thread's `link`.
-- **child task**: call `delegate_task` with the brief as `task`, the closest `role`, `target` set to `{ "providerInstanceId", "model", "options" }`, and a new `clientRequestId`. Use `isolation: "worktree"` when the child will change files, so its edits don't mix with this thread's. Then follow the `next` field the tool returns.
+`options` below is `[{ "id": <effort option id>, "value": <effort> }]`. Leave it out for a model with no effort option.
+
+- **stay**: say so in one line that ends with "Routed by /t3-route, run <run ID>.", then do the task in this thread.
+- **new thread**: call `t3_thread_launch` with a short `title`, the brief as `message`, `modelSelection` set to `{ "instanceId": <providerInstanceId>, "model": <model id>, "options": <options> }`, and `clientRequestId` set to `t3-route-<run ID>`. Leave out `projectId`, so the thread joins this project. Check whether the working folder is in a linked git worktree: compare `git rev-parse --path-format=absolute --git-dir` with `git rev-parse --path-format=absolute --git-common-dir`. Without `--path-format=absolute`, a subfolder of the main checkout prints one path in full and the other relative, so they differ there too. When the two paths differ, pass `workspaceStrategy` `{ "type": "existing_worktree", "worktreePath": <the output of git rev-parse --show-toplevel> }`, so the thread works in the same checkout. Otherwise leave `workspaceStrategy` out. Give the user the thread's `link`.
+- **child task**: call `delegate_task` with the brief as `task`, the closest `role`, `target` set to `{ "providerInstanceId": <providerInstanceId>, "model": <model id>, "options": <options> }`, and a new `clientRequestId`. Use `isolation: "worktree"` when the child will change files, so its edits don't mix with this thread's. Then follow the `next` field the tool returns.
 
 ## 7. Log the run
 
@@ -206,15 +216,15 @@ Add one row to `~/.claude/model-router/log.md`. Create the file with this header
 - `Pick` and `Recommended`: provider, model and effort, such as `<provider>/<model>/high`.
 - `Overrode`: `yes` when the user chose something other than the recommendation, otherwise `no`.
 - `Reason`: one line, with the main score.
-- `Reroute of`: when this thread's first message ends with "Routed by /t3-route, run <ID>", or the user says this is the same task as an earlier run, the earlier run's ID. Otherwise leave it empty.
+- `Reroute of`: the earlier run's ID, when this run routes the same task again. That is the case when the user says so, or when this thread holds "Routed by /t3-route, run <ID>" and the task is the one that run routed. A `new thread` or `child task` run puts the line at the end of the thread's first message, and a `stay` run puts it in a reply. A new, different task in a routed thread is not a reroute. Otherwise leave the cell empty.
 
-A reroute is the strongest signal the router gets. It means the first pick didn't work out for that task.
+A reroute is the strongest signal the router gets. It means the first pick didn't work out for that task. [Rank](#5-rank) counts it as a bad result for the earlier run's pick.
 
 ## --note
 
 `/t3-route --note <model> <text>` records an observation:
 
-1. Match `<model>` against the model IDs and labels from `orchestrator_capabilities`, then against the cache files' `aliases`. If more than one matches, ask which one.
+1. Load T3 Code's tools as step 0 says, and call `orchestrator_capabilities`. Match `<model>` against the model IDs and labels of every provider, including disabled ones, then against the cache files' names and `aliases`. If more than one matches, ask which one. If none matches, say so and stop.
 2. Add `- <YYYY-MM-DD>: <text>` at the end of the "Own observations" section of that model's cache file. If the file doesn't exist, create it with the frontmatter, an empty Benchmarks table and the note, and leave `researched` empty so the next run researches it.
 3. Confirm in one line. Don't route anything.
 
@@ -226,4 +236,5 @@ End with:
 - the pick, its mode, and the link to the new thread or child task,
 - the rules files you changed, with their backups,
 - the models you researched, and any site that failed,
+- any two cache files that share a label, from [Check the cache](#3-check-the-cache),
 - any provider you skipped, and why.
