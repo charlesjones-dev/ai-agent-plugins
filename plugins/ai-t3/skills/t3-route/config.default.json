@@ -1,0 +1,36 @@
+{
+  "mode": "ask",
+  "effort": "balanced",
+  "syncRules": "ask",
+  "cacheDays": 30,
+  "balancedMargin": 3,
+  "costMargin": 10,
+  "preferOtherProviders": false,
+  "minOwnOutcomes": 3,
+  "sites": [
+    {
+      "name": "Artificial Analysis",
+      "url": "https://artificialanalysis.ai/leaderboards/models",
+      "fetch": "web",
+      "notes": "Server-rendered. Intelligence Index, cost per task, time per task, time to first token and context window. The effort level is part of the model name. The page is long, so a fetch may be cut off."
+    },
+    {
+      "name": "Arena",
+      "url": "https://arena.ai/leaderboard",
+      "fetch": "web",
+      "notes": "Server-rendered, but a plain fetch may return only the top rows. Agent Arena Index, Work, Coding and Alignment indexes, and category boards (Text, WebDev, Search, Vision). The effort level is in parentheses after the name."
+    },
+    {
+      "name": "Slopalytics",
+      "url": "https://slopalytics.com/",
+      "fetch": "browser",
+      "notes": "JavaScript only. Shows Artificial Analysis data for each effort level. Each chart point has an aria-label such as 'Model, high, Cost per task $3.46, Intelligence index 51.8'. Counts as the same source as Artificial Analysis."
+    },
+    {
+      "name": "LiveBench",
+      "url": "https://livebench.ai/",
+      "fetch": "browser",
+      "notes": "JavaScript only. The page text holds one row per model: Overall, Agentic, Design, Coding, Browser Use, Data Analysis, Research and Reasoning, then cost per successful task. Most rows give no effort level."
+    }
+  ]
+}

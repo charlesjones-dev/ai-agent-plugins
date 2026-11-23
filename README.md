@@ -1,10 +1,10 @@
 # AI Agent Plugins
 
-[![Version](https://img.shields.io/badge/version-3.12.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
+[![Version](https://img.shields.io/badge/version-3.13.0-blue.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/charlesjones-dev/ai-agent-plugins.svg)](https://github.com/charlesjones-dev/ai-agent-plugins/stargazers)
 
-Plugins for git and project workflows, code audits and release checks. All 15 run in Claude Code, and 9 of them also run in Codex and Cursor. Each plugin adds its own commands, so install only the ones you need.
+Plugins for git and project workflows, code audits and release checks. All 16 run in Claude Code, and 9 of them also run in Codex and Cursor. Each plugin adds its own commands, so install only the ones you need.
 
 > **Coming from `claude-code-plugins-dev`?** Version 3.0.0 renamed the repository and the marketplace. Your current install keeps working. See [Moving from claude-code-plugins-dev](#moving-from-claude-code-plugins-dev) to switch to the new name.
 
@@ -28,9 +28,10 @@ Most skills are commands you run by name, such as `/git-init` in Claude Code and
 | [ai-slop](plugins/ai-slop/) | Audits user-facing copy, layouts and metadata for AI-written tells and factual errors, such as a privacy policy that misses the trackers the code loads. It also redesigns one screen that looks AI-generated, rewrites text to remove AI writing patterns, prunes comments that narrate the code and tests that can't catch a bug, and rebuilds an agent's feature as a simpler second version | `/slop-audit`, `/slop-rewrite`, `/slop-comments`, `/slop-tests`, `/slop-rebuild`, `/slop-design` | Claude Code, Codex, Cursor |
 | [ai-statusline](plugins/ai-statusline/) | Adds progress bars, rate-limit widgets, a month-to-date spend budget for accounts without rate limits, and effort-level and sandbox indicators to Claude Code's native `/statusline` | `/statusline-wizard`, `/statusline-edit` | Claude Code |
 | [ai-swift](plugins/ai-swift/) | Swift/iOS/macOS release checks that catch Xcode Cloud and TestFlight blockers before upload | `/swift-preflight`, `/swift-diagnose`, `/swift-ci-scaffold`, `/swift-verify`, `/swift-concurrency-review` | Claude Code, Codex, Cursor |
+| [ai-t3](plugins/ai-t3/) | Picks the best model and effort that T3 Code can run for a task, from benchmark scores that match the kind of task, vendor docs and your own past results, and starts the work in this thread, a new thread or a child task. It also keeps a rules pointer so Grok and Antigravity threads follow your CLAUDE.md | `/t3-route` | Claude Code (in T3 Code) |
 | [ai-workflow](plugins/ai-workflow/) | An unattended run that takes a branch through Claude Code, Codex and Cursor Bugbot review, merge and deploy, or stops when the PR is ready to merge. It also runs review loops with models from several providers, takes over other people's PRs and refreshes stale ones. `workflow-pr-comments` runs on its own and formats every PR comment the agent posts for you | `/workflow-babysit`, `/workflow-council`, `/workflow-takeover`, `/workflow-refresh` | Claude Code |
 
-The Claude Code-only plugins depend on Claude Code subagents, settings files, rules, the status line or CLAUDE.md.
+The Claude Code-only plugins depend on Claude Code subagents, settings files, rules, the status line, CLAUDE.md or T3 Code's tools.
 
 The audit skills take their settings as arguments, so a scheduled or unattended run doesn't stop to ask. For example, `/accessibility-audit 2.2 AA src/`, `/modernize-audit src --defaults`, `/seo-audit geo`, `/improve-audit quick --top 3` or `/swift-preflight --check-only`. In Claude Code, `/security-audit` can also split its review between parallel `security-auditor` subagents.
 
