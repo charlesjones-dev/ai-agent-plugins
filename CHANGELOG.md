@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.13.1] - 2026-11-23
+
+### Fixed
+
+#### AI-T3 Plugin (v1.0.0 → v1.0.1)
+
+`/t3-route` had steps that contradicted each other or couldn't be followed as written. A review found them while it ran the command on its own files.
+
+- **Ranking order** — the router now picks an effort for each model on each provider first, then a provider for each model, then the model. Before, the effort step needed a provider that only a later step picked.
+- **Cost and time** — `balanced` and `cost` now compare cost and time per task from Slopalytics, or from Artificial Analysis when Slopalytics lacks the model, at the chosen effort. When a model in the group lacks those figures, they compare LiveBench's cost per successful task instead. Before, the step didn't say which site's cost to use, and LiveBench has no time per task.
+- **Effort without data** — an allowed effort that no site scores is skipped. When no allowed effort has data, `balanced` and `cost` fall back to the provider's default, or to the effort nearest `medium` when the default isn't a benchmark effort or is missing.
+- **`sameAs` models** — a model that the vendor says is the same as another now takes that model's confidence too. Before, it took the scores but kept `confidence: low`, so it could never be the recommended pick.
+- **Worktree check** — a new thread now detects a linked worktree with `git rev-parse --path-format=absolute`, and takes its folder from `--show-toplevel`. Before, a subfolder of the main checkout looked like a worktree.
+- **`preferOtherProviders`** — it now works as its description says. In `balanced` and `cost` it prefers a provider other than the thread's among the models within the margin. Before, it applied only when several providers offered the same model.
+- **Reroutes and your own results** — a `stay` run now writes its "Routed by" line in a reply, so a reroute after it is found. A new, different task in a routed thread no longer counts as a reroute. A log row is a bad result only when a later run reroutes it, and every other row is neutral. A note counts for the category it names, or for every category when it names none.
+- **Smaller fixes** — the router keeps providers by `canRunChildTask` and the "disabled" constraint, because the model list has no "enabled" field. It checks each harness's pointer file once, even when two providers share a harness. It reports a model whose ID changed, and never deletes the old cache file. `--note` loads T3 Code's tools first and matches models on disabled providers too. "Another provider" in ask mode now means a provider other than the top pick's. Metric names now use the same spelling in every file, and the router matches them without regard to case. The Antigravity source note names the page that holds each fact.
+
+### Changed
+
+- Marketplace metadata version bumped `3.13.0` → `3.13.1`.
+
 ## [3.13.0] - 2026-11-23
 
 ### Added
@@ -1878,7 +1899,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.1...HEAD
+[3.13.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.0...v3.13.1
 [3.13.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...v3.13.0
 [3.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...v3.12.0
 [3.11.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...v3.11.1

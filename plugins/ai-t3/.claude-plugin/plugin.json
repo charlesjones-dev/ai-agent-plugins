@@ -1,6 +1,6 @@
 {
   "name": "ai-t3",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Routes a task to the best available T3 Code model and effort, ranked by cached benchmark scores, vendor docs and your own past results, then starts it in this thread, a new thread or a child task. Adds a rules pointer so Grok and Antigravity threads follow your Claude Code rules",
   "author": {
     "name": "Charles Jones",

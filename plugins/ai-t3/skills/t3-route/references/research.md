@@ -42,14 +42,14 @@ confidence: high | medium | low
 
 - Use these metric names and units, so the router can compare files:
   - Artificial Analysis and Slopalytics: `Intelligence index`, `Cost per task (USD)`, `Time per task (min)` and `Time to first answer token (s)`.
-  - Arena: `Agent Arena Index`, `Work index`, `Coding index`, `Alignment index`, or the board name for a category board, such as `WebDev`. Its cost and time per task go under the Artificial Analysis names above.
+  - Arena: `Agent Arena Index`, `Work Index`, `Coding Index`, `Alignment Index`, or the board name for a category board, such as `WebDev`. Its cost and time per task go under the Artificial Analysis names above.
   - LiveBench: `Overall`, `Agentic`, `Design`, `Coding`, `Browser Use`, `Data Analysis`, `Research`, `Reasoning` and `Cost per successful task (USD)`.
   - Times in minutes with one decimal. Convert "5m 24s" to 5.4.
 - When two sites disagree on the same metric, keep both rows. The router compares within one site.
 - Store numbers, never relative claims such as "best at coding". The summary may rank, but each rank cites a number from the table.
 - `Effort` is the level the site names: `low`, `medium`, `high`, `xhigh` or `max`. Write `unspecified` when the site gives none.
 - `confidence`: `high` when two or more independent sites have scores, `medium` with one, and `low` with none. The Intelligence index counts as a score. Slopalytics and Artificial Analysis count as one source.
-- `sameAs`: when the vendor's own docs say this ID is the same model as another ID, such as a version for verified organizations or the same model on faster servers, set `sameAs` to that ID and add each ID to the other file's `aliases`. Don't copy the scores. The router reads them from the other file. Name the vendor page under Vendor facts. Without such a statement from the vendor, treat the IDs as different models.
+- `sameAs`: when the vendor's own docs say this ID is the same model as another ID, such as a version for verified organizations or the same model on faster servers, set `sameAs` to that ID and add each ID to the other file's `aliases`. Don't copy the scores. The router reads the scores and the `confidence` from the other file, so this file's own `confidence` is `low`. Name the vendor page under Vendor facts. Without such a statement from the vendor, treat the IDs as different models.
 - A model on no leaderboard, such as an automatic model picker or a provider's own orchestrator, gets no table, the line "No benchmark data." under Benchmarks and under both Summary lines, and `confidence: low`.
 - A limit that one provider sets, such as a smaller context window in one harness, is a harness fact. Leave it out, and record the vendor's own figure.
 - On a refresh, replace every section except "Own observations". Copy that section into the new file word for word.

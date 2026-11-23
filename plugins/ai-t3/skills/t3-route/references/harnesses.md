@@ -56,7 +56,7 @@ Some rules name Claude Code tools. Where you lack that tool, follow the rule's i
   ```
 
 - Tools: its own MCP servers in `~/.gemini/config/mcp_config.json`. It doesn't load Claude Code plugins unless the user installs one with `agy plugin install`.
-- Source: the built-in `agy-customizations` skill under `~/.gemini/antigravity-cli/builtin/skills/`, its `docs/rules.md` page.
+- Source: the built-in `agy-customizations` skill under `~/.gemini/antigravity-cli/builtin/skills/`. Its `docs/rules.md` page gives the size caps, and its `SKILL.md` gives the `trigger: always_on` frontmatter.
 
 ## Codex CLI
 

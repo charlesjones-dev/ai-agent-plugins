@@ -12,13 +12,13 @@
       "name": "Artificial Analysis",
       "url": "https://artificialanalysis.ai/leaderboards/models",
       "fetch": "web",
-      "notes": "Server-rendered. Intelligence Index, cost per task, time per task, time to first token and context window. The effort level is part of the model name. The page is long, so a fetch may be cut off."
+      "notes": "Server-rendered. Intelligence index, cost per task, time per task, time to first token and context window. The effort level is part of the model name. The page is long, so a fetch may be cut off."
     },
     {
       "name": "Arena",
       "url": "https://arena.ai/leaderboard",
       "fetch": "web",
-      "notes": "Server-rendered, but a plain fetch may return only the top rows. Agent Arena Index, Work, Coding and Alignment indexes, and category boards (Text, WebDev, Search, Vision). The effort level is in parentheses after the name."
+      "notes": "Server-rendered, but a plain fetch may return only the top rows. Agent Arena Index, Work Index, Coding Index and Alignment Index, and category boards (Text, WebDev, Search, Vision). The effort level is in parentheses after the name."
     },
     {
       "name": "Slopalytics",

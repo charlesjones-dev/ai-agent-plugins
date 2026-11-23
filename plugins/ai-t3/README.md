@@ -103,8 +103,8 @@ The router keeps its data in `~/.claude/model-router/`, on your machine only:
 
 | Site | Read with | Gives |
 | --- | --- | --- |
-| [Artificial Analysis](https://artificialanalysis.ai/leaderboards/models) | Web fetch | Intelligence Index, cost and time per task, context window |
-| [Arena](https://arena.ai/leaderboard) | Web fetch | Agent Arena Index, Coding index and category boards |
+| [Artificial Analysis](https://artificialanalysis.ai/leaderboards/models) | Web fetch | Intelligence index, cost and time per task, context window |
+| [Arena](https://arena.ai/leaderboard) | Web fetch | Agent Arena Index, Coding Index and category boards |
 | [Slopalytics](https://slopalytics.com/) | Claude in Chrome | Artificial Analysis data for each effort level |
 | [LiveBench](https://livebench.ai/) | Claude in Chrome | Overall and seven category scores, cost per successful task |
 
@@ -125,7 +125,7 @@ Slopalytics and LiveBench need JavaScript, so the research subagent reads them i
 ## Plugin details
 
 - **Name:** AI-T3
-- **Version:** 1.0.0
+- **Version:** 1.0.1
 - **License:** MIT
 - **Author:** Charles Jones
 
