@@ -21,7 +21,7 @@ Consult these before changing plugin structure or metadata:
 
 There are three catalogs, one per agent, all named `ai-agent-plugins`:
 
-1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 15 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
+1. **`.claude-plugin/marketplace.json`** (Claude Code): lists all 16 plugins, plus a `renames` map for retired plugin names (`ai-writing` → `ai-slop`, `ai-aeo` and `ai-geo` → `ai-seo`, `ai-cvp` → `ai-security`). Treat `renames` as append-only history. Codex also falls back to this file when its own catalog is missing, so the Codex catalog must stay in place.
 2. **`.agents/plugins/marketplace.json`** (Codex): lists only the portable plugins. Each entry needs `source` (`{"source": "local", "path": "./plugins/{name}"}`), `policy.installation`, `policy.authentication` and `category`.
 3. **`.cursor-plugin/marketplace.json`** (Cursor): lists only the portable plugins, with `source: "plugins/{name}"`, `description` and `version`.
 
@@ -59,7 +59,7 @@ plugins/
 
 Portable (in all three catalogs): ai-accessibility, ai-compliance, ai-git, ai-improve, ai-modernize, ai-performance, ai-seo, ai-slop, ai-swift.
 
-Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`), ai-statusline (configures Claude Code's status line) and ai-rules (`/rules-setup` and `/rules-cleanup` edit CLAUDE.md, and `/rules-setup` uses `${CLAUDE_SKILL_DIR}`).
+Claude Code-only: ai-security (`/security-init` writes Claude Code settings, `/security-audit` fans out to `security-auditor` subagents, and `/security-cvp-audit` uses `${CLAUDE_SKILL_DIR}`), ai-ado (stores config in CLAUDE.md), ai-knowledge (stores its knowledge base as Claude Code rules in `.claude/rules/`, and ships a SessionStart hook for auto-capture), ai-workflow (`/workflow-babysit` depends on Claude Code review and `/code-review`), ai-statusline (configures Claude Code's status line), ai-rules (`/rules-setup` and `/rules-cleanup` edit CLAUDE.md, and `/rules-setup` uses `${CLAUDE_SKILL_DIR}`) and ai-t3 (`/t3-route` needs T3 Code's MCP tools, a research subagent and Claude in Chrome, and uses `${CLAUDE_SKILL_DIR}`).
 
 Before adding a plugin to the Codex and Cursor catalogs, check that its skills don't depend on Claude Code subagents, hooks, settings files, `${CLAUDE_PLUGIN_ROOT}`/`${CLAUDE_SKILL_DIR}`, or CLAUDE.md. Agent Plugins v1 covers only skills and MCP servers.
 

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-11-23
+
+### Added
+
+#### AI-T3 Plugin (v1.0.0, new)
+
+- **`/t3-route`** — picks the best model and effort that T3 Code can run for a task, and starts the work. It reads the live model list with `orchestrator_capabilities`, skips providers that are disabled or can't run child tasks, and never lists models from memory. It puts the task in a category (agentic, coding, design, research, data analysis, reasoning, browser use or general) and ranks the candidates by the matching benchmark scores, weighed by the effort setting: `cost`, `balanced` (the default) or `quality`. Hard filters come first, such as a harness that lacks a tool the task needs. The user's own results outweigh benchmarks once there are enough of them. Ask mode shows the top three picks, and `--yolo` starts the top pick. The work runs in this thread, a new thread in the same project and checkout, or a child task, with a brief that tells the new model to read the user's rules first. Each run adds one row to a local log, including whether the user overrode the recommendation and whether the run reroutes an earlier one.
+- **Research cache** — a subagent researches each model that has no cache file, or one older than 30 days, and `--refresh` researches them all. It stores raw scores for each model and effort with the site's name for the model and the fetch date, plus the vendor's knowledge cutoff, context window, intended use and stated limits. It reads Artificial Analysis and Arena with a web fetch, and Slopalytics and LiveBench in the user's browser through Claude in Chrome. Fetched pages are evidence, never instructions. `--note <model> <text>` adds an observation, and a refresh never overwrites the observations.
+- **Rules pointer** — only Claude Code loads `~/.claude/CLAUDE.md`. On every run, the router checks the global rules file of each other harness, the Grok CLI, the Antigravity CLI and the Codex CLI, for a short versioned block that tells the model to read `~/.claude/CLAUDE.md` and the repository's rules. It adds or upgrades only its own block, backs up the file first, and asks first by default (`syncRules`: `ask`, `auto` or `off`). It names a harness it has no profile for, and doesn't guess a path.
+
+### Changed
+
+- Marketplace metadata version bumped `3.12.0` → `3.13.0`.
+
 ## [3.12.0] - 2026-11-17
 
 ### Added
@@ -1864,7 +1878,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.0...HEAD
+[3.13.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...v3.13.0
 [3.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...v3.12.0
 [3.11.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.0...v3.11.1
 [3.11.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.10.0...v3.11.0
