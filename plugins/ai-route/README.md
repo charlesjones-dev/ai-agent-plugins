@@ -1,8 +1,8 @@
-# AI-T3 plugin
+# AI-Route plugin
 
 Routes a task to the best model and effort that [T3 Code](https://github.com/pingdotgg/t3code) can run now, and starts the work on it.
 
-T3 Code runs models from several providers in one app. Picking one by hand for each task means checking leaderboards, remembering which effort levels each provider allows, and writing a new brief. `/t3-route` does that:
+T3 Code runs models from several providers in one app. Picking one by hand for each task means checking leaderboards, remembering which effort levels each provider allows, and writing a new brief. `/route-task` does that:
 
 - reads the live model list from T3 Code, so it never offers a model you can't run
 - ranks the models by benchmark scores that match the kind of task, such as coding, design or research, and caches the research for 30 days
@@ -15,14 +15,14 @@ It runs only in T3 Code, because it needs T3 Code's tools to list models and sta
 
 ## Available skills
 
-### `/t3-route`
+### `/route-task`
 
 ```text
-/t3-route <task>                                  # ask mode: top 3 picks, you choose
-/t3-route --yolo <task>                           # start the top pick with no question
-/t3-route --effort cost|balanced|quality <task>   # override the effort setting for one run
-/t3-route --refresh                               # research every available model again now
-/t3-route --note <model> <text>                   # add an observation to a model's cache file
+/route-task <task>                                  # ask mode: top 3 picks, you choose
+/route-task --yolo <task>                           # start the top pick with no question
+/route-task --effort cost|balanced|quality <task>   # override the effort setting for one run
+/route-task --refresh                               # research every available model again now
+/route-task --note <model> <text>                   # add an observation to a model's cache file
 ```
 
 The command runs only when you type it. It never routes a thread's first message by itself.
@@ -59,16 +59,16 @@ Only Claude Code loads `~/.claude/CLAUDE.md`. The Grok CLI reads its global rule
 The router writes a short block instead, at the end of each harness's global rules file:
 
 ```markdown
-<!-- t3-route: rules pointer v1 -->
+<!-- route-task: rules pointer v2 -->
 At the start of every session, read ~/.claude/CLAUDE.md in full and follow it.
 In a repository, also read its CLAUDE.md and .claude/rules/ before you plan or edit.
 Some rules name Claude Code tools. Where you lack that tool, follow the rule's intent with your own tools.
-<!-- /t3-route -->
+<!-- /route-task -->
 ```
 
 - It checks for the block on every run.
 - It backs up a file before it changes it, and never edits text outside its own markers.
-- When a new version of the block ships, it replaces only its own block.
+- When a new version of the block ships, it replaces only its own block. Version 2 replaces the version 1 block that ai-t3 wrote.
 - `syncRules` sets what it does when the block is missing: `ask` (the default), `auto` or `off`.
 - For a harness it has no profile for, it says so and doesn't guess a path.
 
@@ -121,13 +121,19 @@ Slopalytics and LiveBench need JavaScript, so the research subagent reads them i
 
 ```
 /plugin marketplace add charlesjones-dev/ai-agent-plugins
-/plugin install ai-t3@ai-agent-plugins
+/plugin install ai-route@ai-agent-plugins
 ```
+
+### Upgrading from ai-t3
+
+This plugin was named ai-t3, and its command was `/t3-route`, before version 2.0.0. The new names follow T3 Code's guidance for third-party tools. Claude Code moves your enabled setting to ai-route, but you still need to run `/plugin install ai-route@ai-agent-plugins` once.
+
+Your settings, research cache and log stay in `~/.claude/model-router/`. On its first run, `/route-task` replaces the old `t3-route` rules pointer in each harness's rules file with the new block.
 
 ## Plugin details
 
-- **Name:** AI-T3
-- **Version:** 1.1.0
+- **Name:** AI-Route
+- **Version:** 2.0.0
 - **License:** MIT
 - **Author:** Charles Jones
 

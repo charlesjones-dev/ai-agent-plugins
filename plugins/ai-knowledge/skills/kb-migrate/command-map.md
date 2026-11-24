@@ -33,6 +33,7 @@ The table below keeps this format, so a script can check it:
 | `ai-writing` | `ai-slop` | rename | Plugin merged into ai-slop in 3.0.0. Users install ai-slop once |
 | `ai-aeo`, `ai-geo` | `ai-seo` | rename | Plugins merged into ai-seo in 3.0.0. Users install ai-seo once |
 | `ai-cvp` | `ai-security` | rename | Plugin merged into ai-security in 3.0.0. Users install ai-security once |
+| `ai-t3` | `ai-route` | rename | Plugin renamed in marketplace 3.15.0 (ai-route 2.0.0). Users install ai-route once |
 | `ai-learn` | Learning output style: `/config` (built-in) | removed | Plugin removed in July 2026. In `/config`, set "Output style" to "Learning" |
 | `ai-plugins` | ask Claude Code to create the plugin (built-in) | removed | Plugin removed in 2.0.0 because Claude Code handles plugin creation natively |
 | `accessibility-auditing` | `/ai-accessibility:accessibility-audit` | rename | Skill name before 2.0.0 |
@@ -59,6 +60,7 @@ The table below keeps this format, so a script can check it:
 | `performance-auditing` | `/ai-performance:performance-audit` | rename | Skill name before 2.0.0 |
 | `performance-auditor`, `performance-optimizer` | `/ai-performance:performance-audit` | changed | Subagent removed in 3.0.0 (it was `performance-optimizer` before 1.5.0). The skill runs the audit itself and takes `[path]` |
 | `/ai-cvp:cvp-defense-audit` | `/ai-security:security-cvp-audit` | rename | Moved into ai-security in 3.0.0 |
+| `/ai-t3:t3-route` | `/ai-route:route-task` | rename | Renamed in marketplace 3.15.0 (ai-route 2.0.0). Arguments are unchanged |
 | `security-auditing` | `/ai-security:security-audit` | rename | Skill name before 2.0.0 |
 | `security-dependency-scanning` | `/ai-security:security-scan-dependencies` | rename | Skill name before 2.0.0 |
 | `security-dependency-scanner` | `/ai-security:security-scan-dependencies` | changed | Subagent removed in 3.0.0. The skill runs the scan itself and takes `[URL] [frontend, cms, headers or all]` |

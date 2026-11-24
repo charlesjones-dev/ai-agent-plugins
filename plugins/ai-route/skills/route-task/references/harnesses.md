@@ -8,17 +8,18 @@ If a provider's `driverKind` has no profile here, say "No harness profile for <d
 
 Only Claude Code loads `~/.claude/CLAUDE.md`. Other harnesses never see it, so a thread on another provider misses every rule in it. A copy or a symlink doesn't help, because each harness cuts off a rules file at its size cap. The pointer is a short block that tells the model to read the file itself.
 
-The current block, version 1:
+The current block, version 2:
 
 ```markdown
-<!-- t3-route: rules pointer v1 -->
+<!-- route-task: rules pointer v2 -->
 At the start of every session, read ~/.claude/CLAUDE.md in full and follow it.
 In a repository, also read its CLAUDE.md and .claude/rules/ before you plan or edit.
 Some rules name Claude Code tools. Where you lack that tool, follow the rule's intent with your own tools.
-<!-- /t3-route -->
+<!-- /route-task -->
 ```
 
-- The opening marker carries the version. A file that has `<!-- t3-route: rules pointer v` with a lower number has an old block. Replace the text from the opening marker through `<!-- /t3-route -->`, and nothing else.
+- The opening marker carries the version. A file that has `<!-- route-task: rules pointer v` with a lower number has an old block. Replace the text from the opening marker through `<!-- /route-task -->`, and nothing else.
+- Version 1 came from the plugin's old name, ai-t3. Its markers are `<!-- t3-route: rules pointer v1 -->` and `<!-- /t3-route -->`. A file with that block has an old block too. Replace the text from that opening marker through `<!-- /t3-route -->`, and nothing else.
 - A file without the marker gets the block at its end, after one blank line.
 - Never change text outside the markers. That text is the user's.
 - Before you change an existing file, copy it to `~/.claude/model-router/backups/<driverKind>-<file name>-<YYYYMMDD-HHMMSS>`. A new file needs no backup.
@@ -47,7 +48,7 @@ Some rules name Claude Code tools. Where you lack that tool, follow the rule's i
 - Project rules: `GEMINI.md` and `AGENTS.md` in each folder from the working folder up to the repository root, plus `.agents/rules/*.md`. It never reads `CLAUDE.md`.
 - Global rules: Markdown files in `~/.gemini/config/rules/`. A file loads in every session only when its frontmatter has `trigger: always_on`.
 - Size cap: 24,000 bytes per file. All always-on and global rules share a 20,000-token budget. Rules over that budget become file paths that the model may or may not open.
-- Pointer file: `~/.gemini/config/rules/t3-route-rules-pointer.md`. The router owns this whole file, so write it with this frontmatter before the block:
+- Pointer file: `~/.gemini/config/rules/route-task-rules-pointer.md`. The router owns this whole file, so write it with this frontmatter before the block:
 
   ```markdown
   ---
@@ -55,6 +56,7 @@ Some rules name Claude Code tools. Where you lack that tool, follow the rule's i
   ---
   ```
 
+- Old pointer file: `~/.gemini/config/rules/t3-route-rules-pointer.md`, from the plugin's old name. When it exists, it counts as an old block. Back it up, write the new pointer file, then delete the old file, so Antigravity doesn't load the pointer twice.
 - Tools: its own MCP servers in `~/.gemini/config/mcp_config.json`. It doesn't load Claude Code plugins unless the user installs one with `agy plugin install`.
 - Source: the built-in `agy-customizations` skill under `~/.gemini/antigravity-cli/builtin/skills/`. Its `docs/rules.md` page gives the size caps, and its `SKILL.md` gives the `trigger: always_on` frontmatter.
 

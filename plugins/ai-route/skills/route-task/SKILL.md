@@ -1,11 +1,11 @@
 ---
-name: t3-route
+name: route-task
 description: "Picks the best available T3 Code model and effort for a task and starts the work. Reads the live model list from T3 Code, ranks the models by cached benchmark scores that match the kind of task, vendor docs and your own past results, then asks you to choose from the top three or, with --yolo, starts the top pick. The work runs in this thread, a new thread or a child task. Keeps a rules pointer in the global rules file of each harness that doesn't load CLAUDE.md, such as Grok and Antigravity, so their threads follow your rules. Runs only in T3 Code."
 argument-hint: "[--yolo] [--effort cost|balanced|quality] <task> | --refresh | --note <model> <text>"
 disable-model-invocation: true
 ---
 
-# /t3-route - Route a task to a model
+# /route-task - Route a task to a model
 
 Pick the model and effort that suit this task best, from the models T3 Code can run now, and start the work on it.
 
@@ -14,11 +14,11 @@ User provided: $ARGUMENTS
 ## Arguments
 
 ```text
-/t3-route <task>                                  # ask mode: top 3 picks, you choose
-/t3-route --yolo <task>                           # start the top pick with no question
-/t3-route --effort cost|balanced|quality <task>   # override the effort setting for one run
-/t3-route --refresh                               # research every available model again now
-/t3-route --note <model> <text>                   # add an observation to a model's cache file
+/route-task <task>                                  # ask mode: top 3 picks, you choose
+/route-task --yolo <task>                           # start the top pick with no question
+/route-task --effort cost|balanced|quality <task>   # override the effort setting for one run
+/route-task --refresh                               # research every available model again now
+/route-task --note <model> <text>                   # add an observation to a model's cache file
 ```
 
 Flags can be combined, such as `--yolo --effort quality <task>`. `--refresh <task>` refreshes the cache, then routes the task. With no task and no `--refresh` or `--note`, ask for the task in one line and stop.
@@ -54,7 +54,7 @@ Read `~/.claude/model-router/config.json`. If it doesn't exist, copy `${CLAUDE_S
 
 ## 0. Check for T3 Code
 
-The router needs T3 Code's tools. Look for a tool whose name ends in `orchestrator_capabilities`. Each harness names T3 Code's tools with its own prefix: Claude Code uses `mcp__t3-code__`, and the Grok CLI uses `t3-code__`. In Claude Code the T3 tools are deferred, so load them with ToolSearch first (`select:mcp__t3-code__orchestrator_capabilities,mcp__t3-code__t3_thread_configure,mcp__t3-code__t3_thread_launch,mcp__t3-code__delegate_task`). If no such tool exists, say "/t3-route needs T3 Code, because it reads the model list and starts threads through T3 Code's tools." and stop.
+The router needs T3 Code's tools. Look for a tool whose name ends in `orchestrator_capabilities`. Each harness names T3 Code's tools with its own prefix: Claude Code uses `mcp__t3-code__`, and the Grok CLI uses `t3-code__`. In Claude Code the T3 tools are deferred, so load them with ToolSearch first (`select:mcp__t3-code__orchestrator_capabilities,mcp__t3-code__t3_thread_configure,mcp__t3-code__t3_thread_launch,mcp__t3-code__delegate_task`). If no such tool exists, say "/route-task needs T3 Code, because it reads the model list and starts threads through T3 Code's tools." and stop.
 
 These instructions name the tools without a prefix. Other harnesses may also lack a tool these steps use:
 
@@ -201,15 +201,15 @@ Context:
 
 Rules: before you plan or edit, read ~/.claude/CLAUDE.md in full and follow it. Also read this repository's CLAUDE.md and .claude/rules/.
 
-Routed by /t3-route, run <run ID>.
+Routed by /route-task, run <run ID>.
 ```
 
-The run ID is the date and time, such as `20261123-1405`. The last line lets a later `/t3-route` in that thread find this run.
+The run ID is the date and time, such as `20261123-1405`. The last line lets a later `/route-task` in that thread find this run.
 
 `options` below is `[{ "id": <effort option id>, "value": <effort> }]`. Leave it out for a model with no effort option.
 
-- **stay**: say so in one line that ends with "Routed by /t3-route, run <run ID>.", then do the task in this thread.
-- **new thread**: call `t3_thread_launch` with a short `title`, the brief as `message`, `modelSelection` set to `{ "instanceId": <providerInstanceId>, "model": <model id>, "options": <options> }`, and `clientRequestId` set to `t3-route-<run ID>`. Leave out `projectId`, so the thread joins this project. Check whether the working folder is in a linked git worktree: compare `git rev-parse --path-format=absolute --git-dir` with `git rev-parse --path-format=absolute --git-common-dir`. Without `--path-format=absolute`, a subfolder of the main checkout prints one path in full and the other relative, so they differ there too. When the two paths differ, pass `workspaceStrategy` `{ "type": "existing_worktree", "worktreePath": <the output of git rev-parse --show-toplevel> }`, so the thread works in the same checkout. Otherwise leave `workspaceStrategy` out. Give the user the thread's `link`.
+- **stay**: say so in one line that ends with "Routed by /route-task, run <run ID>.", then do the task in this thread.
+- **new thread**: call `t3_thread_launch` with a short `title`, the brief as `message`, `modelSelection` set to `{ "instanceId": <providerInstanceId>, "model": <model id>, "options": <options> }`, and `clientRequestId` set to `route-task-<run ID>`. Leave out `projectId`, so the thread joins this project. Check whether the working folder is in a linked git worktree: compare `git rev-parse --path-format=absolute --git-dir` with `git rev-parse --path-format=absolute --git-common-dir`. Without `--path-format=absolute`, a subfolder of the main checkout prints one path in full and the other relative, so they differ there too. When the two paths differ, pass `workspaceStrategy` `{ "type": "existing_worktree", "worktreePath": <the output of git rev-parse --show-toplevel> }`, so the thread works in the same checkout. Otherwise leave `workspaceStrategy` out. Give the user the thread's `link`.
 - **child task**: call `delegate_task` with the brief as `task`, the closest `role`, `target` set to `{ "providerInstanceId": <providerInstanceId>, "model": <model id>, "options": <options> }`, and a new `clientRequestId`. Use `isolation: "worktree"` when the child will change files, so its edits don't mix with this thread's. Then follow the `next` field the tool returns.
 
 ## 7. Log the run
@@ -225,13 +225,13 @@ Add one row to `~/.claude/model-router/log.md`. Create the file with this header
 - `Pick` and `Recommended`: provider, model and effort, such as `<provider>/<model>/high`.
 - `Overrode`: `yes` when the user chose something other than the recommendation, otherwise `no`.
 - `Reason`: one line, with the main score.
-- `Reroute of`: the earlier run's ID, when this run routes the same task again. That is the case when the user says so, or when this thread holds "Routed by /t3-route, run <ID>" and the task is the one that run routed. A `new thread` or `child task` run puts the line at the end of the thread's first message, and a `stay` run puts it in a reply. A new, different task in a routed thread is not a reroute. Otherwise leave the cell empty.
+- `Reroute of`: the earlier run's ID, when this run routes the same task again. That is the case when the user says so, or when this thread holds "Routed by /route-task, run <ID>" (or "Routed by /t3-route, run <ID>", from the plugin's old name) and the task is the one that run routed. A `new thread` or `child task` run puts the line at the end of the thread's first message, and a `stay` run puts it in a reply. A new, different task in a routed thread is not a reroute. Otherwise leave the cell empty.
 
 A reroute is the strongest signal the router gets. It means the first pick didn't work out for that task. [Rank](#5-rank) counts it as a bad result for the earlier run's pick.
 
 ## --note
 
-`/t3-route --note <model> <text>` records an observation:
+`/route-task --note <model> <text>` records an observation:
 
 1. Load T3 Code's tools as step 0 says, and call `orchestrator_capabilities`. Match `<model>` against the model IDs and labels of every provider, including disabled ones, then against the cache files' names and `aliases`. If more than one matches, ask which one. If none matches, say so and stop.
 2. Add `- <YYYY-MM-DD>: <text>` at the end of the "Own observations" section of that model's cache file. If the file doesn't exist, create it with the frontmatter, an empty Benchmarks table and the note, and leave `researched` empty so the next run researches it.
