@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### AI-T3 Plugin (v1.0.1 → v1.1.0)
 
 - **`skipProviders`** — a list of `providerInstanceId` values that the router never offers, such as an instance kept for one kind of work. It defaults to an empty list, and the report names each provider it skipped.
+- **`smallTasksStay`** — on by default. With `balanced`, a small task, such as a lookup, a short summary or one quick check, stays in the current thread when the thread's model scores within `costMargin` of the best for that kind of task. Benchmark tasks run for many minutes, so on a small task a handoff and extra effort mostly add wait time. The question still offers the next two picks.
 
 ### Fixed
 

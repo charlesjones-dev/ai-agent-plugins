@@ -97,6 +97,7 @@ The router keeps its data in `~/.claude/model-router/`, on your machine only:
 | `costMargin` | `10` | Points `cost` gives up to save cost |
 | `preferOtherProviders` | `false` | Prefer a harness other than the current thread's, such as Grok when the thread runs Claude Code, when two picks are close. Two instances of the same harness count as one |
 | `skipProviders` | `[]` | Provider instances the router never offers, such as one you keep for one kind of work |
+| `smallTasksStay` | `true` | With `balanced`, a lookup, a short summary or one quick check stays in the current thread when its model scores within `costMargin` of the best |
 | `minOwnOutcomes` | `3` | Your results needed before they outweigh benchmarks |
 | `sites` | four sites | The benchmark sites. Add or remove any |
 

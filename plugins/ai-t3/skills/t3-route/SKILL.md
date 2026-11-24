@@ -48,6 +48,7 @@ Read `~/.claude/model-router/config.json`. If it doesn't exist, copy `${CLAUDE_S
 | `costMargin` | `10` | Points of score that `cost` gives up to save cost. |
 | `preferOtherProviders` | `false` | When candidates are within the margin, prefer a harness other than this thread's: a different `driverKind`, such as the Grok CLI when this thread runs Claude Code. Two instances of the same harness count as one. See [Scores](#scores). Turn it on to spread work across subscriptions. |
 | `skipProviders` | `[]` | `providerInstanceId` values the router never offers, such as an instance you keep for one kind of work. |
+| `smallTasksStay` | `true` | With `balanced`, a small task stays in this thread when this thread's model scores within `costMargin` of the best. See [Small tasks](#small-tasks). |
 | `minOwnOutcomes` | `3` | How many of your own results for one kind of task a model needs before they outweigh benchmarks. |
 | `sites` | four sites | The benchmark sites, each with `name`, `url`, `fetch` (`web` or `browser`) and `notes`. Add or remove sites here. |
 
@@ -153,6 +154,12 @@ A harness that doesn't load the user's rules stays in, with its warning, but can
    - A note in "Own observations" counts as good, bad or neutral by what it says. It counts for the category it names, or for every category when it names none.
    - When a model has at least `minOwnOutcomes` good or bad results in this category, they outweigh benchmarks: move it above or below the others to match. With fewer, mention them in the reasoning only.
 7. **Weigh confidence.** A model with `confidence: low`, such as one on no leaderboard, can be an option but not the recommended pick, unless the user's own results support it.
+
+### Small tasks
+
+A small task is a lookup, a short summary or one quick check, such as reading one page's console errors or explaining one function. Benchmark tasks run for many minutes, so on a small task a handoff and extra effort mostly add wait time. Say in the reply when you treat a task as small.
+
+With `smallTasksStay` on and the `balanced` setting, after the Scores steps: when this thread's model passes the hard filters and its category score at this thread's effort is within `costMargin` points of the best, the top pick is stay, on this thread's model and effort. The next two picks from the Scores steps become the other options. Skip this rule for `cost` and `quality`, and when the user names a model.
 
 ### Mode
 

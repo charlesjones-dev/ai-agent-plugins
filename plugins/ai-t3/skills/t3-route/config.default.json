@@ -7,6 +7,7 @@
   "costMargin": 10,
   "preferOtherProviders": false,
   "skipProviders": [],
+  "smallTasksStay": true,
   "minOwnOutcomes": 3,
   "sites": [
     {
