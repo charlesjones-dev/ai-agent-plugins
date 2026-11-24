@@ -110,7 +110,7 @@ Wait for the subagent, then check its files as `references/research.md` says. Wi
 
 ### Kind of task
 
-Put the task in one category, and say which in the reply. Each category maps to the metrics that measure it:
+If the task names code, files or a feature that the repository doesn't have, ask the user what they meant before you rank. Then put the task in one category, and say which in the reply. Each category maps to the metrics that measure it:
 
 | Category | Examples | LiveBench | Arena | Artificial Analysis and Slopalytics |
 | --- | --- | --- | --- | --- |
@@ -129,7 +129,7 @@ The cache files use these metric names. Match them without regard to case, becau
 
 A candidate is one provider, one model and one effort value. Drop a candidate when:
 
-- its harness lacks a tool the task needs, such as a Claude Code skill or plugin command, a named MCP server or Claude in Chrome. `references/harnesses.md` says what each harness loads. Check the harness's config when it matters.
+- its harness lacks a tool the task needs, such as a Claude Code skill or plugin command, a named MCP server or Claude in Chrome. A task needs a tool when the user names it, or when the work can't be done without it. A tool that would only help, such as a browser to view a page that the code already describes, isn't a filter. Mention it in that option's description instead. `references/harnesses.md` says what each harness loads. Check the harness's config when it matters.
 - the task needs more context than the model's context window, from its cache file.
 
 A harness that doesn't load the user's rules stays in, with its warning, but can't be the recommended pick.
