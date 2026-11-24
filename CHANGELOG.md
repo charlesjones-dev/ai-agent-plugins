@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ask mode** — each option's reasoning names only the rule that decided the order. Before, an option could say `preferOtherProviders` ranked it lower when the lower cost did. When no option is stay and the thread's own model is a candidate at another effort, the question now says how to run the task in the thread instead, with its cost and time.
 - **Hard filter** — a harness is dropped only for a tool the task needs: one the user names, or one the work can't be done without. Before, a layout task that never named a browser dropped every harness without Claude in Chrome, because a browser would help.
 - **Tasks about missing code** — when a task names code, files or a feature that the repository doesn't have, the router asks what the user meant before it ranks.
+- **Thread effort** — when the thread's model settings hold no effort, the router uses that model's default effort for stay and the small-task rule.
 
 ### Changed
 
