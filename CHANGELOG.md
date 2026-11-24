@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.15.0] - 2026-11-24
+
+### Changed
+
+#### AI-Route Plugin (renamed from AI-T3, v1.1.0 → v2.0.0)
+
+- **Plugin renamed** — ai-t3 is now ai-route, and `/t3-route` is now `/route-task`. The new names follow T3 Code's guidance for third-party tools: don't name them T3 or make them look official. The plugin still works only in T3 Code. The Claude Code catalog's `renames` map points `ai-t3` at `ai-route`, so Claude Code moves the enabled setting. Users still run `/plugin install ai-route@ai-agent-plugins` once.
+- **Rules pointer v2** — the block's markers are now `<!-- route-task: rules pointer v2 -->` and `<!-- /route-task -->`. The router replaces the version 1 block, which used `t3-route` markers. In Antigravity, it moves the pointer from `t3-route-rules-pointer.md` to `route-task-rules-pointer.md` and deletes the old file after a backup, so the pointer doesn't load twice.
+- **Reroutes** — a thread that holds "Routed by /t3-route, run <ID>" still counts for reroute detection.
+- Settings, the research cache and the log stay in `~/.claude/model-router/`, so nothing needs to move.
+- `/kb-migrate`'s command map has rows for `ai-t3` and `/ai-t3:t3-route`.
+
 ## [3.14.0] - 2026-11-23
 
 ### Added
@@ -1923,7 +1935,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.14.0...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.15.0...HEAD
+[3.15.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.14.0...v3.15.0
 [3.14.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.1...v3.14.0
 [3.13.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.0...v3.13.1
 [3.13.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...v3.13.0
