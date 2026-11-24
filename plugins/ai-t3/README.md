@@ -95,7 +95,9 @@ The router keeps its data in `~/.claude/model-router/`, on your machine only:
 | `cacheDays` | `30` | Days before a model is researched again |
 | `balancedMargin` | `3` | Points `balanced` gives up to save cost and time |
 | `costMargin` | `10` | Points `cost` gives up to save cost |
-| `preferOtherProviders` | `false` | Prefer a provider other than the current thread's when two picks are close |
+| `preferOtherProviders` | `false` | Prefer a harness other than the current thread's, such as Grok when the thread runs Claude Code, when two picks are close. Two instances of the same harness count as one |
+| `skipProviders` | `[]` | Provider instances the router never offers, such as one you keep for one kind of work |
+| `smallTasksStay` | `true` | With `balanced`, a lookup, a short summary or one quick check stays in the current thread when its model scores within `costMargin` of the best |
 | `minOwnOutcomes` | `3` | Your results needed before they outweigh benchmarks |
 | `sites` | four sites | The benchmark sites. Add or remove any |
 
@@ -125,7 +127,7 @@ Slopalytics and LiveBench need JavaScript, so the research subagent reads them i
 ## Plugin details
 
 - **Name:** AI-T3
-- **Version:** 1.0.1
+- **Version:** 1.1.0
 - **License:** MIT
 - **Author:** Charles Jones
 

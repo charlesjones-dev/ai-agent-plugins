@@ -46,7 +46,9 @@ Read `~/.claude/model-router/config.json`. If it doesn't exist, copy `${CLAUDE_S
 | `cacheDays` | `30` | Research a model again when its cache file is older than this. |
 | `balancedMargin` | `3` | Points of score that `balanced` gives up to save cost and time. |
 | `costMargin` | `10` | Points of score that `cost` gives up to save cost. |
-| `preferOtherProviders` | `false` | When candidates are within the margin, prefer a provider other than this thread's. See [Scores](#scores). Turn it on to spread work across subscriptions. |
+| `preferOtherProviders` | `false` | When candidates are within the margin, prefer a harness other than this thread's: a different `driverKind`, such as the Grok CLI when this thread runs Claude Code. Two instances of the same harness count as one. See [Scores](#scores). Turn it on to spread work across subscriptions. |
+| `skipProviders` | `[]` | `providerInstanceId` values the router never offers, such as an instance you keep for one kind of work. |
+| `smallTasksStay` | `true` | With `balanced`, a small task stays in this thread when this thread's model scores within `costMargin` of the best. See [Small tasks](#small-tasks). |
 | `minOwnOutcomes` | `3` | How many of your own results for one kind of task a model needs before they outweigh benchmarks. |
 | `sites` | four sites | The benchmark sites, each with `name`, `url`, `fetch` (`web` or `browser`) and `notes`. Add or remove sites here. |
 
@@ -62,11 +64,11 @@ These instructions name the tools without a prefix. Other harnesses may also lac
 
 ## 1. List the models
 
-1. Call `orchestrator_capabilities`. Keep each provider that has `canRunChildTask: true` and no "disabled" entry in its `constraints`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time.
+1. Call `orchestrator_capabilities`. Keep each provider that has `canRunChildTask: true` and no "disabled" entry in its `constraints`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time. Then drop each provider whose `providerInstanceId` is in `skipProviders`, and name it in the same line with the reason "in skipProviders".
 2. The result is a short list. When the task clearly needs a model the list leaves out, such as a model the user named, call it again with `search`.
 3. Record each provider's `providerInstanceId`, `driverKind`, `displayName`, and each model's `id`, `label` and options with their allowed values and default. Some options list no default. The same model can come from several providers with different option ranges. For example, one provider may allow `max` effort and another only `high`.
 4. Find the effort option for each model. Its `id` is `effort`, `reasoningEffort`, `reasoning_effort` or `thought_level`. Benchmark sites name efforts `low`, `medium`, `high`, `xhigh` and `max`. Rank only those five. Never pick a value outside that set, such as `default` or `ultrathink`, and leave other switches, such as `ultracode`, as they are. A model with no effort option runs without one.
-5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `modelSelection.instanceId`, `modelSelection.model` and the effort option in `modelSelection.options`. "Stay" means the work runs on this model.
+5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `modelSelection.instanceId`, `modelSelection.model` and the effort option in `modelSelection.options`. "Stay" means the work runs on this model. Look up this thread's `driverKind` from its instance in the provider list. When `modelSelection.options` holds no effort, this thread runs at that model's default effort, from the same list.
 
 Never list models from memory, from an old cache file or from these instructions. Only `orchestrator_capabilities` says what is available.
 
@@ -108,18 +110,18 @@ Wait for the subagent, then check its files as `references/research.md` says. Wi
 
 ### Kind of task
 
-Put the task in one category, and say which in the reply. Each category maps to the metrics that measure it:
+If the task names code, files or a feature that the repository doesn't have, ask the user what they meant before you rank. Then put the task in one category, and say which in the reply. Each category maps to the metrics that measure it:
 
 | Category | Examples | LiveBench | Arena | Artificial Analysis and Slopalytics |
 | --- | --- | --- | --- | --- |
 | Agentic | Long multi-step work across many files, runs that last hours | Agentic | Agent Arena Index | Intelligence index |
-| Coding | A bug fix, a feature, a refactor, tests | Coding | Coding Index | Intelligence index |
+| Coding | A bug fix, a feature, a refactor, tests, or explaining how code in the repository works | Coding | Coding Index | Intelligence index |
 | Design | A web page, a UI, a slide layout | Design | WebDev | Intelligence index |
-| Research | A report, a comparison, docs to read and sum up | Research | Search | Intelligence index |
+| Research | A report or a comparison from sources outside the repository, such as web pages or vendor docs | Research | Search | Intelligence index |
 | Data analysis | Numbers, tables, logs, spreadsheets | Data Analysis | none | Intelligence index |
 | Reasoning | A plan, a hard bug to think through, math | Reasoning | Text | Intelligence index |
 | Browser use | Work done in a web browser | Browser Use | none | Intelligence index |
-| General | Writing, short questions, anything else | Overall | Text | Intelligence index |
+| General | Writing, short questions, a summary of the repository's own docs, anything else | Overall | Text | Intelligence index |
 
 The cache files use these metric names. Match them without regard to case, because older files may spell them differently.
 
@@ -127,7 +129,7 @@ The cache files use these metric names. Match them without regard to case, becau
 
 A candidate is one provider, one model and one effort value. Drop a candidate when:
 
-- its harness lacks a tool the task needs, such as a Claude Code skill or plugin command, a named MCP server or Claude in Chrome. `references/harnesses.md` says what each harness loads. Check the harness's config when it matters.
+- its harness lacks a tool the task needs, such as a Claude Code skill or plugin command, a named MCP server or Claude in Chrome. A task needs a tool when the user names it, or when the work can't be done without it. A tool that would only help, such as a browser to view a page that the code already describes, isn't a filter. Mention it in that option's description instead. `references/harnesses.md` says what each harness loads. Check the harness's config when it matters.
 - the task needs more context than the model's context window, from its cache file.
 
 A harness that doesn't load the user's rules stays in, with its warning, but can't be the recommended pick.
@@ -141,10 +143,10 @@ A harness that doesn't load the user's rules stays in, with its warning, but can
    - `balanced`: the lowest effort within `balancedMargin` points of the best of those efforts. Skip extra effort that adds only a point or two.
    - `cost`: the lowest effort within `costMargin` points of the best.
    - When no allowed effort has data, use the highest allowed effort for `quality`. For `balanced` and `cost`, use the provider's default when it is one of the five benchmark efforts, otherwise the allowed effort nearest to `medium`, taking the higher one on a tie.
-4. **Pick a provider for each model** that several providers offer. Prefer the one whose effort from step 3 has the higher Intelligence index, then the one that loads the user's rules, then, with `preferOtherProviders`, one other than this thread's provider. Each model now has one provider and one effort.
+4. **Pick a provider for each model** that several providers offer. Prefer the one whose effort from step 3 has the higher Intelligence index, then the one that loads the user's rules, then, with `preferOtherProviders`, one whose `driverKind` differs from this thread's, then this thread's own instance over another instance of the same harness. Each model now has one provider and one effort.
 5. **Pick the model** with the effort setting. A model's category score is the main site's score at its effort. When the site gives no score at that effort, use its `unspecified` score, or else its score at the nearest effort the site gives.
    - `quality`: the highest category score, whatever it costs.
-   - `balanced`: take every model within `balancedMargin` points of the best category score. With `preferOtherProviders`, drop the models on this thread's provider, if any model in the group remains. Of the rest, pick the one with the lowest cost per task, and the shorter time per task on a tie.
+   - `balanced`: take every model within `balancedMargin` points of the best category score. With `preferOtherProviders`, drop the models whose provider has this thread's `driverKind`, if any model in the group remains. Of the rest, pick the one with the lowest cost per task, and the shorter time per task on a tie.
    - `cost`: the same, with `costMargin`.
    - Cost and time per task come from Slopalytics at the model's effort, or from Artificial Analysis when Slopalytics lacks the model. When a model in the group lacks those figures, compare the whole group on LiveBench's `Cost per successful task (USD)` instead. LiveBench has no time per task, so its cost decides alone. When no source covers the whole group, pick the higher category score and say that cost data was missing.
 6. **Apply the user's own results.** Count them per category:
@@ -152,6 +154,12 @@ A harness that doesn't load the user's rules stays in, with its warning, but can
    - A note in "Own observations" counts as good, bad or neutral by what it says. It counts for the category it names, or for every category when it names none.
    - When a model has at least `minOwnOutcomes` good or bad results in this category, they outweigh benchmarks: move it above or below the others to match. With fewer, mention them in the reasoning only.
 7. **Weigh confidence.** A model with `confidence: low`, such as one on no leaderboard, can be an option but not the recommended pick, unless the user's own results support it.
+
+### Small tasks
+
+A small task is a lookup, a short summary or one quick check, such as reading one page's console errors or explaining one function. Benchmark tasks run for many minutes, so on a small task a handoff and extra effort mostly add wait time. Say in the reply when you treat a task as small.
+
+With `smallTasksStay` on and the `balanced` setting, after the Scores steps: when this thread's model passes the hard filters and its category score at this thread's effort is within `costMargin` points of the best, the top pick is stay, on this thread's model and effort. The next two picks from the Scores steps become the other options. Skip this rule for `cost` and `quality`, and when the user names a model.
 
 ### Mode
 
@@ -165,12 +173,13 @@ Pick one mode for each option:
 
 ### Ask mode
 
-Take the top pick and the next two best candidates that differ from it by model or provider. When a candidate on a provider other than the top pick's passes the filters, include at least one such option. Ask one question with AskUserQuestion:
+Take the top pick and the next two best candidates that differ from it by model or provider. When a candidate on a harness other than the top pick's (a different `driverKind`) passes the filters, include at least one such option. Ask one question with AskUserQuestion:
 
 - Question: "Which model should take this task? <category>, effort setting <setting>." Header: "Route".
 - Up to three options. The tool adds "Other" by itself.
 - Label: the model label, effort, provider and mode, such as "<model> · high · <provider> · new thread". Mark the top pick "(Recommended)" and list it first.
-- Description: the main scores with their sites, the cost and time per task, and one line of reasoning. Add the confidence when it isn't high, and any rules warning.
+- Description: the main scores with their sites, the cost and time per task, and one line of reasoning. The reasoning names the rule that decided the order, such as the lower cost or `preferOtherProviders`, and only that rule. Add the confidence when it isn't high, and any rules warning.
+- When no option is stay, and this thread's model is a candidate at another effort, end the question with: "Other: type `stay` to run it here on <model> <effort>." Give its cost and time per task.
 
 An "Other" answer names a model, effort, provider or mode in the user's words. Match it against the live list from step 1. If it doesn't match, say so and ask again.
 

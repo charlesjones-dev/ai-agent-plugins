@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.14.0] - 2026-11-23
+
+### Added
+
+#### AI-T3 Plugin (v1.0.1 → v1.1.0)
+
+- **`skipProviders`** — a list of `providerInstanceId` values that the router never offers, such as an instance kept for one kind of work. It defaults to an empty list, and the report names each provider it skipped.
+- **`smallTasksStay`** — on by default. With `balanced`, a small task, such as a lookup, a short summary or one quick check, stays in the current thread when the thread's model scores within `costMargin` of the best for that kind of task. Benchmark tasks run for many minutes, so on a small task a handoff and extra effort mostly add wait time. The question still offers the next two picks.
+
+### Fixed
+
+#### AI-T3 Plugin
+
+- **`preferOtherProviders` compares harnesses** — it now prefers a different `driverKind`, such as the Grok CLI when the thread runs Claude Code. Two T3 Code instances of the same harness count as one provider. Before, a second Claude Code instance counted as another provider, so the router dropped a cheaper model on the thread's own instance and recommended a pricier one on the second instance. On a tie between two instances of the same harness, the router now prefers the thread's own instance. Ask mode's "another provider" option uses the same rule.
+- **Categories** — explaining how code in the repository works now counts as Coding. Research now means a report or comparison from sources outside the repository, which is what LiveBench's Research suite measures. Before, a summary of how an app stores data was scored on web-research results. A summary of the repository's own docs, such as its README, counts as General.
+- **Ask mode** — each option's reasoning names only the rule that decided the order. Before, an option could say `preferOtherProviders` ranked it lower when the lower cost did. When no option is stay and the thread's own model is a candidate at another effort, the question now says how to run the task in the thread instead, with its cost and time.
+- **Hard filter** — a harness is dropped only for a tool the task needs: one the user names, or one the work can't be done without. Before, a layout task that never named a browser dropped every harness without Claude in Chrome, because a browser would help.
+- **Tasks about missing code** — when a task names code, files or a feature that the repository doesn't have, the router asks what the user meant before it ranks.
+- **Thread effort** — when the thread's model settings hold no effort, the router uses that model's default effort for stay and the small-task rule.
+
+### Changed
+
+- Marketplace metadata version bumped `3.13.1` → `3.14.0`.
+
 ## [3.13.1] - 2026-11-23
 
 ### Fixed
@@ -1899,7 +1923,8 @@ New plugin for Swift / iOS / macOS development whose primary job is to catch rel
 
 - README.md, CLAUDE.md, individual plugin READMEs, and MIT license
 
-[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.1...HEAD
+[Unreleased]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.14.0...HEAD
+[3.14.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.1...v3.14.0
 [3.13.1]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.13.0...v3.13.1
 [3.13.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.12.0...v3.13.0
 [3.12.0]: https://github.com/charlesjones-dev/ai-agent-plugins/compare/v3.11.1...v3.12.0
