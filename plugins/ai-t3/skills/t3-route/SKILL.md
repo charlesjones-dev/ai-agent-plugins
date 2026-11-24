@@ -121,7 +121,7 @@ If the task names code, files or a feature that the repository doesn't have, ask
 | Data analysis | Numbers, tables, logs, spreadsheets | Data Analysis | none | Intelligence index |
 | Reasoning | A plan, a hard bug to think through, math | Reasoning | Text | Intelligence index |
 | Browser use | Work done in a web browser | Browser Use | none | Intelligence index |
-| General | Writing, short questions, anything else | Overall | Text | Intelligence index |
+| General | Writing, short questions, a summary of the repository's own docs, anything else | Overall | Text | Intelligence index |
 
 The cache files use these metric names. Match them without regard to case, because older files may spell them differently.
 
