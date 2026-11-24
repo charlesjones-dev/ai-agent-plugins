@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### AI-T3 Plugin
 
 - **`preferOtherProviders` compares harnesses** — it now prefers a different `driverKind`, such as the Grok CLI when the thread runs Claude Code. Two T3 Code instances of the same harness count as one provider. Before, a second Claude Code instance counted as another provider, so the router dropped a cheaper model on the thread's own instance and recommended a pricier one on the second instance. On a tie between two instances of the same harness, the router now prefers the thread's own instance. Ask mode's "another provider" option uses the same rule.
+- **Categories** — explaining how code in the repository works now counts as Coding. Research now means a report or comparison from sources outside the repository, which is what LiveBench's Research suite measures. Before, a summary of how an app stores data was scored on web-research results.
+- **Ask mode** — each option's reasoning names only the rule that decided the order. Before, an option could say `preferOtherProviders` ranked it lower when the lower cost did. When no option is stay and the thread's own model is a candidate at another effort, the question now says how to run the task in the thread instead, with its cost and time.
 
 ### Changed
 

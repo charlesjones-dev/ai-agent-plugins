@@ -114,9 +114,9 @@ Put the task in one category, and say which in the reply. Each category maps to 
 | Category | Examples | LiveBench | Arena | Artificial Analysis and Slopalytics |
 | --- | --- | --- | --- | --- |
 | Agentic | Long multi-step work across many files, runs that last hours | Agentic | Agent Arena Index | Intelligence index |
-| Coding | A bug fix, a feature, a refactor, tests | Coding | Coding Index | Intelligence index |
+| Coding | A bug fix, a feature, a refactor, tests, or explaining how code in the repository works | Coding | Coding Index | Intelligence index |
 | Design | A web page, a UI, a slide layout | Design | WebDev | Intelligence index |
-| Research | A report, a comparison, docs to read and sum up | Research | Search | Intelligence index |
+| Research | A report or a comparison from sources outside the repository, such as web pages or vendor docs | Research | Search | Intelligence index |
 | Data analysis | Numbers, tables, logs, spreadsheets | Data Analysis | none | Intelligence index |
 | Reasoning | A plan, a hard bug to think through, math | Reasoning | Text | Intelligence index |
 | Browser use | Work done in a web browser | Browser Use | none | Intelligence index |
@@ -171,7 +171,8 @@ Take the top pick and the next two best candidates that differ from it by model 
 - Question: "Which model should take this task? <category>, effort setting <setting>." Header: "Route".
 - Up to three options. The tool adds "Other" by itself.
 - Label: the model label, effort, provider and mode, such as "<model> · high · <provider> · new thread". Mark the top pick "(Recommended)" and list it first.
-- Description: the main scores with their sites, the cost and time per task, and one line of reasoning. Add the confidence when it isn't high, and any rules warning.
+- Description: the main scores with their sites, the cost and time per task, and one line of reasoning. The reasoning names the rule that decided the order, such as the lower cost or `preferOtherProviders`, and only that rule. Add the confidence when it isn't high, and any rules warning.
+- When no option is stay, and this thread's model is a candidate at another effort, end the question with: "Other: type `stay` to run it here on <model> <effort>." Give its cost and time per task.
 
 An "Other" answer names a model, effort, provider or mode in the user's words. Match it against the live list from step 1. If it doesn't match, say so and ask again.
 
