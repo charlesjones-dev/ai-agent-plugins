@@ -6,6 +6,7 @@
   "balancedMargin": 3,
   "costMargin": 10,
   "preferOtherProviders": false,
+  "skipProviders": [],
   "minOwnOutcomes": 3,
   "sites": [
     {

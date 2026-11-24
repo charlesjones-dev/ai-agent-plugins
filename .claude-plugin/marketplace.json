@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Plugins for git and project workflows, code audits and release checks. All 16 run in Claude Code, and 9 also run in Codex and Cursor.",
-    "version": "3.13.1",
+    "version": "3.14.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -442,7 +442,7 @@
       "name": "ai-t3",
       "source": "./plugins/ai-t3",
       "description": "Routes a task to the best available T3 Code model and effort, ranked by cached benchmark scores, vendor docs and your own past results, then starts it in this thread, a new thread or a child task. Adds a rules pointer so Grok and Antigravity threads follow your Claude Code rules",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "keywords": [
         "ai",
         "t3-code",

@@ -46,7 +46,8 @@ Read `~/.claude/model-router/config.json`. If it doesn't exist, copy `${CLAUDE_S
 | `cacheDays` | `30` | Research a model again when its cache file is older than this. |
 | `balancedMargin` | `3` | Points of score that `balanced` gives up to save cost and time. |
 | `costMargin` | `10` | Points of score that `cost` gives up to save cost. |
-| `preferOtherProviders` | `false` | When candidates are within the margin, prefer a provider other than this thread's. See [Scores](#scores). Turn it on to spread work across subscriptions. |
+| `preferOtherProviders` | `false` | When candidates are within the margin, prefer a harness other than this thread's: a different `driverKind`, such as the Grok CLI when this thread runs Claude Code. Two instances of the same harness count as one. See [Scores](#scores). Turn it on to spread work across subscriptions. |
+| `skipProviders` | `[]` | `providerInstanceId` values the router never offers, such as an instance you keep for one kind of work. |
 | `minOwnOutcomes` | `3` | How many of your own results for one kind of task a model needs before they outweigh benchmarks. |
 | `sites` | four sites | The benchmark sites, each with `name`, `url`, `fetch` (`web` or `browser`) and `notes`. Add or remove sites here. |
 
@@ -62,11 +63,11 @@ These instructions name the tools without a prefix. Other harnesses may also lac
 
 ## 1. List the models
 
-1. Call `orchestrator_capabilities`. Keep each provider that has `canRunChildTask: true` and no "disabled" entry in its `constraints`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time.
+1. Call `orchestrator_capabilities`. Keep each provider that has `canRunChildTask: true` and no "disabled" entry in its `constraints`. Skip the rest, and name the skipped providers in one line. A provider can turn off between runs, so check every time. Then drop each provider whose `providerInstanceId` is in `skipProviders`, and name it in the same line with the reason "in skipProviders".
 2. The result is a short list. When the task clearly needs a model the list leaves out, such as a model the user named, call it again with `search`.
 3. Record each provider's `providerInstanceId`, `driverKind`, `displayName`, and each model's `id`, `label` and options with their allowed values and default. Some options list no default. The same model can come from several providers with different option ranges. For example, one provider may allow `max` effort and another only `high`.
 4. Find the effort option for each model. Its `id` is `effort`, `reasoningEffort`, `reasoning_effort` or `thought_level`. Benchmark sites name efforts `low`, `medium`, `high`, `xhigh` and `max`. Rank only those five. Never pick a value outside that set, such as `default` or `ultrathink`, and leave other switches, such as `ultracode`, as they are. A model with no effort option runs without one.
-5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `modelSelection.instanceId`, `modelSelection.model` and the effort option in `modelSelection.options`. "Stay" means the work runs on this model.
+5. Read this thread's model with `t3_thread_configure` and no `modelSelection`. That call only reads. Record its `modelSelection.instanceId`, `modelSelection.model` and the effort option in `modelSelection.options`. "Stay" means the work runs on this model. Look up this thread's `driverKind` from its instance in the provider list.
 
 Never list models from memory, from an old cache file or from these instructions. Only `orchestrator_capabilities` says what is available.
 
@@ -141,10 +142,10 @@ A harness that doesn't load the user's rules stays in, with its warning, but can
    - `balanced`: the lowest effort within `balancedMargin` points of the best of those efforts. Skip extra effort that adds only a point or two.
    - `cost`: the lowest effort within `costMargin` points of the best.
    - When no allowed effort has data, use the highest allowed effort for `quality`. For `balanced` and `cost`, use the provider's default when it is one of the five benchmark efforts, otherwise the allowed effort nearest to `medium`, taking the higher one on a tie.
-4. **Pick a provider for each model** that several providers offer. Prefer the one whose effort from step 3 has the higher Intelligence index, then the one that loads the user's rules, then, with `preferOtherProviders`, one other than this thread's provider. Each model now has one provider and one effort.
+4. **Pick a provider for each model** that several providers offer. Prefer the one whose effort from step 3 has the higher Intelligence index, then the one that loads the user's rules, then, with `preferOtherProviders`, one whose `driverKind` differs from this thread's, then this thread's own instance over another instance of the same harness. Each model now has one provider and one effort.
 5. **Pick the model** with the effort setting. A model's category score is the main site's score at its effort. When the site gives no score at that effort, use its `unspecified` score, or else its score at the nearest effort the site gives.
    - `quality`: the highest category score, whatever it costs.
-   - `balanced`: take every model within `balancedMargin` points of the best category score. With `preferOtherProviders`, drop the models on this thread's provider, if any model in the group remains. Of the rest, pick the one with the lowest cost per task, and the shorter time per task on a tie.
+   - `balanced`: take every model within `balancedMargin` points of the best category score. With `preferOtherProviders`, drop the models whose provider has this thread's `driverKind`, if any model in the group remains. Of the rest, pick the one with the lowest cost per task, and the shorter time per task on a tie.
    - `cost`: the same, with `costMargin`.
    - Cost and time per task come from Slopalytics at the model's effort, or from Artificial Analysis when Slopalytics lacks the model. When a model in the group lacks those figures, compare the whole group on LiveBench's `Cost per successful task (USD)` instead. LiveBench has no time per task, so its cost decides alone. When no source covers the whole group, pick the higher category score and say that cost data was missing.
 6. **Apply the user's own results.** Count them per category:
@@ -165,7 +166,7 @@ Pick one mode for each option:
 
 ### Ask mode
 
-Take the top pick and the next two best candidates that differ from it by model or provider. When a candidate on a provider other than the top pick's passes the filters, include at least one such option. Ask one question with AskUserQuestion:
+Take the top pick and the next two best candidates that differ from it by model or provider. When a candidate on a harness other than the top pick's (a different `driverKind`) passes the filters, include at least one such option. Ask one question with AskUserQuestion:
 
 - Question: "Which model should take this task? <category>, effort setting <setting>." Header: "Route".
 - Up to three options. The tool adds "Other" by itself.
